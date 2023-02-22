@@ -1,0 +1,20 @@
+Name: Zeta
+
+0. dt variable
+1. ZMath header
+2. Primitives/Basic Shapes
+3. Rigid Bodies
+4. Collision Handler
+5. Forces
+6. Collision Resolution/Impulse
+7. Rotational Physics
+
+TODO:
+ - Utsawb: 1. Aligned Cubes -- min and max vertices with vec3fs
+           2. Rigid Bodies
+           3. Triangular Pyramid Primitives
+ - Thomas: 1. Spheres
+           2. Lines
+           3. Rotated Cubes (ZMath rotate function)
+           4. dt loop
+
