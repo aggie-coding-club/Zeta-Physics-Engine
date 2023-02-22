@@ -23,7 +23,8 @@ namespace Primitives {
         if (point.x < min.x || point.x > max.x || point.y < min.y || point.y > max.y || point.z < min.z || point.z > max.z) { return 0; }
 
         // We don't need to divide by ||u|| to know if it will evaluate to 0.
-        return !((point - start).cross(end - start).magSq());
+        // ! normalize requires a slow sqrt -- optimize away if possible. Will probably just implement fast inv sqrt
+        return !((point - start).cross((end - start).normalize()).magSq());
     };
 
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {};
@@ -45,7 +46,34 @@ namespace Primitives {
 
     bool LineAndPoint(Line3D const &line, ZMath::Vec3D const &point) { return PointAndLine(point, line); };
 
-    bool LineAndLine(Line3D const &line1, Line3D const &line2) {};
+    bool LineAndLine(Line3D const &line1, Line3D const &line2) {
+        // ! unfinished
+
+        // ? Use the symmetric equations for a 3D line.
+        // ? We know that if the lines intersect, they will have at least one point of intersection.
+        // ? If the "slope vector" for either has an x component of 0 then the x for the intersection must be at x = start.x of that line.
+        // ? We can apply the same logic for the y and z components.
+        // ? Additionally, we know if b1/a1 - b2/a2 = 0, c1/b1 - c2/b2 = 0, or a1/c1 - a2/c2 = 0, there is no point of intersection.
+        // ? Finally, we can find the point of intersection if the lines extended forever and check if it's within the range of the lines.
+            // ? We can do this by clamping the min and max bounds for each line.
+
+        ZMath::Vec3D s1 = line1.getStart(), s2 = line2.getStart(), e1 = line1.getEnd(), e2 = line2.getEnd();
+        ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
+
+        // Check for one of the line segments being on top of each other
+
+        // Ensure there are solutions
+        // todo need to ensure there's no division by 0 -- should be ensured by the lines on top of each other check
+        if (ZMath::compare(v1.y/v1.x, v2.y/v2.x) || ZMath::compare(v1.z/v1.y, v2.z/v2.y) || ZMath::compare(v1.x/v1.z, v2.x/v2.z)) { return 0; }
+
+        // Find the point of intersection
+        float x = (s2.y - s1.y + (v1.y * s1.x)/v1.x - ((v2.y * s2.x)/v2.x))/(v1.y/v1.x - v2.y/v2.x);
+        float y = (v1.y * (x - s1.x))/v1.x + s1.y;
+        float z = (v1.z * (x - s1.x))/v1.x + s1.z;
+
+        // Determine the bounds for the lines
+        
+    };
 
     bool LineAndPlane(Line3D const &line, Plane const &plane) {};
 
@@ -112,7 +140,10 @@ namespace Primitives {
 
     bool SphereAndPlane(Sphere const &sphere, Plane const &plane) { return PlaneAndSphere(plane, sphere); };
 
-    bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {};
+    bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {
+        float r = sphere1.getRaidus() + sphere2.getRaidus();
+        return sphere1.getCenter().distSq(sphere2.getCenter()) <= r * r;
+    };
 
     bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {};
 

@@ -6,4 +6,5 @@
 
 Contributors:
 Utsawb Lamichhane
+Thomas Ducote
 Lenny Tanui
