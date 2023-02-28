@@ -40,7 +40,7 @@ namespace Primitives {
     float Sphere::getRadius() { return rho; };
     ZMath::Vec3D Sphere::getCenter() { return center; };
 
-    float Sphere::getRaidus() const { return rho; };
+    float Sphere::getRadius() const { return rho; };
     ZMath::Vec3D Sphere::getCenter() const { return center; };
 
     // * ====================================================================================================================
