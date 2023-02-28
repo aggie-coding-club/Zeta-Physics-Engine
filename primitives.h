@@ -54,7 +54,7 @@ namespace Primitives {
             float getRadius();
             ZMath::Vec3D getCenter();
 
-            float getRaidus() const;
+            float getRadius() const;
             ZMath::Vec3D getCenter() const;
 
         private:

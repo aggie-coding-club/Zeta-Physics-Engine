@@ -30,7 +30,7 @@ namespace Primitives {
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {};
 
     bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) {
-        float r = sphere.getRaidus();
+        float r = sphere.getRadius();
         return sphere.getCenter().distSq(point) <= r*r;
     };
 
@@ -83,7 +83,7 @@ namespace Primitives {
         // ? Since we define our start point as the point at t_0 and end point as the point at t_1,
         // ?  we know that if either solution of the quadratic constructed is between 0 to 1 inclusive.
 
-        float r = sphere.getRaidus();
+        float r = sphere.getRadius();
         ZMath::Vec3D center = sphere.getCenter();
         ZMath::Vec3D start = line.getStart(), end = line.getEnd();
 
@@ -141,7 +141,7 @@ namespace Primitives {
     bool SphereAndPlane(Sphere const &sphere, Plane const &plane) { return PlaneAndSphere(plane, sphere); };
 
     bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {
-        float r = sphere1.getRaidus() + sphere2.getRaidus();
+        float r = sphere1.getRadius() + sphere2.getRadius();
         return sphere1.getCenter().distSq(sphere2.getCenter()) <= r * r;
     };
 
