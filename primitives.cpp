@@ -60,25 +60,25 @@ namespace Primitives {
     // * Cube
     // * ===============
 
-    void Cube::setTheta(float theta) { rb.setTheta(theta); };
+    void Cube::setTheta(float theta) { rb.theta = theta; };
 
-    void Cube::setPhi(float phi) { rb.setPhi(phi); };
+    void Cube::setPhi(float phi) { rb.phi = phi; };
 
-    float Cube::getTheta() { return rb.getTheta(); };
+    float Cube::getTheta() { return rb.theta; };
 
-    float Cube::getPhi() { return rb.getPhi(); };
+    float Cube::getPhi() { return rb.phi; };
 
-    ZMath::Vec3D Cube::getPos() { return rb.getPos(); }
+    ZMath::Vec3D Cube::getPos() { return rb.pos; }
 
-    ZMath::Vec3D Cube::getLocalMin() { return rb.getPos() - halfSize; };
+    ZMath::Vec3D Cube::getLocalMin() { return rb.pos - halfSize; };
 
-    ZMath::Vec3D Cube::getLocalMax() { return rb.getPos() + halfSize; };
+    ZMath::Vec3D Cube::getLocalMax() { return rb.pos + halfSize; };
 
     ZMath::Vec3D Cube::getHalfSize() { return halfSize; };
 
     ZMath::Vec3D* Cube::getVertices() {
         ZMath::Vec3D* v = new ZMath::Vec3D[8];
-        ZMath::Vec3D const pos = rb.getPos();
+        ZMath::Vec3D const pos = rb.pos;
 
         // ! test out using .set() after we have a model
         // todo maybe reorder
@@ -92,8 +92,8 @@ namespace Primitives {
         v[7] = pos + halfSize;
 
         for (int i = 0; i < 8; i++) {
-            ZMath::rotateXY(v[i], pos, rb.getTheta());
-            ZMath::rotateXZ(v[i], pos, rb.getPhi());
+            ZMath::rotateXY(v[i], pos, rb.theta);
+            ZMath::rotateXZ(v[i], pos, rb.phi);
         }
 
         return v;
