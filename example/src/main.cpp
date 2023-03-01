@@ -35,18 +35,7 @@ void init() {
     our_cube = Primitives::Cube(ZMath::Vec3D(-2, -2, -2), ZMath::Vec3D(2, 2, 2), 45, 45);
     our_sphere = Primitives::Sphere();
 
-    gs_platform_lock_mouse(gs_platform_main_window(), true);
-
-    // AABB:GetVerticies() debugging
-
-    Primitives::AABB testAABB = Primitives::AABB({100, 100, 0}, {200, 200, 0});
-
-    for(int i = 0; i < 4; i++){
-        ZMath::Vec3D vertice = testAABB.getVertices()[i];
-
-        printf("x : %f, y : %f \n", vertice.x, vertice.y);
-    }
-    
+    gs_platform_lock_mouse(gs_platform_main_window(), true);    
 }
 
 void fps_camera_update(fps_camera_t* fps)
