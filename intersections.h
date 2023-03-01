@@ -32,6 +32,7 @@ namespace Primitives {
     bool LineAndPoint(Line3D const &line, ZMath::Vec3D const &point);
 
     // Determine if a line intersects another line.
+    // ! untested
     bool LineAndLine(Line3D const &line1, Line3D const &line2);
 
     // Determine if a line intersects a plane.

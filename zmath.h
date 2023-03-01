@@ -169,6 +169,10 @@ namespace ZMath {
 
     // * Clamp a float between a min and max.
     float clamp(float n, float min, float max);
+
+    // * Fast algorithm for computing 1/sqrt(n). This is not super accurate but is sufficient for a physics engine.
+    // * Primarily used for computing directional vectors.
+    float invSqrt(float n);
 }
 
 #endif // ! ZMATH_H

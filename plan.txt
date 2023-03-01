@@ -8,13 +8,3 @@ Name: Zeta
 5. Forces
 6. Collision Resolution/Impulse
 7. Rotational Physics
-
-TODO:
- - Utsawb: 1. Aligned Cubes -- min and max vertices with vec3fs
-           2. Rigid Bodies
-           3. Triangular Pyramid Primitives
- - Thomas: 1. Spheres
-           2. Lines
-           3. Rotated Cubes (ZMath rotate function)
-           4. dt loop
-
