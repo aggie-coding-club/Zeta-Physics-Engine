@@ -46,13 +46,22 @@ namespace Primitives {
     // * ====================================================================================================================
 
     // * =============
-    // * AABB
+    // * AABB (Axis Aligned Bounding Box)
     // * =============
     ZMath::Vec3D AABB::getMin() { return pos - halfSize; }
     ZMath::Vec3D AABB::getMax() { return pos + halfSize; }
     ZMath::Vec3D AABB::getHalfSize() { return halfSize; }
 
-    ZMath::Vec3D* AABB::getVertices() {};
+    ZMath::Vec3D* AABB::getVertices() {
+        ZMath::Vec3D* vertices = new ZMath::Vec3D[4];
+
+        vertices[0] = {pos.x - halfSize.x, pos.y - halfSize.y, 0};
+        vertices[1] = {pos.x - halfSize.x, pos.y + halfSize.y, 0};
+        vertices[2] = {pos.x + halfSize.x, pos.y + halfSize.y, 0};
+        vertices[3] = {pos.x + halfSize.x, pos.y - halfSize.y, 0};
+
+        return vertices;
+    };
 
     // * ====================================================================================================================
 
