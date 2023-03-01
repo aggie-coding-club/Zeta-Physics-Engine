@@ -1,5 +1,8 @@
 // ? Define functions from our intersections header here.
 
+// todo unit tests
+// todo raycasting
+
 #include "intersections.h"
 #include <cmath>
 
@@ -49,30 +52,33 @@ namespace Primitives {
     bool LineAndLine(Line3D const &line1, Line3D const &line2) {
         // ! unfinished
 
-        // ? Use the symmetric equations for a 3D line.
-        // ? We know that if the lines intersect, they will have at least one point of intersection.
-        // ? If the "slope vector" for either has an x component of 0 then the x for the intersection must be at x = start.x of that line.
-        // ? We can apply the same logic for the y and z components.
-        // ? Additionally, we know if b1/a1 - b2/a2 = 0, c1/b1 - c2/b2 = 0, or a1/c1 - a2/c2 = 0, there is no point of intersection.
-        // ? Finally, we can find the point of intersection if the lines extended forever and check if it's within the range of the lines.
-            // ? We can do this by clamping the min and max bounds for each line.
+        // ? Use the parametric equations for a 3D line.
+        // ? Solve for the point of intersection.
+        // ? If the point of intersection exists and lies within the bounds of the two lines, then we have an intersection.
 
-        ZMath::Vec3D s1 = line1.getStart(), s2 = line2.getStart(), e1 = line1.getEnd(), e2 = line2.getEnd();
-        ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
+        // * ALTERNATIVE SOLUTION IDEA
+        // ? For two lines to intersect, they must lie in the same plane.
+        // ? The plane they must both lie in would be orthogonal to the cross of the directional vectors of both lines.
+        // ? The displacement vector between a point on either line must then be orthogonal to the cross of the directional vectors.
+        // ? In other words, $(dir1 x dir2) \cdot (p1 - p2)$.
+        // ? Only thing to do to solve it using this solution would be to find a way to ensure the point of intersection lies within
+        // ?  the segments of the Line3Ds.
 
-        // Check for one of the line segments being on top of each other
+        ZMath::Vec3D s1 = line1.getStart(), s2 = line2.getStart();
+        ZMath::Vec3D v1 = line1.getEnd() - s1, v2 = line2.getEnd() - s2;
 
-        // Ensure there are solutions
-        // todo need to ensure there's no division by 0 -- should be ensured by the lines on top of each other check
-        if (ZMath::compare(v1.y/v1.x, v2.y/v2.x) || ZMath::compare(v1.z/v1.y, v2.z/v2.y) || ZMath::compare(v1.x/v1.z, v2.x/v2.z)) { return 0; }
+        // todo add checks for divisions by 0
+        // determine the s and t values for when the line would intersect
+        float s = (s1.y - s2.y + (v1.y * (s2.x - s1.x)/v1.x))/(v2.y - (v2.x * v1.y)/v1.x);
+        float t = (s2.x + s*v2.x - s1.x)/v1.x;
 
-        // Find the point of intersection
-        float x = (s2.y - s1.y + (v1.y * s1.x)/v1.x - ((v2.y * s2.x)/v2.x))/(v1.y/v1.x - v2.y/v2.x);
-        float y = (v1.y * (x - s1.x))/v1.x + s1.y;
-        float z = (v1.z * (x - s1.x))/v1.x + s1.z;
+        // ensure it satisfies the third equation
+        if (s1.z + t*v1.z != s2.z + s*v2.z) { return 0; }
 
-        // Determine the bounds for the lines
-        
+        // determine the point of intersection
+        ZMath::Vec3D p = ZMath::Vec3D(s1.x + t*v1.x, s1.y + t*v1.y, s1.z + t*v1.z);
+
+        // todo check if the point of intersection lies outside the bounds of our lines
     };
 
     bool LineAndPlane(Line3D const &line, Plane const &plane) {};
@@ -81,7 +87,7 @@ namespace Primitives {
         // ? Use the parametric equations for a 3D line.
         // ? Relate the parametric equations with the distance squared to the center of the sphere.
         // ? Since we define our start point as the point at t_0 and end point as the point at t_1,
-        // ?  we know that if either solution of the quadratic constructed is between 0 to 1 inclusive.
+        // ?  we know that if either solution of the quadratic constructed is between 0 to 1 inclusive, we have a collision.
 
         float r = sphere.getRadius();
         ZMath::Vec3D center = sphere.getCenter();
@@ -99,8 +105,8 @@ namespace Primitives {
         if (D < 0) { return 0; } // no intersections even if the line was infinite
 
         // ! slow sqrt, optimize away if possible
-        float sq = sqrt(B*B - 4*A*C);
-        float t1 = (-B - sq)/2*A, t2 = (-B + sq)/2*A;
+        float sq = sqrt(D);
+        float t1 = (-B - sq)/(2*A), t2 = (-B + sq)/(2*A);
 
         // if t1 or t2 falls between 0 and 1, the line intersects the spheres
         return (0.0f <= t1 && t1 <= 1.0f) || (0.0f <= t2 && t2 <= 1.0f);

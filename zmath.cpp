@@ -52,3 +52,4 @@ bool ZMath::compare (float a, float b, float epsilon) { return abs(a - b) <= eps
 bool ZMath::compare (float a, float b) { return abs(a - b) <= EPSILON; };
 
 float ZMath::clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
+float ZMath::invSqrt(float n) {  };
