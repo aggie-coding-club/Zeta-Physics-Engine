@@ -19,9 +19,11 @@ namespace Primitives {
     bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere);
 
     // Determine if a point lies within an unrotated cube.
+    // ! untested
     bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb);
 
     // Determine if a point lies within a rotated cube.
+    // ! untested
     bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube);
 
     // * ===================================

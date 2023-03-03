@@ -76,6 +76,12 @@ namespace Primitives {
             ZMath::Vec3D getHalfSize();
 
             ZMath::Vec3D* getVertices();
+
+            ZMath::Vec3D getMin() const;
+            ZMath::Vec3D getMax() const;
+            ZMath::Vec3D getHalfSize() const;
+
+            ZMath::Vec3D* getVertices() const;
     };
 
     class Cube {
@@ -112,10 +118,10 @@ namespace Primitives {
             // Get the pos of the cube
             ZMath::Vec3D getPos();
 
-            // Get the min vertex in the cube's UV coordinates.
+            // Get the min vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMin();
 
-            // Get the max vertex in the cube's UV coordinates.
+            // Get the max vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMax();
 
             // Get half the distance between the cube's min and max vertices.
@@ -124,6 +130,28 @@ namespace Primitives {
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
             ZMath::Vec3D* getVertices();
+
+            // Get the angle the cube is rotated with respect to the XY plane.
+            float getTheta() const;
+
+            // Get the angle the cube is rotated with respect to the XZ plane.
+            float getPhi() const;
+
+            // Get the pos of the cube
+            ZMath::Vec3D getPos() const;
+
+            // Get the min vertex in the cube's UVW coordinates.
+            ZMath::Vec3D getLocalMin() const;
+
+            // Get the max vertex in the cube's UVW coordinates.
+            ZMath::Vec3D getLocalMax() const;
+
+            // Get half the distance between the cube's min and max vertices.
+            ZMath::Vec3D getHalfSize() const;
+
+            // Get the vertices of the cube in terms of global coordinates.
+            // Remeber to use delete[] on the variable you assign this after use to free the memory.
+            ZMath::Vec3D* getVertices() const;
     };
 } // namespace Primitives
 

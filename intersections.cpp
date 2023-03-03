@@ -37,9 +37,21 @@ namespace Primitives {
         return sphere.getCenter().distSq(point) <= r*r;
     };
 
-    bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb) {};
+    bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb) {
+        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
+        return point.x <= max.x && point.y <= max.y && point.z <= max.z && point.x >= min.x && point.y >= min.y && point.z >= min.z;
+    };
 
-    bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube) {};
+    bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube) {
+        ZMath::Vec3D c = cube.getPos(), min = cube.getLocalMin(), max = cube.getLocalMax();
+        ZMath::Vec3D p = point; // create a copy so we can rotate into our local cords
+
+        // rotate into our UVW cords
+        ZMath::rotateXY(p, c, cube.getTheta());
+        ZMath::rotateXZ(p, c, cube.getPhi());
+
+        return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
+    };
 
     // * ====================================================================================================================
 
@@ -64,10 +76,13 @@ namespace Primitives {
         // ? Only thing to do to solve it using this solution would be to find a way to ensure the point of intersection lies within
         // ?  the segments of the Line3Ds.
 
-        ZMath::Vec3D s1 = line1.getStart(), s2 = line2.getStart();
-        ZMath::Vec3D v1 = line1.getEnd() - s1, v2 = line2.getEnd() - s2;
+        ZMath::Vec3D s1 = line1.getStart(), s2 = line2.getStart(), e1 = line1.getEnd(), e2 = line2.getEnd();
+        ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
+
+        // todo check for parallel lines
 
         // todo add checks for divisions by 0
+
         // determine the s and t values for when the line would intersect
         float s = (s1.y - s2.y + (v1.y * (s2.x - s1.x)/v1.x))/(v2.y - (v2.x * v1.y)/v1.x);
         float t = (s2.x + s*v2.x - s1.x)/v1.x;
@@ -78,7 +93,17 @@ namespace Primitives {
         // determine the point of intersection
         ZMath::Vec3D p = ZMath::Vec3D(s1.x + t*v1.x, s1.y + t*v1.y, s1.z + t*v1.z);
 
-        // todo check if the point of intersection lies outside the bounds of our lines
+        // determine the min and max points for both lines
+        ZMath::Vec3D max = ZMath::Vec3D(ZMath::min(ZMath::max(s1.x, e1.x), ZMath::max(s2.x, e2.x)), 
+                                        ZMath::min(ZMath::max(s1.y, e1.y), ZMath::max(s2.y, e2.y)),
+                                        ZMath::min(ZMath::max(s1.z, e1.z), ZMath::max(s2.z, e2.z)));
+
+        ZMath::Vec3D min = ZMath::Vec3D(ZMath::max(ZMath::min(s1.x, e1.x), ZMath::min(s2.x, e2.x)),
+                                        ZMath::max(ZMath::min(s1.y, e1.y), ZMath::min(s2.y, e2.y)),
+                                        ZMath::max(ZMath::min(s1.z, e1.z), ZMath::min(s2.z, e2.z)));
+
+        // ensure the point of intersection is between these bounds
+        return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
     };
 
     bool LineAndPlane(Line3D const &line, Plane const &plane) {};
