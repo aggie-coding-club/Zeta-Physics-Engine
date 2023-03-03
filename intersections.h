@@ -13,6 +13,7 @@ namespace Primitives {
     bool PointAndLine(ZMath::Vec3D const &point, Line3D const &line);
 
     // Determine if a point lies on a plane.
+    // ! untested
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane);
 
     // Determine if a point lies within a sphere.
