@@ -54,6 +54,12 @@ namespace Primitives {
 
     ZMath::Vec3D* AABB::getVertices() {};
 
+    ZMath::Vec3D AABB::getMin() const { return pos - halfSize; }
+    ZMath::Vec3D AABB::getMax() const { return pos + halfSize; }
+    ZMath::Vec3D AABB::getHalfSize() const { return halfSize; }
+
+    ZMath::Vec3D* AABB::getVertices() const {};
+
     // * ====================================================================================================================
 
     // * ===============
@@ -77,6 +83,41 @@ namespace Primitives {
     ZMath::Vec3D Cube::getHalfSize() { return halfSize; };
 
     ZMath::Vec3D* Cube::getVertices() {
+        ZMath::Vec3D* v = new ZMath::Vec3D[8];
+        ZMath::Vec3D const pos = rb.pos;
+
+        // ! test out using .set() after we have a model
+        // todo maybe reorder
+        v[0] = pos - halfSize;
+        v[1] = ZMath::Vec3D(pos.x - halfSize.x, pos.y - halfSize.y, pos.z + halfSize.z);
+        v[2] = ZMath::Vec3D(pos.x + halfSize.x, pos.y - halfSize.y, pos.z + halfSize.z);
+        v[3] = ZMath::Vec3D(pos.x + halfSize.x, pos.y - halfSize.y, pos.z - halfSize.z);
+        v[4] = ZMath::Vec3D(pos.x - halfSize.x, pos.y + halfSize.y, pos.z + halfSize.z);
+        v[5] = ZMath::Vec3D(pos.x - halfSize.x, pos.y + halfSize.y, pos.z - halfSize.z);
+        v[6] = ZMath::Vec3D(pos.x + halfSize.x, pos.y + halfSize.y, pos.z - halfSize.z);
+        v[7] = pos + halfSize;
+
+        for (int i = 0; i < 8; i++) {
+            ZMath::rotateXY(v[i], pos, rb.theta);
+            ZMath::rotateXZ(v[i], pos, rb.phi);
+        }
+
+        return v;
+    };
+
+    float Cube::getTheta() const { return rb.theta; };
+
+    float Cube::getPhi() const { return rb.phi; };
+
+    ZMath::Vec3D Cube::getPos() const { return rb.pos; }
+
+    ZMath::Vec3D Cube::getLocalMin() const { return rb.pos - halfSize; };
+
+    ZMath::Vec3D Cube::getLocalMax() const { return rb.pos + halfSize; };
+
+    ZMath::Vec3D Cube::getHalfSize() const { return halfSize; };
+
+    ZMath::Vec3D* Cube::getVertices() const {
         ZMath::Vec3D* v = new ZMath::Vec3D[8];
         ZMath::Vec3D const pos = rb.pos;
 
