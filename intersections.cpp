@@ -30,7 +30,16 @@ namespace Primitives {
         return !((point - start).cross((end - start).normalize()).magSq());
     };
 
-    bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {};
+    bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
+        ZMath::Vec3D p = plane.getMin(), r = plane.getMax();
+        ZMath::Vec3D pq = plane.getCenter() - p;
+        ZMath::Vec3D pr = r - p;
+        ZMath::Vec3D n = pq.cross(pr);
+        
+        if (n.x*(point.x - p.x) + n.y*(point.y - p.y) + n.z*(point.z - p.z) != 0) { return 0; }
+
+        return point.x <= r.x && point.y <= r.y && point.z <= r.z && point.x >= p.x && point.y >= p.y && point.z >= p.z;
+    };
 
     bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) {
         float r = sphere.getRadius();
