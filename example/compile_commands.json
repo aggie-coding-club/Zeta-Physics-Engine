@@ -2,6 +2,6 @@
     {
         "directory" :  "/home/utsawb/Work/Code/C++/Zeta-Physics-Engine/example",
         "file" : "src/example.cpp",
-        "command" : "g++ src/main.cpp -o bin/main -O3 -std=c++11 -Wl,--no-as-needed -ldl -lGL -lX11 -pthread -lXi -lm -Iinclude -I../"
+        "command" : "g++ src/main.cpp -o bin/main -O3 -std=c++11 -Wl,--no-as-needed -ldl -lGL -lX11 -pthread -lXi -lm -I. -I../include"
     }
 ]

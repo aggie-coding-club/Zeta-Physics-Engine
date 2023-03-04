@@ -1,0 +1,3 @@
+[submodule "example/gunslinger"]
+	path = example/gunslinger
+	url = git@github.com:MrFrenik/gunslinger.git
