@@ -35,7 +35,7 @@ void init() {
     our_cube = Primitives::Cube(ZMath::Vec3D(-2, -2, -2), ZMath::Vec3D(2, 2, 2), 45, 45);
     our_sphere = Primitives::Sphere();
 
-    gs_platform_lock_mouse(gs_platform_main_window(), true);
+    gs_platform_lock_mouse(gs_platform_main_window(), true);    
 }
 
 void fps_camera_update(fps_camera_t* fps)
