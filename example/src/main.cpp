@@ -4,9 +4,9 @@
 *   but I will refactor this in a more C++ way in the future. I miss classes :(
 */
 #define GS_IMPL
-#include "gs/gs.h"
+#include "gunslinger/gs.h"
 #define GS_IMMEDIATE_DRAW_IMPL
-#include "gs/util/gs_idraw.h"
+#include "gunslinger/util/gs_idraw.h"
 
 #include "primitives.h"
 #include "zmath.h"
