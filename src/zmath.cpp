@@ -5,9 +5,12 @@
 
 using ZMath::Vec3D;
 
+
 // * ============================================
 // * Vec 3D Functions
 // * ============================================
+
+// todo check my work for Vec3D::angle()
 
 float Vec3D::mag() { return sqrt(x*x + y*y + z*z); };
 float Vec3D::magSq() { return x*x + y*y + z*z; };

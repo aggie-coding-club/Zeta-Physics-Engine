@@ -203,7 +203,15 @@ namespace Primitives {
 
     bool AABBAndSphere(AABB const &aabb, Sphere const &sphere) { return SphereAndAABB(sphere, aabb); };
 
-    bool AABBAndAABB(AABB const &aabb1, AABB const &aabb2) {};
+    bool AABBAndAABB(AABB const &aabb1, AABB const &aabb2) {
+        // ? Check if there's overlap for the AABBs on all three axes.
+        // ? If there is, we know the two AABBs intersect.
+
+        ZMath::Vec3D min1 = aabb1.getMin(), max1 = aabb1.getMax(), min2 = aabb2.getMin(), max2 = aabb2.getMax();
+
+        // if both min points for a given interval are less than the other max points, we know there's an overlap on that axis
+        return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
+    };
 
     bool AABBAndCube(AABB const &aabb, Cube const &cube) {};
 

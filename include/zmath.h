@@ -12,8 +12,9 @@ namespace ZMath {
     // * Default tolerance value for a floating point comparison
     #define EPSILON 0.0000000001
 
+    // todo go through all of ZMath and check where overloaded functions can be replaced by default parameters
 
-    // todo move all the function definitions to zmath.cpp
+
     class Vec3D {
         public:
             // * ============================================
