@@ -131,7 +131,7 @@ namespace Primitives {
         float xc = start.x - center.x, yc = start.y - center.y, zc = start.z - center.z;
 
         float A = dx*dx + dy*dy + dz*dz;
-        float B = 2*dx*xc + 2*dy*yc + 2*dz*zc;
+        float B = 2*(dx*xc + dy*yc + dz*zc);
         float C = xc*xc + yc*yc + zc*zc - r*r;
 
         float D = B*B - 4*A*C;
@@ -140,9 +140,10 @@ namespace Primitives {
 
         // ! slow sqrt, optimize away if possible
         float sq = sqrt(D);
-        float t1 = (-B - sq)/(2*A), t2 = (-B + sq)/(2*A);
+        float div = 1.0f/(2.0f*A);
+        float t1 = (-B - sq)*div, t2 = (-B + sq)*div;
 
-        // if t1 or t2 falls between 0 and 1, the line intersects the spheres
+        // if t1 or t2 falls between 0 and 1, the line intersects the sphere
         return (0.0f <= t1 && t1 <= 1.0f) || (0.0f <= t2 && t2 <= 1.0f);
     };
 

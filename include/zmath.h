@@ -7,7 +7,7 @@ namespace ZMath {
     // * ============================================
 
     // * Pi constant
-    #define PI 3.141592653589793238462643383279502884L
+    #define PI 3.1415926535897932L
 
     // * Default tolerance value for a floating point comparison
     #define EPSILON 0.0000000001
