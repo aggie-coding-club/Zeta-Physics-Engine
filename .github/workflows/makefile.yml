@@ -16,5 +16,5 @@ jobs:
 
     - name: configure
       run: |
-        cd examples
+        cd example
         make linux
