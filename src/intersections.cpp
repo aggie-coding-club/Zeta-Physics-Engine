@@ -186,9 +186,44 @@ namespace Primitives {
         return sphere1.getCenter().distSq(sphere2.getCenter()) <= r * r;
     };
 
-    bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {};
+    bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {
+        // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
+        // ?  from the center is less than or equal to the radius of the sphere.
+        // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
+        // ? From here, we can check the distance from this point to the sphere's center.
 
-    bool SphereAndCube(Sphere const &sphere, Cube const &cube) {};
+        float r = sphere.getRadius();
+        ZMath::Vec3D center = sphere.getCenter();
+        ZMath::Vec3D closest(center);
+        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
+
+        closest.x = ZMath::clamp(closest.x, min.x, max.x);
+        closest.y = ZMath::clamp(closest.y, min.y, max.y);
+        closest.z = ZMath::clamp(closest.z, min.z, max.z);
+
+        return closest.distSq(center) <= r*r;
+    };
+
+    bool SphereAndCube(Sphere const &sphere, Cube const &cube) {
+        // ? We can use the same approach as for SphereAndAABB, just we have to rotate the sphere into the Cube's UVW coordinates.
+
+        float r = sphere.getRadius();
+        ZMath::Vec3D center = sphere.getCenter(), origin = cube.getPos();
+        ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
+
+        // rotate the center of the sphere into the UVW coordinates of our cube
+        ZMath::rotateXY(center, origin, cube.getTheta());
+        ZMath::rotateXZ(center, origin, cube.getPhi());
+        
+        // perform the check as if it was an AABB vs Sphere
+        ZMath::Vec3D closest(center);
+
+        closest.x = ZMath::clamp(closest.x, min.x, max.x);
+        closest.y = ZMath::clamp(closest.y, min.y, max.y);
+        closest.z = ZMath::clamp(closest.z, min.z, max.z);
+
+        return closest.distSq(center) <= r*r;
+    };
 
     // * ====================================================================================================================
 
