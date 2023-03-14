@@ -37,6 +37,9 @@ namespace ZMath {
             // * Instantiate a Vec3D object with each component assigned.
             Vec3D(float i, float j, float k) : x(i), y(j), z(k) {};
 
+            // * Instantiate a copy of the Vec3D object passed in.
+            Vec3D(const Vec3D &vec) : x(vec.x), y(vec.y), z(vec.z) {};
+
             Vec3D operator + (Vec3D const &vec) { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
             Vec3D operator - (Vec3D const &vec) { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
             Vec3D operator * (float c) { return Vec3D(c*x, c*y, c*z); };
