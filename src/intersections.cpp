@@ -186,9 +186,44 @@ namespace Primitives {
         return sphere1.getCenter().distSq(sphere2.getCenter()) <= r * r;
     };
 
-    bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {};
+    bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {
+        // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
+        // ?  from the center is less than or equal to the radius of the sphere.
+        // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
+        // ? From here, we can check the distance from this point to the sphere's center.
 
-    bool SphereAndCube(Sphere const &sphere, Cube const &cube) {};
+        float r = sphere.getRadius();
+        ZMath::Vec3D center = sphere.getCenter();
+        ZMath::Vec3D closest(center);
+        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
+
+        closest.x = ZMath::clamp(closest.x, min.x, max.x);
+        closest.y = ZMath::clamp(closest.y, min.y, max.y);
+        closest.z = ZMath::clamp(closest.z, min.z, max.z);
+
+        return closest.distSq(center) <= r*r;
+    };
+
+    bool SphereAndCube(Sphere const &sphere, Cube const &cube) {
+        // ? We can use the same approach as for SphereAndAABB, just we have to rotate the sphere into the Cube's UVW coordinates.
+
+        float r = sphere.getRadius();
+        ZMath::Vec3D center = sphere.getCenter(), origin = cube.getPos();
+        ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
+
+        // rotate the center of the sphere into the UVW coordinates of our cube
+        ZMath::rotateXY(center, origin, cube.getTheta());
+        ZMath::rotateXZ(center, origin, cube.getPhi());
+        
+        // perform the check as if it was an AABB vs Sphere
+        ZMath::Vec3D closest(center);
+
+        closest.x = ZMath::clamp(closest.x, min.x, max.x);
+        closest.y = ZMath::clamp(closest.y, min.y, max.y);
+        closest.z = ZMath::clamp(closest.z, min.z, max.z);
+
+        return closest.distSq(center) <= r*r;
+    };
 
     // * ====================================================================================================================
 
@@ -214,7 +249,18 @@ namespace Primitives {
         return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
     };
 
-    bool AABBAndCube(AABB const &aabb, Cube const &cube) {};
+    bool AABBAndCube(AABB const &aabb, Cube const &cube) {
+        // ? Rotate the AABB into the cube's UVW coordinates.
+        // ? Afterwards, use the same logic as AABB vs AABB.
+
+        ZMath::Vec3D origin = cube.getPos();
+        ZMath::Vec3D min1 = aabb.getMin(), max1 = aabb.getMax(), min2 = cube.getLocalMin(), max2 = cube.getLocalMax();
+
+        ZMath::rotateXY(min1, origin, cube.getTheta());
+        ZMath::rotateXZ(max1, origin, cube.getPhi());
+
+        return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
+    };
 
     // * ====================================================================================================================
 
@@ -232,7 +278,15 @@ namespace Primitives {
 
     bool CubeAndAABB(Cube const &cube, AABB const &aabb) { return AABBAndCube(aabb, cube); };
 
-    bool CubeAndCube(Cube const &cube1, Cube const &cube2) {};
+    bool CubeAndCube(Cube const &cube1, Cube const &cube2) {
+        // ? We can make an AABB object from the first cube and create a new cube object by subtracting the angles
+        // ?  the first cube was rotated by from the second cube and perform an AABB vs Cube check.
+
+        AABB aabb(cube1.getLocalMin(), cube2.getLocalMax());
+        Cube cube(cube2.getLocalMin(), cube2.getLocalMax(), cube2.getTheta() - cube1.getTheta(), cube2.getPhi() - cube1.getPhi());
+
+        return AABBAndCube(aabb, cube);
+    };
 
     // * ====================================================================================================================
 }
