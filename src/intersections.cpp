@@ -246,7 +246,7 @@ namespace Primitives {
 
         // no intersection
         if (dSq > rSq) {
-            dist = t;
+            dist = t; // ! might want to set this to something else as there isn't a distance to nearest intersection
             return 0;
         }
 
