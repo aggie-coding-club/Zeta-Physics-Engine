@@ -3,70 +3,31 @@
 
 #include "rigidbody.h"
 
+// todo might want to make some of the attributes public.
+// todo refactor to do what I stated above.
+
 namespace Primitives {
     class Ray3D {
-        private:
+        public:
             ZMath::Vec3D origin;
             ZMath::Vec3D dir; // normalized direction of the ray
 
-        public:
             // @brief Construct a new Ray3D object
             // 
             // @param position The origin of the ray.
             // @param direction The direction of the ray as a normalized vector.
             Ray3D(ZMath::Vec3D position, ZMath::Vec3D direction) : origin(position), dir(direction) {};
-
-            // The direction vector passed in must be normalized.
-            void setDirection(ZMath::Vec3D const &dir);
-            void setOrigin(ZMath::Vec3D const &origin);
-
-            ZMath::Vec3D getDirection();
-            ZMath::Vec3D getOrigin();
-
-            ZMath::Vec3D getDirection() const;
-            ZMath::Vec3D getOrigin() const;
-    };
-
-    class RaycastResult {
-        private:
-            ZMath::Vec3D point;
-            ZMath::Vec3D normal;
-            float distance;
-            bool hit;
-
-        public:
-            RaycastResult() : point(ZMath::Vec3D()), normal(ZMath::Vec3D()), distance(-1.0f), hit(0) {};
-
-            // Configure the results of a raycast.
-            // todo add documentation on the parameters
-            void init(ZMath::Vec3D const &point, ZMath::Vec3D const &normal, float distance, bool hit);
-
-            // Reset the results of a raycast.
-            // This is useful for reusing this object and if the original results become void.
-            void reset();
-
-            // todo add a way to access the data. We'll do so once we start working more on raycasting.
     };
 
     class Line3D {
         public:
+            ZMath::Vec3D start, end;
+
             // @brief Create a line between two points.
             //
             // @param p1 (Vec3D) Starting point.
             // @param p2 (Vec3D) Ending point.
-            Line3D(ZMath::Vec3D const &p1, ZMath::Vec3D const &p2) : start(p1), end(p2){};
-
-            void setStart(ZMath::Vec3D const &pos);
-            void setEnd(ZMath::Vec3D const &pos);
-
-            ZMath::Vec3D getStart();
-            ZMath::Vec3D getEnd();
-
-            ZMath::Vec3D getStart() const;
-            ZMath::Vec3D getEnd() const;
-
-        private:
-            ZMath::Vec3D start, end;
+            Line3D(ZMath::Vec3D const &p1, ZMath::Vec3D const &p2) : start(p1), end(p2) {};
     };
 
     // ! update to fix -- should store a single point on the plane and the normal (radius of a plane doesn't exist)

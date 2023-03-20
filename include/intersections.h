@@ -52,6 +52,26 @@ namespace Primitives {
     // Determine if a line intersects a cube.
     bool LineAndCube(Line3D const &line, Cube const &cube);
 
+    // * =================
+    // * Raycasting
+    // * =================
+
+    // Determine if a ray intersects a plane.
+    // dist will be modified to equal the distance from the ray it hits the plane.
+    bool raycast(Plane const &plane, Ray3D const &ray, float &dist);
+
+    // Determine if a ray intersects a sphere.
+    // dist will be modified to equal the distance from the ray it hits the sphere.
+    bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist);
+
+    // Determine if a ray intersects an AABB.
+    // dist will be modified to equal the distance from the ray it hits the AABB.
+    bool raycast(AABB const &aabb, Ray3D const &ray, float &dist);
+
+    // Determine if a ray intersects a cube.
+    // dist will be modified to equal the distance from the ray it hits the cube.
+    bool raycast(Cube const &cube, Ray3D const &ray, float &dist);
+
     // * ===================================
     // * Plane vs Primitives
     // * ===================================
