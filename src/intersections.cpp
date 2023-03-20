@@ -16,18 +16,16 @@ namespace Primitives {
         // ? D = ||PQ x u||/||u||
         // ? If this distance is 0, we know it lies on the line.
 
-        ZMath::Vec3D start = line.getStart(), end = line.getEnd();
-
         // obtain the max and min points for the bounds
-        ZMath::Vec3D max(ZMath::max(start.x, end.x), ZMath::max(start.y, end.y), ZMath::max(start.z, end.z));
-        ZMath::Vec3D min(ZMath::min(start.x, end.x), ZMath::min(start.y, end.y), ZMath::min(start.z, end.z));
+        ZMath::Vec3D max(ZMath::max(line.start.x, line.end.x), ZMath::max(line.start.y, line.end.y), ZMath::max(line.start.z, line.end.z));
+        ZMath::Vec3D min(ZMath::min(line.start.x, line.end.x), ZMath::min(line.start.y, line.end.y), ZMath::min(line.start.z, line.end.z));
 
         // ensure the point is within the start and end of the line segment
         if (point.x < min.x || point.x > max.x || point.y < min.y || point.y > max.y || point.z < min.z || point.z > max.z) { return 0; }
 
         // We don't need to divide by ||u|| to know if it will evaluate to 0.
         // ! normalize requires a slow sqrt -- optimize away if possible. Will probably just implement fast inv sqrt
-        return !((point - start).cross((end - start).normalize()).magSq());
+        return !((point - line.start).cross((line.end - line.start).normalize()).magSq());
     };
 
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
@@ -77,7 +75,7 @@ namespace Primitives {
         // ? We then ensure this point in time statisfies all 3 equations.
         // ? If it does and there's overlap, we have an intersection; otherwise we do not.
 
-        ZMath::Vec3D s1 = line1.getStart(), s2 = line2.getStart(), e1 = line1.getEnd(), e2 = line2.getEnd();
+        ZMath::Vec3D s1 = line1.start, s2 = line2.start, e1 = line1.end, e2 = line2.end;
         ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
 
         // check for parallel lines
@@ -147,10 +145,9 @@ namespace Primitives {
 
         float r = sphere.getRadius();
         ZMath::Vec3D center = sphere.getCenter();
-        ZMath::Vec3D start = line.getStart(), end = line.getEnd();
 
-        float dx = end.x - start.x, dy = end.y - start.y, dz = end.z - start.z;
-        float xc = start.x - center.x, yc = start.y - center.y, zc = start.z - center.z;
+        float dx = line.end.x - line.start.x, dy = line.end.y - line.start.y, dz = line.end.z - line.start.z;
+        float xc = line.start.x - center.x, yc = line.start.y - center.y, zc = line.start.z - center.z;
 
         float A = dx*dx + dy*dy + dz*dz;
         float B = 2*(dx*xc + dy*yc + dz*zc);
@@ -170,10 +167,53 @@ namespace Primitives {
     };
 
     bool LineAndAABB(Line3D const &line, AABB const &aabb) {
+        // ? We can use the same logic as when raycasting an AABB.
+        // ? Then we just have to make sure the distance to the AABB is less than the length of the line segment.
+
+        ZMath::Vec3D dir = (line.end - line.start).normalize();
+        ZMath::Vec3D dirfrac(1.0f/dir.x, 1.0f/dir.y, 1.0f/dir.z);
+        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
         
+        float t1 = (min.x - line.start.x)*dirfrac.x;
+        float t2 = (max.x - line.start.x)*dirfrac.x;
+        float t3 = (min.y - line.start.y)*dirfrac.y;
+        float t4 = (max.y - line.start.y)*dirfrac.y;
+        float t5 = (min.z - line.start.z)*dirfrac.z;
+        float t6 = (max.z - line.start.z)*dirfrac.z;
+
+        // tMin is the max of the mins and tMx is the min of the maxes
+        float tMin = ZMath::max(ZMath::max(ZMath::min(t1, t2), ZMath::min(t3, t4)), ZMath::min(t5, t6));
+        float tMax = ZMath::min(ZMath::min(ZMath::max(t1, t2), ZMath::max(t3, t4)), ZMath::max(t5, t6));
+
+        float lengthSq = (line.end - line.start).magSq();
+
+        // if tMax < 0 the ray is intersecting behind it. Therefore, we do not actually have a collision.
+        if (tMax < 0) {
+            // ! unsure if this part will cause errors. Will figure out after unit tests are developed.
+            // ! If this part causes errors we will have to manually check for end point in the AABB.
+            return tMax*tMax <= lengthSq;
+        }
+
+        // ray doesn't intersect the AABB.
+        if (tMax < tMin) { return 0; }
+
+        return tMin*tMin <= lengthSq;
     };
 
-    bool LineAndCube(Line3D const &line, Cube const &cube) {};
+    bool LineAndCube(Line3D const &line, Cube const &cube) {
+        // ? This will be the same as the AABB vs Line check after rotating the line into the cube's UVW coordinates.
+
+        ZMath::Vec3D origin = cube.getPos();
+        Line3D l(line.start, line.end);
+        float theta = cube.getTheta(), phi = cube.getPhi();
+
+        ZMath::rotateXY(l.start, origin, theta);
+        ZMath::rotateXZ(l.start, origin, phi);
+        ZMath::rotateXY(l.end, origin, theta);
+        ZMath::rotateXZ(l.end, origin, phi);
+
+        return LineAndAABB(l, AABB(cube.getLocalMin(), cube.getLocalMax()));
+    };
 
     // * ====================================================================================================================
 
@@ -181,10 +221,45 @@ namespace Primitives {
     // * Raycasting
     // * =================
 
-    bool raycast(Plane const &plane, Ray3D const &ray, RaycastResult &result) {};
-    bool raycast(Sphere const &sphere, Ray3D const &ray, RaycastResult &result) {};
-    bool raycast(AABB const &aabb, Ray3D const &ray, RaycastResult &result) {};
-    bool raycast(Cube const &cube, Ray3D const &ray, RaycastResult &result) {};
+    bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {};
+    bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {};
+
+    bool raycast(AABB const &aabb, Ray3D const &ray, float &dist) {
+        // ? We can determine the distance from the ray to a certain edge by dividing a select min or max vector component
+        // ?  by the corresponding component from the unit directional vector.
+        // ? We know if tMin > tMax, then we have no intersection and if tMax is negative the AABB is behind us and we do not have a hit.
+
+        ZMath::Vec3D dirfrac(1.0f/ray.dir.x, 1.0f/ray.dir.y, 1.0f/ray.dir.z);
+        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
+
+        float t1 = (min.x - ray.origin.x)*dirfrac.x;
+        float t2 = (max.x - ray.origin.x)*dirfrac.x;
+        float t3 = (min.y - ray.origin.y)*dirfrac.y;
+        float t4 = (max.y - ray.origin.y)*dirfrac.y;
+        float t5 = (min.z - ray.origin.z)*dirfrac.z;
+        float t6 = (max.z - ray.origin.z)*dirfrac.z;
+
+        // tMin is the max of the mins and tMx is the min of the maxes
+        float tMin = ZMath::max(ZMath::max(ZMath::min(t1, t2), ZMath::min(t3, t4)), ZMath::min(t5, t6));
+        float tMax = ZMath::min(ZMath::min(ZMath::max(t1, t2), ZMath::max(t3, t4)), ZMath::max(t5, t6));
+
+        // if tMax < 0 the ray is intersecting behind it. Therefore, we do not actually have a collision.
+        if (tMax < 0) {
+            dist = tMax;
+            return 0;
+        }
+
+        // ray doesn't intersect the AABB.
+        if (tMax < tMin) {
+            dist = tMax;
+            return 0;
+        }
+
+        dist = tMin;
+        return 1;
+    };
+
+    bool raycast(Cube const &cube, Ray3D const &ray, float &dist) {};
 
     // * ====================================================================================================================
 
