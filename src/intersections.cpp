@@ -71,30 +71,52 @@ namespace Primitives {
     bool LineAndPoint(Line3D const &line, ZMath::Vec3D const &point) { return PointAndLine(point, line); };
 
     bool LineAndLine(Line3D const &line1, Line3D const &line2) {
-        // ! unfinished
-
-        // ? Use the parametric equations for a 3D line.
-        // ? Solve for the point of intersection.
-        // ? If the point of intersection exists and lies within the bounds of the two lines, then we have an intersection.
-
-        // * ALTERNATIVE SOLUTION IDEA
-        // ? For two lines to intersect, they must lie in the same plane.
-        // ? The plane they must both lie in would be orthogonal to the cross of the directional vectors of both lines.
-        // ? The displacement vector between a point on either line must then be orthogonal to the cross of the directional vectors.
-        // ? In other words, $(dir1 x dir2) \cdot (p1 - p2)$.
-        // ? Only thing to do to solve it using this solution would be to find a way to ensure the point of intersection lies within
-        // ?  the segments of the Line3Ds.
+        // ? First check if the lines are parallel.
+        // ? If the lines are parallel, we check to ensure overlap and that the start point of line2 lies on line1 if the lines were infinite.
+        // ? If the lines are not parallel, we then solve for the point of intersection using the parametric equations for a 3D line.
+        // ? We then ensure this point in time statisfies all 3 equations.
+        // ? If it does and there's overlap, we have an intersection; otherwise we do not.
 
         ZMath::Vec3D s1 = line1.getStart(), s2 = line2.getStart(), e1 = line1.getEnd(), e2 = line2.getEnd();
         ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
 
-        // todo check for parallel lines
+        // check for parallel lines
+        if (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z) {
+            ZMath::Vec3D min1(ZMath::min(s1.x, e1.x), ZMath::min(s1.y, e1.y), ZMath::min(s1.z, e1.z));
+            ZMath::Vec3D max1(ZMath::max(s1.x, e1.x), ZMath::max(s1.y, e1.y), ZMath::max(s1.z, e1.z));
+            ZMath::Vec3D min2(ZMath::min(s2.x, e2.x), ZMath::min(s2.y, e2.y), ZMath::min(s2.z, e2.z));
+            ZMath::Vec3D max2(ZMath::max(s2.x, e2.x), ZMath::max(s2.y, e2.y), ZMath::max(s2.z, e2.z));
 
-        // todo add checks for divisions by 0
+            if (v1.x) {
+                // ! unsure if we actually need to check for every interval or just x. We can test once we get unit tests.
+                // ! same thing for the second case, too.
+
+                float t = (s2.x - s1.x)/v1.x;
+                return s2.y == s1.y + v1.y * t && s2.z == s1.z + v1.z * t &&
+                        min1.x <= max2.x && min2.x <= max1.x &&
+                        min1.y <= max2.y && min2.y <= max1.y &&
+                        min1.z <= max2.z && min2.z <= max1.z;
+            }
+
+            if (v1.y) {
+                return s1.x == s2.x && s2.z == s1.z + v1.z * ((s2.y - s1.y)/v1.y) &&
+                        min1.y <= max2.y && min2.y <= max1.y &&
+                        min1.z <= max2.z && min2.z <= max1.z;
+            }
+
+            return s1.x == s2.x && s1.y == s2.y && min1.z <= max2.z && min2.z <= max1.z;
+        }
+
+        float s, t;
 
         // determine the s and t values for when the line would intersect
-        float s = (s1.y - s2.y + (v1.y * (s2.x - s1.x)/v1.x))/(v2.y - (v2.x * v1.y)/v1.x);
-        float t = (s2.x + s*v2.x - s1.x)/v1.x;
+        if (v2.x*v1.y != v1.x*v2.y) { s = (v1.x*(s2.y - s1.y) + v1.y*(s1.x - s2.x))/(v2.x*v1.y - v1.x*v2.y); }
+        else if (v2.y*v1.z != v1.y*v2.z) { s = (v1.y*(s2.z - s1.z) + v1.z*(s1.y - s2.y))/(v2.y*v1.z - v1.y*v2.z); }
+        else { s = (v1.x*(s2.z - s1.z) + v1.z*(s1.x - s2.x))/(v2.x*v1.z - v1.x*v2.z); }
+
+        if (v1.x) { t = (s2.x - s1.x + v2.x*s)/v1.x; }
+        else if (v1.y) { t = (s2.y - s1.y + v2.y*s)/v1.y; }
+        else { t = (s2.z - s1.z + v2.z*s)/v1.z; }
 
         // ensure it satisfies the third equation
         if (s1.z + t*v1.z != s2.z + s*v2.z) { return 0; }
@@ -147,9 +169,22 @@ namespace Primitives {
         return (0.0f <= t1 && t1 <= 1.0f) || (0.0f <= t2 && t2 <= 1.0f);
     };
 
-    bool LineAndAABB(Line3D const &line, AABB const &aabb) {};
+    bool LineAndAABB(Line3D const &line, AABB const &aabb) {
+        
+    };
 
     bool LineAndCube(Line3D const &line, Cube const &cube) {};
+
+    // * ====================================================================================================================
+
+    // * =================
+    // * Raycasting
+    // * =================
+
+    bool raycast(Plane const &plane, Ray3D const &ray, RaycastResult &result) {};
+    bool raycast(Sphere const &sphere, Ray3D const &ray, RaycastResult &result) {};
+    bool raycast(AABB const &aabb, Ray3D const &ray, RaycastResult &result) {};
+    bool raycast(Cube const &cube, Ray3D const &ray, RaycastResult &result) {};
 
     // * ====================================================================================================================
 

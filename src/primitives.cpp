@@ -5,13 +5,45 @@
 
 namespace Primitives {
     // * ===================
-    // * Line3D
+    // * Ray3D
     // * ===================
+
+    void Ray3D::setDirection(ZMath::Vec3D const &dir) { this->dir.set(dir); };
+    void Ray3D::setOrigin(ZMath::Vec3D const &origin) { this->origin.set(origin); };
+
+    ZMath::Vec3D Ray3D::getDirection() { return dir; };
+    ZMath::Vec3D Ray3D::getOrigin() { return origin; };
+
+    ZMath::Vec3D Ray3D::getDirection() const { return dir; };
+    ZMath::Vec3D Ray3D::getOrigin() const { return origin; };
 
     // * ====================================================================================================================
 
-    void Line3D::setStart(ZMath::Vec3D const &pos) { start.set(pos); };
+    // * ===================
+    // * RaycastResult
+    // * ===================
 
+    void RaycastResult::init(ZMath::Vec3D const &point, ZMath::Vec3D const &normal, float distance, bool hit) {
+        this->point.set(point);
+        this->normal.set(normal);
+        this->distance = distance;
+        this->hit = hit;
+    };
+
+    void RaycastResult::reset() {
+        point.zero();
+        normal.zero();
+        distance = -1.0f;
+        hit = 0;
+    };
+
+    // * ====================================================================================================================
+
+    // * ===================
+    // * Line3D
+    // * ===================
+
+    void Line3D::setStart(ZMath::Vec3D const &pos) { start.set(pos); };
     void Line3D::setEnd(ZMath::Vec3D const &pos) { end.set(pos); };
 
     ZMath::Vec3D Line3D::getStart() { return start; };
@@ -45,9 +77,10 @@ namespace Primitives {
 
     // * ====================================================================================================================
 
-    // * =============
+    // * ==================================
     // * AABB (Axis Aligned Bounding Box)
-    // * =============
+    // * ==================================
+
     ZMath::Vec3D AABB::getMin() { return pos - halfSize; }
     ZMath::Vec3D AABB::getMax() { return pos + halfSize; }
     ZMath::Vec3D AABB::getHalfSize() { return halfSize; }
