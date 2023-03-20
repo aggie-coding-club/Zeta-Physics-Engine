@@ -116,25 +116,33 @@ namespace ZMath {
             // * Const Object Functions
             // * ============================================
 
-            Vec3D operator + (Vec3D const &vec) const { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
-            Vec3D operator - (Vec3D const &vec) const { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
-            Vec3D operator * (float c) const { return Vec3D(c*x, c*y, c*z); };
+            const Vec3D operator + (Vec3D const &vec) const { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
+            const Vec3D operator - (Vec3D const &vec) const { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
+            const Vec3D operator * (float c) const { return Vec3D(c*x, c*y, c*z); };
+            float operator * (Vec3D const &vec) const { return x * vec.x + y * vec.y + z * vec.z; };
 
             // * Add a constant to each vector component.
-            Vec3D operator + (float c) const { return Vec3D(x + c, y + c, z + c); };
+            const Vec3D operator + (float c) const { return Vec3D(x + c, y + c, z + c); };
 
-            Vec3D operator += (Vec3D const &vec) const { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
-            Vec3D operator -= (Vec3D const &vec) const { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
-            Vec3D operator *= (float c) const { return Vec3D(x*c, y*c, z*c); };
+            const Vec3D operator += (Vec3D const &vec) const { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
+            const Vec3D operator -= (Vec3D const &vec) const { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
+            const Vec3D operator *= (float c) const { return Vec3D(x*c, y*c, z*c); };
 
             // * Get the cross product of this and another vector.
-            Vec3D cross (Vec3D const &vec) const { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
+            const Vec3D cross (Vec3D const &vec) const { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
 
             // * Get the vector projection of another vector onto this vector (Parameter onto this).
-            Vec3D proj (Vec3D const &vec) const { return (*this) * ((x*vec.x + y*vec.y + z*vec.z)/(x*x + y*y + z*z)); };
+            const Vec3D proj (Vec3D const &vec) const { return (*this) * ((x*vec.x + y*vec.y + z*vec.z)/(x*x + y*y + z*z)); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            Vec3D normalize() const;
+            const Vec3D normalize() const;
+
+            // * Get the magnitude.
+            float mag() const;
+
+            // * Get the magnitude squared.
+            // * This should be used over mag() when possible as it is less expensive.
+            float magSq() const;
     };
 
 

@@ -138,6 +138,8 @@ namespace Primitives {
     bool LineAndPlane(Line3D const &line, Plane const &plane) {};
 
     bool LineAndSphere(Line3D const &line, Sphere const &sphere) {
+        // todo could maybe take inspiration from the raycasting solution
+
         // ? Use the parametric equations for a 3D line.
         // ? Relate the parametric equations with the distance squared to the center of the sphere.
         // ? Since we define our start point as the point at t_0 and end point as the point at t_1,
@@ -222,7 +224,43 @@ namespace Primitives {
     // * =================
 
     bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {};
-    bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {};
+    
+    bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {
+        // todo at some point we may want to get the hit point.
+        // todo if we do, we simply do hit = ray.origin + dist*ray.dir;
+
+        // ? First we find the closest point on the ray to the sphere.
+        // ? To find this point, we find the distance to it using dir * (center - origin).
+        // ? Next we solve origin + t*u to find the closest point.
+        // ? If the distance of that closest point to the center is less than or equal to the radius, we have an intersection.
+
+        const ZMath::Vec3D c = sphere.getCenter();
+        float r = sphere.getRadius();
+        float rSq = r*r;
+
+        // determine the closest point and the distance to that point
+        float t = ray.dir * (c - ray.origin);
+        ZMath::Vec3D close = ray.origin + ray.dir * t;
+
+        float dSq = close.distSq(c);
+
+        // no intersection
+        if (dSq > rSq) {
+            dist = t;
+            return 0;
+        }
+
+        // lands on the circumference
+        if (dSq == rSq) {
+            dist = r;
+            return 1;
+        }
+
+        // standard intersection
+        // ! optimize the sqrt away if possible
+        dist = t - sqrt(rSq - dSq);
+        return 1;
+    };
 
     bool raycast(AABB const &aabb, Ray3D const &ray, float &dist) {
         // ? We can determine the distance from the ray to a certain edge by dividing a select min or max vector component
@@ -251,7 +289,7 @@ namespace Primitives {
 
         // ray doesn't intersect the AABB.
         if (tMax < tMin) {
-            dist = tMax;
+            dist = tMax; // ! might wanna make dist something else instead.
             return 0;
         }
 
