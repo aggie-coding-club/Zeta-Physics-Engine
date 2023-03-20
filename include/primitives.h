@@ -4,6 +4,50 @@
 #include "rigidbody.h"
 
 namespace Primitives {
+    class Ray3D {
+        private:
+            ZMath::Vec3D origin;
+            ZMath::Vec3D dir; // normalized direction of the ray
+
+        public:
+            // @brief Construct a new Ray3D object
+            // 
+            // @param position The origin of the ray.
+            // @param direction The direction of the ray as a normalized vector.
+            Ray3D(ZMath::Vec3D position, ZMath::Vec3D direction) : origin(position), dir(direction) {};
+
+            // The direction vector passed in must be normalized.
+            void setDirection(ZMath::Vec3D const &dir);
+            void setOrigin(ZMath::Vec3D const &origin);
+
+            ZMath::Vec3D getDirection();
+            ZMath::Vec3D getOrigin();
+
+            ZMath::Vec3D getDirection() const;
+            ZMath::Vec3D getOrigin() const;
+    };
+
+    class RaycastResult {
+        private:
+            ZMath::Vec3D point;
+            ZMath::Vec3D normal;
+            float distance;
+            bool hit;
+
+        public:
+            RaycastResult() : point(ZMath::Vec3D()), normal(ZMath::Vec3D()), distance(-1.0f), hit(0) {};
+
+            // Configure the results of a raycast.
+            // todo add documentation on the parameters
+            void init(ZMath::Vec3D const &point, ZMath::Vec3D const &normal, float distance, bool hit);
+
+            // Reset the results of a raycast.
+            // This is useful for reusing this object and if the original results become void.
+            void reset();
+
+            // todo add a way to access the data. We'll do so once we start working more on raycasting.
+    };
+
     class Line3D {
         public:
             // @brief Create a line between two points.
