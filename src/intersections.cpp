@@ -28,21 +28,19 @@ namespace Primitives {
         return !((point - line.start).cross((line.end - line.start).normalize()).magSq());
     };
 
+    // ! commented out until the plane class is made to prevent errors
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
-        ZMath::Vec3D p = plane.getMin(), r = plane.getMax();
+        /*ZMath::Vec3D p = plane.getMin(), r = plane.getMax();
         ZMath::Vec3D pq = plane.getCenter() - p;
         ZMath::Vec3D pr = r - p;
         ZMath::Vec3D n = pq.cross(pr);
         
         if (n.x*(point.x - p.x) + n.y*(point.y - p.y) + n.z*(point.z - p.z) != 0) { return 0; }
 
-        return point.x <= r.x && point.y <= r.y && point.z <= r.z && point.x >= p.x && point.y >= p.y && point.z >= p.z;
+        return point.x <= r.x && point.y <= r.y && point.z <= r.z && point.x >= p.x && point.y >= p.y && point.z >= p.z;*/
     };
 
-    bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) {
-        float r = sphere.getRadius();
-        return sphere.getCenter().distSq(point) <= r*r;
-    };
+    bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.c.distSq(point) <= sphere.r*sphere.r; };
 
     bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb) {
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
@@ -50,12 +48,12 @@ namespace Primitives {
     };
 
     bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube) {
-        ZMath::Vec3D c = cube.getPos(), min = cube.getLocalMin(), max = cube.getLocalMax();
+        ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
         ZMath::Vec3D p = point; // create a copy so we can rotate into our local cords
 
         // rotate into our UVW cords
-        ZMath::rotateXY(p, c, cube.getTheta());
-        ZMath::rotateXZ(p, c, cube.getPhi());
+        ZMath::rotateXY(p, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(p, cube.rb.pos, cube.rb.phi);
 
         return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
     };
@@ -145,15 +143,12 @@ namespace Primitives {
         // ? Since we define our start point as the point at t_0 and end point as the point at t_1,
         // ?  we know that if either solution of the quadratic constructed is between 0 to 1 inclusive, we have a collision.
 
-        float r = sphere.getRadius();
-        ZMath::Vec3D center = sphere.getCenter();
-
         float dx = line.end.x - line.start.x, dy = line.end.y - line.start.y, dz = line.end.z - line.start.z;
-        float xc = line.start.x - center.x, yc = line.start.y - center.y, zc = line.start.z - center.z;
+        float xc = line.start.x - sphere.c.x, yc = line.start.y - sphere.c.y, zc = line.start.z - sphere.c.z;
 
         float A = dx*dx + dy*dy + dz*dz;
         float B = 2*(dx*xc + dy*yc + dz*zc);
-        float C = xc*xc + yc*yc + zc*zc - r*r;
+        float C = xc*xc + yc*yc + zc*zc - sphere.r*sphere.r;
 
         float D = B*B - 4*A*C;
 
@@ -205,14 +200,12 @@ namespace Primitives {
     bool LineAndCube(Line3D const &line, Cube const &cube) {
         // ? This will be the same as the AABB vs Line check after rotating the line into the cube's UVW coordinates.
 
-        ZMath::Vec3D origin = cube.getPos();
         Line3D l(line.start, line.end);
-        float theta = cube.getTheta(), phi = cube.getPhi();
 
-        ZMath::rotateXY(l.start, origin, theta);
-        ZMath::rotateXZ(l.start, origin, phi);
-        ZMath::rotateXY(l.end, origin, theta);
-        ZMath::rotateXZ(l.end, origin, phi);
+        ZMath::rotateXY(l.start, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(l.start, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXY(l.end, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(l.end, cube.rb.pos, cube.rb.phi);
 
         return LineAndAABB(l, AABB(cube.getLocalMin(), cube.getLocalMax()));
     };
@@ -234,12 +227,10 @@ namespace Primitives {
         // ? Next we solve origin + t*origin to find the closest point.
         // ? If the distance of that closest point to the center is less than or equal to the radius, we have an intersection.
 
-        const ZMath::Vec3D c = sphere.getCenter();
-        float r = sphere.getRadius();
-        float rSq = r*r;
+        float rSq = sphere.r*sphere.r;
 
         // determine the closest point and the distance to that point
-        float t = ray.dir * (c - ray.origin);
+        float t = ray.dir * (sphere.c - ray.origin);
         ZMath::Vec3D close = ray.origin + ray.dir * t;
 
         float dSq = t*t;
@@ -252,7 +243,7 @@ namespace Primitives {
 
         // lands on the circumference
         if (dSq == rSq) {
-            dist = r;
+            dist = sphere.r;
             return 1;
         }
 
@@ -330,8 +321,8 @@ namespace Primitives {
     bool SphereAndPlane(Sphere const &sphere, Plane const &plane) { return PlaneAndSphere(plane, sphere); };
 
     bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {
-        float r = sphere1.getRadius() + sphere2.getRadius();
-        return sphere1.getCenter().distSq(sphere2.getCenter()) <= r * r;
+        float r = sphere1.r + sphere2.r;
+        return sphere1.c.distSq(sphere2.c) <= r*r;
     };
 
     bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {
@@ -340,28 +331,25 @@ namespace Primitives {
         // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
         // ? From here, we can check the distance from this point to the sphere's center.
 
-        float r = sphere.getRadius();
-        ZMath::Vec3D center = sphere.getCenter();
-        ZMath::Vec3D closest(center);
+        ZMath::Vec3D closest(sphere.c);
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
 
         closest.x = ZMath::clamp(closest.x, min.x, max.x);
         closest.y = ZMath::clamp(closest.y, min.y, max.y);
         closest.z = ZMath::clamp(closest.z, min.z, max.z);
 
-        return closest.distSq(center) <= r*r;
+        return closest.distSq(sphere.c) <= sphere.r*sphere.r;
     };
 
     bool SphereAndCube(Sphere const &sphere, Cube const &cube) {
         // ? We can use the same approach as for SphereAndAABB, just we have to rotate the sphere into the Cube's UVW coordinates.
 
-        float r = sphere.getRadius();
-        ZMath::Vec3D center = sphere.getCenter(), origin = cube.getPos();
+        ZMath::Vec3D center = sphere.c;
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
         // rotate the center of the sphere into the UVW coordinates of our cube
-        ZMath::rotateXY(center, origin, cube.getTheta());
-        ZMath::rotateXZ(center, origin, cube.getPhi());
+        ZMath::rotateXY(center, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(center, cube.rb.pos, cube.rb.phi);
         
         // perform the check as if it was an AABB vs Sphere
         ZMath::Vec3D closest(center);
@@ -370,7 +358,7 @@ namespace Primitives {
         closest.y = ZMath::clamp(closest.y, min.y, max.y);
         closest.z = ZMath::clamp(closest.z, min.z, max.z);
 
-        return closest.distSq(center) <= r*r;
+        return closest.distSq(center) <= sphere.r*sphere.r;
     };
 
     // * ====================================================================================================================
@@ -401,11 +389,10 @@ namespace Primitives {
         // ? Rotate the AABB into the cube's UVW coordinates.
         // ? Afterwards, use the same logic as AABB vs AABB.
 
-        ZMath::Vec3D origin = cube.getPos();
         ZMath::Vec3D min1 = aabb.getMin(), max1 = aabb.getMax(), min2 = cube.getLocalMin(), max2 = cube.getLocalMax();
 
-        ZMath::rotateXY(min1, origin, cube.getTheta());
-        ZMath::rotateXZ(max1, origin, cube.getPhi());
+        ZMath::rotateXY(min1, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(max1, cube.rb.pos, cube.rb.phi);
 
         return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
     };
@@ -431,7 +418,7 @@ namespace Primitives {
         // ?  the first cube was rotated by from the second cube and perform an AABB vs Cube check.
 
         AABB aabb(cube1.getLocalMin(), cube2.getLocalMax());
-        Cube cube(cube2.getLocalMin(), cube2.getLocalMax(), cube2.getTheta() - cube1.getTheta(), cube2.getPhi() - cube1.getPhi());
+        Cube cube(cube2.getLocalMin(), cube2.getLocalMax(), cube2.rb.theta - cube1.rb.theta, cube2.rb.phi - cube1.rb.phi);
 
         return AABBAndCube(aabb, cube);
     };

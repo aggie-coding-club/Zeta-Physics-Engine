@@ -1,7 +1,7 @@
 #ifndef PHYSICS_HANDLER_H
 #define PHYSICS_HANDLER_H
 
-#include "object.h"
+#include "primitives.h"
 
 namespace PhysicsHandler {
     class Handler {

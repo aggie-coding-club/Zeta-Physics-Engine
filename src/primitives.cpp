@@ -1,7 +1,6 @@
 // ? Define functions from our primitives header here.
 
 #include "primitives.h"
-#include <cmath>
 
 namespace Primitives {
     // * ===================
@@ -25,14 +24,8 @@ namespace Primitives {
     // * Sphere
     // * =================
 
-    void Sphere::setRadius(float r) { rho = r; };
-    void Sphere::setCenter(ZMath::Vec3D const &c) { center.set(c); };
-
-    float Sphere::getRadius() { return rho; };
-    ZMath::Vec3D Sphere::getCenter() { return center; };
-
-    float Sphere::getRadius() const { return rho; };
-    ZMath::Vec3D Sphere::getCenter() const { return center; };
+    // * Does not have any functions to define in here.
+    // ! Will leave this here temporarily in case of refactoring
 
     // * ====================================================================================================================
 
@@ -73,16 +66,6 @@ namespace Primitives {
     // * Cube
     // * ===============
 
-    void Cube::setTheta(float theta) { rb.theta = theta; };
-
-    void Cube::setPhi(float phi) { rb.phi = phi; };
-
-    float Cube::getTheta() { return rb.theta; };
-
-    float Cube::getPhi() { return rb.phi; };
-
-    ZMath::Vec3D Cube::getPos() { return rb.pos; }
-
     ZMath::Vec3D Cube::getLocalMin() { return rb.pos - halfSize; };
 
     ZMath::Vec3D Cube::getLocalMax() { return rb.pos + halfSize; };
@@ -111,12 +94,6 @@ namespace Primitives {
 
         return v;
     };
-
-    float Cube::getTheta() const { return rb.theta; };
-
-    float Cube::getPhi() const { return rb.phi; };
-
-    ZMath::Vec3D Cube::getPos() const { return rb.pos; }
 
     ZMath::Vec3D Cube::getLocalMin() const { return rb.pos - halfSize; };
 

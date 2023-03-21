@@ -92,9 +92,9 @@ void update() {
 
     // Update the cube
     if (dt >= 0.0167f) {
-        our_cube.setTheta(our_cube.getTheta() + (3.0f * (int)(dt/0.0167f)));
-        our_cube.setPhi(our_cube.getPhi() - (1.5f * (int)(dt/0.0167f)));
-        dt = 0.0f;
+        our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
+        our_cube.rb.phi -= (1.5f * (int)(dt/0.0167f));
+        dt -= (float)(int)(dt/0.0167f) * 0.0167;
     }
 
     gsi_depth_enabled(&gsi, true);
@@ -126,10 +126,7 @@ void update() {
     }
 
     {
-        ZMath::Vec3D pos = our_sphere.getCenter();
-        float r = our_sphere.getRadius();
-
-        gsi_sphere(&gsi, pos.x, pos.y, pos.z, r, 255, 200, 100, 255, GS_GRAPHICS_PRIMITIVE_LINES);
+        gsi_sphere(&gsi, our_sphere.c.x, our_sphere.c.y, our_sphere.c.z, our_sphere.r, 255, 200, 100, 255, GS_GRAPHICS_PRIMITIVE_LINES);
     }
 
     // Draw text

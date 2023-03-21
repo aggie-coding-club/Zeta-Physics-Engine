@@ -23,6 +23,7 @@ const Vec3D Vec3D::normalize() const { return (*this) * (1.0f/sqrt(x*x + y*y + z
 float Vec3D::mag() const { return sqrt(x*x + y*y + z*z); };
 float Vec3D::magSq() const { return x*x + y*y + z*z; };
 
+float Vec3D::dist(Vec3D const &vec) const { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
 
 // * ============================================
 // * ZMath Functions

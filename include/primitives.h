@@ -44,27 +44,17 @@ namespace Primitives {
 
     class Sphere {
         public:
+            float r; // radius
+            ZMath::Vec3D c; // center
+
             // @brief Create a Sphere centered at (0, 0, 0) with a radius of 1.
-            Sphere() : rho(1.0f), center(ZMath::Vec3D()){};
+            Sphere() : r(1.0f), c(ZMath::Vec3D()){};
 
             // @brief Create a Sphere with an arbitrary radius and center.
             //
             // @param r (float) Radius of the sphere.
             // @param c (Vec3D) Center of the sphere.
-            Sphere(float r, ZMath::Vec3D const &c) : rho(r), center(c){};
-
-            void setRadius(float r);
-            void setCenter(ZMath::Vec3D const &c);
-
-            float getRadius();
-            ZMath::Vec3D getCenter();
-
-            float getRadius() const;
-            ZMath::Vec3D getCenter() const;
-
-        private:
-            float rho; // radius
-            ZMath::Vec3D center;
+            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), c(center){};
     };
 
     // ! update to implement getVertices (potentially could implement a rigidbody3D too to make computations with forces easier later)
@@ -91,10 +81,11 @@ namespace Primitives {
 
     class Cube {
         private:
-            RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
             ZMath::Vec3D halfSize;
 
         public:
+            RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
+
             // @brief Create a cube rotated by 45 degrees with respect to both the XY and XZ planes, 
             //         its center at (0, 0, 0), and its halfsize as 1.
             Cube() : rb(RigidBody3D(ZMath::Vec3D(0), 45.0f, 45.0f)), halfSize(ZMath::Vec3D(1)) {};
@@ -108,21 +99,6 @@ namespace Primitives {
             Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) 
                     : rb(RigidBody3D(max - min, angXY, angXZ)), halfSize((max - min) * 0.5f) {};
 
-            // Set the angle the cube is rotated with respect to the XY plane.
-            void setTheta(float theta);
-
-            // Set the angle the cube is rotated with respect to the XZ plane.
-            void setPhi(float phi);
-
-            // Get the angle the cube is rotated with respect to the XY plane.
-            float getTheta();
-
-            // Get the angle the cube is rotated with respect to the XZ plane.
-            float getPhi();
-
-            // Get the pos of the cube
-            ZMath::Vec3D getPos();
-
             // Get the min vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMin();
 
@@ -135,15 +111,6 @@ namespace Primitives {
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
             ZMath::Vec3D* getVertices();
-
-            // Get the angle the cube is rotated with respect to the XY plane.
-            float getTheta() const;
-
-            // Get the angle the cube is rotated with respect to the XZ plane.
-            float getPhi() const;
-
-            // Get the pos of the cube
-            ZMath::Vec3D getPos() const;
 
             // Get the min vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMin() const;
