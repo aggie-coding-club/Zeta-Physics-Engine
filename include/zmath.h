@@ -134,6 +134,13 @@ namespace ZMath {
             // * Get the vector projection of another vector onto this vector (Parameter onto this).
             const Vec3D proj (Vec3D const &vec) const { return (*this) * ((x*vec.x + y*vec.y + z*vec.z)/(x*x + y*y + z*z)); };
 
+            // * Get the distance between this and another vector.
+            float dist (Vec3D const &vec) const;
+
+            // * Get the distance squared between this and another vector.
+            // * This should be used over dist() when possible as it is less expensive.
+            float distSq (Vec3D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z); };
+
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
             const Vec3D normalize() const;
 
