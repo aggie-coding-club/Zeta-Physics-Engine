@@ -134,7 +134,29 @@ namespace Primitives {
         return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
     };
 
-    bool LineAndPlane(Line3D const &line, Plane const &plane) {};
+    bool LineAndPlane(Line3D const &line, Plane const &plane) {
+        // ? We can use the same approach to solve this problem as for the raycasting.
+        // ? We just ensure the point of intersection also lies within the bounds of the line.
+
+        ZMath::Vec3D n = plane.getNormal();
+        ZMath::Vec3D dir = (line.end - line.start).normalize();
+        float dot = n * dir;
+
+        // check if the line is parallel to the plane
+        if (!dot) { return 0; }
+
+        float t = -((n * (line.start - plane.sb.pos))/dot);
+        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        ZMath::Vec3D p = line.start + dir*t;
+
+        ZMath::rotateXY(p, plane.sb.pos, plane.sb.theta);
+        ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
+
+        // Make sure the point of intersection is within our bounds.
+        // We don't need to check if it's greater than or equal to the start point on the line segment as t >= 0 ensures that already.
+        return t >= 0 && p.x >= min.x && p.y >= min.y && p.z >= min.z && p.x <= max.x && p.y <= max.y && p.z <= max.z &&
+                p.x <= line.end.x && p.y <= line.end.y && p.z <= line.end.z;
+    };
 
     bool LineAndSphere(Line3D const &line, Sphere const &sphere) {
         // todo could maybe take inspiration from the raycasting solution
