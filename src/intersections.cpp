@@ -1,7 +1,6 @@
 // ? Define functions from our intersections header here.
 
 // todo unit tests
-// todo raycasting
 
 #include "intersections.h"
 #include <cmath>
@@ -24,20 +23,21 @@ namespace Primitives {
         if (point.x < min.x || point.x > max.x || point.y < min.y || point.y > max.y || point.z < min.z || point.z > max.z) { return 0; }
 
         // We don't need to divide by ||u|| to know if it will evaluate to 0.
-        // ! normalize requires a slow sqrt -- optimize away if possible. Will probably just implement fast inv sqrt
+        // ! We might not need the normalize. I'll do some math to figure out if it is needed shortly.
         return !((point - line.start).cross((line.end - line.start).normalize()).magSq());
     };
 
-    // ! commented out until the plane class is made to prevent errors
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
-        /*ZMath::Vec3D p = plane.getMin(), r = plane.getMax();
-        ZMath::Vec3D pq = plane.getCenter() - p;
+        // todo maybe change some of the variable names to make this more readable
+
+        ZMath::Vec3D p = plane.getLocalMin(), r = plane.getLocalMax();
+        ZMath::Vec3D pq = plane.sb.pos - p;
         ZMath::Vec3D pr = r - p;
         ZMath::Vec3D n = pq.cross(pr);
         
         if (n.x*(point.x - p.x) + n.y*(point.y - p.y) + n.z*(point.z - p.z) != 0) { return 0; }
 
-        return point.x <= r.x && point.y <= r.y && point.z <= r.z && point.x >= p.x && point.y >= p.y && point.z >= p.z;*/
+        return point.x <= r.x && point.y <= r.y && point.z <= r.z && point.x >= p.x && point.y >= p.y && point.z >= p.z;
     };
 
     bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.c.distSq(point) <= sphere.r*sphere.r; };
@@ -216,7 +216,9 @@ namespace Primitives {
     // * Raycasting
     // * =================
 
-    bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {};
+    bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {
+
+    };
     
     bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {
         // todo at some point we may want to get the hit point.

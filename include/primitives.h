@@ -2,6 +2,7 @@
 #define PRIMITIVES_H
 
 #include "rigidbody.h"
+#include "staticbody.h"
 
 // todo might want to make some of the attributes public.
 // todo refactor to do what I stated above.
@@ -30,16 +31,37 @@ namespace Primitives {
             Line3D(ZMath::Vec3D const &p1, ZMath::Vec3D const &p2) : start(p1), end(p2) {};
     };
 
-    // ! update to fix -- should store a single point on the plane and the normal (radius of a plane doesn't exist)
+    // Models a rectangular, finite plane in 3D space.
+    // This should be used to model death planes, borders, etc. as planes are not affected by forces and impulse.
     class Plane {
         private:
-            ZMath::Vec3D normal;
-            float radius;
+            ZMath::Vec2D halfSize;
 
         public:
-            Plane(ZMath::Vec3D const &norm, float r) : normal(norm), radius(r){};
+            // static body representing the plane -- stores angles and the centerpoint.
+            // We use a static body for a plane as it should not be affected by forces and impulse.
+            StaticBody3D sb;
 
-            Plane(ZMath::Vec3D const &min, ZMath::Vec3D const &max) : normal(min.cross(max)), radius((max - min).mag()){};
+            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) 
+                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f) {};
+            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) 
+                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ) {};
+            
+            ZMath::Vec3D getLocalMin();
+            ZMath::Vec3D getLocalMax();
+            ZMath::Vec2D getHalfsize();
+
+            // Get the vertices of the plane in terms of global coordinates.
+            // Remember to use delete[] on the object you assign this to afterwards to free the memory.
+            ZMath::Vec3D* getVertices();
+
+            ZMath::Vec3D getLocalMin() const;
+            ZMath::Vec3D getLocalMax() const;
+            ZMath::Vec2D getHalfSize() const;
+
+            // Get the vertices of the plane in terms of global coordinates.
+            // Remember to use delete[] on the object you assign this to afterwards to free the memory.
+            ZMath::Vec3D* getVertices() const;
     };
 
     class Sphere {
@@ -57,14 +79,14 @@ namespace Primitives {
             Sphere(float rho, ZMath::Vec3D const &center) : r(rho), c(center){};
     };
 
-    // ! update to implement getVertices (potentially could implement a rigidbody3D too to make computations with forces easier later)
+    // ! refactor to use a rigidBody
     class AABB {
         private:
             ZMath::Vec3D pos;
             ZMath::Vec3D halfSize;
 
         public:
-            AABB(ZMath::Vec3D const &max, ZMath::Vec3D const &min) : pos(max - min), halfSize(pos * 0.5f){};
+            AABB(ZMath::Vec3D const &max, ZMath::Vec3D const &min) : halfSize((max - min) * 0.5f), pos(min + halfSize) {};
 
             ZMath::Vec3D getMin();
             ZMath::Vec3D getMax();
@@ -97,7 +119,7 @@ namespace Primitives {
             // @param angXY Angle the cube is rotated by with respect to the XY plane in degrees.
             // @param angXZ Angle the cube is rotated by with respect to the XZ plane in degrees.
             Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) 
-                    : rb(RigidBody3D(max - min, angXY, angXZ)), halfSize((max - min) * 0.5f) {};
+                    : halfSize((max - min) * 0.5f), rb(RigidBody3D(min + halfSize, angXY, angXZ)) {};
 
             // Get the min vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMin();

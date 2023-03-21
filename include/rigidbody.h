@@ -7,8 +7,8 @@ namespace Primitives {
     class RigidBody3D {
         public:
             ZMath::Vec3D pos; // center point of the rigidbody
-            float theta; // rotation with respect to the XY axis
-            float phi; // rotation with respect to the XZ axis
+            float theta; // rotation with respect to the XY plane
+            float phi; // rotation with respect to the XZ plane
 
             // @brief Create an unrotated 3D rigid body.
             // 
