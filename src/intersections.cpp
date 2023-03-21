@@ -231,7 +231,7 @@ namespace Primitives {
 
         // ? First we find the closest point on the ray to the sphere.
         // ? To find this point, we find the distance to it using dir * (center - origin).
-        // ? Next we solve origin + t*u to find the closest point.
+        // ? Next we solve origin + t*origin to find the closest point.
         // ? If the distance of that closest point to the center is less than or equal to the radius, we have an intersection.
 
         const ZMath::Vec3D c = sphere.getCenter();
@@ -242,7 +242,7 @@ namespace Primitives {
         float t = ray.dir * (c - ray.origin);
         ZMath::Vec3D close = ray.origin + ray.dir * t;
 
-        float dSq = close.distSq(c);
+        float dSq = t*t;
 
         // no intersection
         if (dSq > rSq) {
