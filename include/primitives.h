@@ -47,6 +47,8 @@ namespace Primitives {
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) 
                     : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ) {};
             
+            ZMath::Vec3D getNormal();
+
             ZMath::Vec3D getLocalMin();
             ZMath::Vec3D getLocalMax();
             ZMath::Vec2D getHalfsize();
@@ -54,6 +56,8 @@ namespace Primitives {
             // Get the vertices of the plane in terms of global coordinates.
             // Remember to use delete[] on the object you assign this to afterwards to free the memory.
             ZMath::Vec3D* getVertices();
+
+            ZMath::Vec3D getNormal() const;
 
             ZMath::Vec3D getLocalMin() const;
             ZMath::Vec3D getLocalMax() const;

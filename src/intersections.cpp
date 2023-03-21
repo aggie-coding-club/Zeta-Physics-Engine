@@ -28,16 +28,17 @@ namespace Primitives {
     };
 
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
-        // todo maybe change some of the variable names to make this more readable
+        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
 
-        ZMath::Vec3D p = plane.getLocalMin(), r = plane.getLocalMax();
-        ZMath::Vec3D pq = plane.sb.pos - p;
-        ZMath::Vec3D pr = r - p;
-        ZMath::Vec3D n = pq.cross(pr);
+        ZMath::rotateXY(min, plane.sb.pos, plane.sb.theta);
+        ZMath::rotateXZ(min, plane.sb.pos, plane.sb.phi);
+        ZMath::rotateXY(max, plane.sb.pos, plane.sb.theta);
+        ZMath::rotateXZ(max, plane.sb.pos, plane.sb.phi);
+
+        ZMath::Vec3D n = (max - plane.sb.pos).cross(min - plane.sb.pos);
         
-        if (n.x*(point.x - p.x) + n.y*(point.y - p.y) + n.z*(point.z - p.z) != 0) { return 0; }
-
-        return point.x <= r.x && point.y <= r.y && point.z <= r.z && point.x >= p.x && point.y >= p.y && point.z >= p.z;
+        if (n.x*(point.x - min.x) + n.y*(point.y - min.y) + n.z*(point.z - min.z) != 0) { return 0; }
+        return point.x <= min.x && point.y <= min.y && point.z <= min.z && point.x >= max.x && point.y >= max.y && point.z >= max.z;
     };
 
     bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.c.distSq(point) <= sphere.r*sphere.r; };
@@ -217,7 +218,21 @@ namespace Primitives {
     // * =================
 
     bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {
+        ZMath::Vec3D n = plane.getNormal();
+        float dot = n * ray.dir;
 
+        // check if the ray is parallel to the plane
+        if (!dot) { return 0; }
+
+        dist = -((n * (ray.origin - plane.sb.pos))/dot);
+        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        ZMath::Vec3D p = ray.origin + ray.dir*dist;
+
+        ZMath::rotateXY(p, plane.sb.pos, plane.sb.theta);
+        ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
+
+        // make sure the point of intersection is within our bounds and the intersection wouldn't occur behind the ray
+        return dist >= 0 && p.x >= min.x && p.y >= min.y && p.z >= min.z && p.x <= max.x && p.y <= max.y && p.z <= max.z;
     };
     
     bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {

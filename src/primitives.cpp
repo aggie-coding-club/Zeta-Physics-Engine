@@ -16,6 +16,18 @@ namespace Primitives {
     // * Plane
     // * =================
 
+    ZMath::Vec3D Plane::getNormal() {
+        ZMath::Vec3D min = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+        ZMath::Vec3D max = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+
+        ZMath::rotateXY(min, sb.pos, sb.theta);
+        ZMath::rotateXZ(min, sb.pos, sb.phi);
+        ZMath::rotateXY(max, sb.pos, sb.theta);
+        ZMath::rotateXZ(max, sb.pos, sb.phi);
+
+        return (max - sb.pos).cross(min - sb.pos);
+    };
+
     ZMath::Vec3D Plane::getLocalMin() { return ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z); };
     ZMath::Vec3D Plane::getLocalMax() { return ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z); };
     ZMath::Vec2D Plane::getHalfsize() { return halfSize; };
@@ -35,6 +47,18 @@ namespace Primitives {
         }
 
         return v;
+    };
+
+    ZMath::Vec3D Plane::getNormal() const {
+        ZMath::Vec3D min = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+        ZMath::Vec3D max = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+
+        ZMath::rotateXY(min, sb.pos, sb.theta);
+        ZMath::rotateXZ(min, sb.pos, sb.phi);
+        ZMath::rotateXY(max, sb.pos, sb.theta);
+        ZMath::rotateXZ(max, sb.pos, sb.phi);
+
+        return (max - sb.pos).cross(min - sb.pos);
     };
 
     ZMath::Vec3D Plane::getLocalMin() const { return ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z); };
