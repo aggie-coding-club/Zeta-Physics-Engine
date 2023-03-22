@@ -126,7 +126,7 @@ void update() {
     }
 
     {
-        gsi_sphere(&gsi, our_sphere.c.x, our_sphere.c.y, our_sphere.c.z, our_sphere.r, 255, 200, 100, 255, GS_GRAPHICS_PRIMITIVE_LINES);
+        gsi_sphere(&gsi, our_sphere.rb.pos.x, our_sphere.rb.pos.y, our_sphere.rb.pos.z, our_sphere.r, 255, 200, 100, 255, GS_GRAPHICS_PRIMITIVE_LINES);
     }
 
     // Draw text
