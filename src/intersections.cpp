@@ -41,7 +41,7 @@ namespace Primitives {
         return point.x <= min.x && point.y <= min.y && point.z <= min.z && point.x >= max.x && point.y >= max.y && point.z >= max.z;
     };
 
-    bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.c.distSq(point) <= sphere.r*sphere.r; };
+    bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.rb.pos.distSq(point) <= sphere.r*sphere.r; };
 
     bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb) {
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
@@ -167,7 +167,7 @@ namespace Primitives {
         // ?  we know that if either solution of the quadratic constructed is between 0 to 1 inclusive, we have a collision.
 
         float dx = line.end.x - line.start.x, dy = line.end.y - line.start.y, dz = line.end.z - line.start.z;
-        float xc = line.start.x - sphere.c.x, yc = line.start.y - sphere.c.y, zc = line.start.z - sphere.c.z;
+        float xc = line.start.x - sphere.rb.pos.x, yc = line.start.y - sphere.rb.pos.y, zc = line.start.z - sphere.rb.pos.z;
 
         float A = dx*dx + dy*dy + dz*dz;
         float B = 2*(dx*xc + dy*yc + dz*zc);
@@ -269,7 +269,7 @@ namespace Primitives {
         float rSq = sphere.r*sphere.r;
 
         // determine the closest point and the distance to that point
-        float t = ray.dir * (sphere.c - ray.origin);
+        float t = ray.dir * (sphere.rb.pos - ray.origin);
         ZMath::Vec3D close = ray.origin + ray.dir * t;
 
         float dSq = t*t;
@@ -350,7 +350,7 @@ namespace Primitives {
         // ? Since we are not dealing with infinite planes, we will first need to clamp the 
         // ?  sphere's center between the min and max vertices of the plane.
 
-        ZMath::Vec3D closest(sphere.c);
+        ZMath::Vec3D closest(sphere.rb.pos);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
 
         ZMath::rotateXY(closest, plane.sb.pos, plane.sb.theta);
@@ -360,7 +360,7 @@ namespace Primitives {
         closest.y = ZMath::clamp(closest.y, min.y, max.y);
         closest.z = ZMath::clamp(closest.z, min.z, max.z);
 
-        return closest.distSq(sphere.c) <= sphere.r*sphere.r;
+        return closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
     };
 
     bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {};
@@ -381,7 +381,7 @@ namespace Primitives {
 
     bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {
         float r = sphere1.r + sphere2.r;
-        return sphere1.c.distSq(sphere2.c) <= r*r;
+        return sphere1.rb.pos.distSq(sphere2.rb.pos) <= r*r;
     };
 
     bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {
@@ -390,20 +390,20 @@ namespace Primitives {
         // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
         // ? From here, we can check the distance from this point to the sphere's center.
 
-        ZMath::Vec3D closest(sphere.c);
+        ZMath::Vec3D closest(sphere.rb.pos);
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
 
         closest.x = ZMath::clamp(closest.x, min.x, max.x);
         closest.y = ZMath::clamp(closest.y, min.y, max.y);
         closest.z = ZMath::clamp(closest.z, min.z, max.z);
 
-        return closest.distSq(sphere.c) <= sphere.r*sphere.r;
+        return closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
     };
 
     bool SphereAndCube(Sphere const &sphere, Cube const &cube) {
         // ? We can use the same approach as for SphereAndAABB, just we have to rotate the sphere into the Cube's UVW coordinates.
 
-        ZMath::Vec3D center = sphere.c;
+        ZMath::Vec3D center = sphere.rb.pos;
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
         // rotate the center of the sphere into the UVW coordinates of our cube

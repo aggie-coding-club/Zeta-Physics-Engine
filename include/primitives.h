@@ -42,6 +42,8 @@ namespace Primitives {
             // We use a static body for a plane as it should not be affected by forces and impulse.
             StaticBody3D sb;
 
+            // todo create documentation
+
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) 
                     : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f) {};
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) 
@@ -71,26 +73,31 @@ namespace Primitives {
     class Sphere {
         public:
             float r; // radius
-            ZMath::Vec3D c; // center
+            RigidBody3D rb; // rigidbody representing the sphere -- stores its centerpoint
 
             // @brief Create a Sphere centered at (0, 0, 0) with a radius of 1.
-            Sphere() : r(1.0f), c(ZMath::Vec3D()){};
+            Sphere() : r(1.0f), rb(ZMath::Vec3D()){};
 
             // @brief Create a Sphere with an arbitrary radius and center.
             //
-            // @param r (float) Radius of the sphere.
-            // @param c (Vec3D) Center of the sphere.
-            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), c(center){};
+            // @param rho (float) Radius of the sphere.
+            // @param center (Vec3D) Center of the sphere.
+            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), rb(center){};
     };
 
-    // ! refactor to use a rigidBody
     class AABB {
         private:
-            ZMath::Vec3D pos;
             ZMath::Vec3D halfSize;
 
         public:
-            AABB(ZMath::Vec3D const &max, ZMath::Vec3D const &min) : halfSize((max - min) * 0.5f), pos(min + halfSize) {};
+            RigidBody3D rb; // rigid body representing the AABB -- stores the center point
+
+            // @brief Instantiate a 3D AABB.
+            // 
+            // @param max (Vec3D) Min vertex of the AABB.
+            // @param min (Vec3D) Max vertex of the AABB.
+            AABB(ZMath::Vec3D const &max, ZMath::Vec3D const &min) 
+                    : halfSize((max - min) * 0.5f), rb(min + halfSize) {};
 
             ZMath::Vec3D getMin();
             ZMath::Vec3D getMax();
