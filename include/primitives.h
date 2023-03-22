@@ -41,15 +41,32 @@ namespace Primitives {
             // static body representing the plane -- stores angles and the centerpoint.
             // We use a static body for a plane as it should not be affected by forces and impulse.
             StaticBody3D sb;
+            ZMath::Vec3D normal; // normal vector to the plane. Stored as it is commonly used in computations.
 
             // todo create documentation
 
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) 
-                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f) {};
+                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f) {
+                
+                ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+
+                normal = (v2 - sb.pos).cross(v1 - sb.pos);
+            };
+
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) 
-                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ) {};
-            
-            ZMath::Vec3D getNormal();
+                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ) {
+
+                ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+
+                ZMath::rotateXY(v1, sb.pos, sb.theta);
+                ZMath::rotateXZ(v1, sb.pos, sb.phi);
+                ZMath::rotateXY(v2, sb.pos, sb.theta);
+                ZMath::rotateXZ(v2, sb.pos, sb.phi);
+
+                normal = (v2 - sb.pos).cross(v1 - sb.pos);
+            };
 
             ZMath::Vec3D getLocalMin();
             ZMath::Vec3D getLocalMax();
@@ -58,8 +75,6 @@ namespace Primitives {
             // Get the vertices of the plane in terms of global coordinates.
             // Remember to use delete[] on the object you assign this to afterwards to free the memory.
             ZMath::Vec3D* getVertices();
-
-            ZMath::Vec3D getNormal() const;
 
             ZMath::Vec3D getLocalMin() const;
             ZMath::Vec3D getLocalMax() const;

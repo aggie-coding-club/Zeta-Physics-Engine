@@ -9,22 +9,18 @@ namespace Primitives {
     // * ===================================
 
     // Determine if a point lies on a line.
-    // ! untested
     bool PointAndLine(ZMath::Vec3D const &point, Line3D const &line);
 
     // Determine if a point lies on a plane.
-    // ! untested
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane);
 
     // Determine if a point lies within a sphere.
     bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere);
 
     // Determine if a point lies within an unrotated cube.
-    // ! untested
     bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb);
 
     // Determine if a point lies within a rotated cube.
-    // ! untested
     bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube);
 
     // * ===================================
@@ -35,15 +31,12 @@ namespace Primitives {
     bool LineAndPoint(Line3D const &line, ZMath::Vec3D const &point);
 
     // Determine if a line intersects another line.
-    // ! untested
     bool LineAndLine(Line3D const &line1, Line3D const &line2);
 
     // Determine if a line intersects a plane.
     bool LineAndPlane(Line3D const &line, Plane const &plane);
 
     // Determine if a line intersects a sphere.
-    // todo optimize it so it doesn't need the sqrt
-    // ! untested
     bool LineAndSphere(Line3D const &line, Sphere const &sphere);
 
     // Determine if a line intersects an unrotated cube.
@@ -58,18 +51,22 @@ namespace Primitives {
 
     // Determine if a ray intersects a plane.
     // dist will be modified to equal the distance from the ray it hits the plane.
+    // dist is set to -1 if there is no intersection.
     bool raycast(Plane const &plane, Ray3D const &ray, float &dist);
 
     // Determine if a ray intersects a sphere.
     // dist will be modified to equal the distance from the ray it hits the sphere.
+    // dist is set to -1 if there is no intersection.
     bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist);
 
     // Determine if a ray intersects an AABB.
     // dist will be modified to equal the distance from the ray it hits the AABB.
+    // dist is set to -1 if there is no intersection.
     bool raycast(AABB const &aabb, Ray3D const &ray, float &dist);
 
     // Determine if a ray intersects a cube.
     // dist will be modified to equal the distance from the ray it hits the cube.
+    // dist is set to -1 if there is no intersection.
     bool raycast(Cube const &cube, Ray3D const &ray, float &dist);
 
     // * ===================================

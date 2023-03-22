@@ -34,10 +34,8 @@ namespace Primitives {
         ZMath::rotateXZ(min, plane.sb.pos, plane.sb.phi);
         ZMath::rotateXY(max, plane.sb.pos, plane.sb.theta);
         ZMath::rotateXZ(max, plane.sb.pos, plane.sb.phi);
-
-        ZMath::Vec3D n = (max - plane.sb.pos).cross(min - plane.sb.pos);
         
-        if (n.x*(point.x - min.x) + n.y*(point.y - min.y) + n.z*(point.z - min.z) != 0) { return 0; }
+        if (plane.normal.x*(point.x - min.x) + plane.normal.y*(point.y - min.y) + plane.normal.z*(point.z - min.z) != 0) { return 0; }
         return point.x <= min.x && point.y <= min.y && point.z <= min.z && point.x >= max.x && point.y >= max.y && point.z >= max.z;
     };
 
@@ -138,14 +136,13 @@ namespace Primitives {
         // ? We can use the same approach to solve this problem as for the raycasting.
         // ? We just ensure the point of intersection also lies within the bounds of the line.
 
-        ZMath::Vec3D n = plane.getNormal();
         ZMath::Vec3D dir = (line.end - line.start).normalize();
-        float dot = n * dir;
+        float dot = plane.normal * dir;
 
         // check if the line is parallel to the plane
         if (!dot) { return 0; }
 
-        float t = -((n * (line.start - plane.sb.pos))/dot);
+        float t = -((plane.normal * (line.start - plane.sb.pos))/dot);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p = line.start + dir*t;
 
@@ -240,13 +237,12 @@ namespace Primitives {
     // * =================
 
     bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {
-        ZMath::Vec3D n = plane.getNormal();
-        float dot = n * ray.dir;
+        float dot = plane.normal * ray.dir;
 
         // check if the ray is parallel to the plane
-        if (!dot) { return 0; }
+        if (!dot) { dist = -1.0f; return 0; }
 
-        dist = -((n * (ray.origin - plane.sb.pos))/dot);
+        dist = -((plane.normal * (ray.origin - plane.sb.pos))/dot);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p = ray.origin + ray.dir*dist;
 
@@ -254,7 +250,10 @@ namespace Primitives {
         ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
 
         // make sure the point of intersection is within our bounds and the intersection wouldn't occur behind the ray
-        return dist >= 0 && p.x >= min.x && p.y >= min.y && p.z >= min.z && p.x <= max.x && p.y <= max.y && p.z <= max.z;
+        if (dist >= 0 && p.x >= min.x && p.y >= min.y && p.z >= min.z && p.x <= max.x && p.y <= max.y && p.z <= max.z) { return 1; }
+
+        dist = -1.0f;
+        return 0;
     };
     
     bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {
@@ -276,7 +275,7 @@ namespace Primitives {
 
         // no intersection
         if (dSq > rSq) {
-            dist = t; // ! might want to set this to something else as there isn't a distance to nearest intersection
+            dist = -1.0f;
             return 0;
         }
 
@@ -313,13 +312,13 @@ namespace Primitives {
 
         // if tMax < 0 the ray is intersecting behind it. Therefore, we do not actually have a collision.
         if (tMax < 0) {
-            dist = tMax;
+            dist = -1.0f;
             return 0;
         }
 
         // ray doesn't intersect the AABB.
         if (tMax < tMin) {
-            dist = tMax; // ! might wanna make dist something else instead.
+            dist = -1.0f;
             return 0;
         }
 
@@ -350,6 +349,8 @@ namespace Primitives {
         // ? Since we are not dealing with infinite planes, we will first need to clamp the 
         // ?  sphere's center between the min and max vertices of the plane.
 
+        // * Saw a better approach so I will implement that and test if it works after making unit tests
+
         ZMath::Vec3D closest(sphere.rb.pos);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
 
@@ -363,9 +364,19 @@ namespace Primitives {
         return closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
     };
 
-    bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {};
+    bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {
+        float r = abs(plane.normal.x * aabb.rb.pos.x) + abs(plane.normal.y * aabb.rb.pos.y) + abs(plane.normal.z * aabb.rb.pos.z);
+        return PlaneAndSphere(plane, Sphere(r, aabb.rb.pos));
+    };
 
-    bool PlaneAndCube(Plane const &plane, Cube const &cube) {};
+    bool PlaneAndCube(Plane const &plane, Cube const &cube) {
+        AABB aabb(cube.getLocalMin(), cube.getLocalMax());
+
+        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        Plane p(ZMath::Vec2D(min.x, min.y), ZMath::Vec2D(max.x, max.y), plane.sb.pos.z, plane.sb.theta - cube.rb.theta, plane.sb.phi - cube.rb.phi);
+
+        return PlaneAndAABB(p, aabb);
+    };
 
     // * ====================================================================================================================
 
