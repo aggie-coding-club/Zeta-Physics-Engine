@@ -341,7 +341,27 @@ namespace Primitives {
 
     bool PlaneAndPlane(Plane const &plane1, Plane const &plane2) {};
 
-    bool PlaneAndSphere(Plane const &plane, Sphere const &sphere) {};
+    bool PlaneAndSphere(Plane const &plane, Sphere const &sphere) {
+        // ? A line from the center of the sphere along the normal of the plane will eventually
+        // ?  intersect an infinite plane at the closest point of intersection.
+        // ? Using this, we can take the distance to the plane from that point using the equation
+        // ?  for the distance from a point to a plane.
+        // ? If this distance squared is less than the radius squared, we have an intersection.
+        // ? Since we are not dealing with infinite planes, we will first need to clamp the 
+        // ?  sphere's center between the min and max vertices of the plane.
+
+        ZMath::Vec3D closest(sphere.c);
+        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+
+        ZMath::rotateXY(closest, plane.sb.pos, plane.sb.theta);
+        ZMath::rotateXZ(closest, plane.sb.pos, plane.sb.phi);
+
+        closest.x = ZMath::clamp(closest.x, min.x, max.x);
+        closest.y = ZMath::clamp(closest.y, min.y, max.y);
+        closest.z = ZMath::clamp(closest.z, min.z, max.z);
+
+        return closest.distSq(sphere.c) <= sphere.r*sphere.r;
+    };
 
     bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {};
 
