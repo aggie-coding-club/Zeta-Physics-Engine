@@ -28,7 +28,7 @@ bool testPointAndLine() {
     // test 3
     line.start = ZMath::Vec3D(3, -2, -5);
     line.end = ZMath::Vec3D(3, -2, 5);
-    point.set(3, 2, 2.5f);
+    point.set(3, -2, 2.5f);
     
     if (!Primitives::PointAndLine(point, line)) {
         std::cout << "[FAILED] Point on Vertical Line.\nExpected: true. Obtained: false." << std::endl;
