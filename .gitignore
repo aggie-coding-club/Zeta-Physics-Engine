@@ -1,4 +1,4 @@
 .vscode/
-unitTesting/bin/*
+unitTesting/unitTests.exe
 examples/bin/
 .DS_Store
