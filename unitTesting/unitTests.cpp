@@ -158,7 +158,7 @@ bool testPointAndPlane() {
 
     std::cout << "[PASSED] Point not on Plane.\n";
 
-    // test 6
+    // test 5
     point.set(5, 22.3f, 4.2f);
     Primitives::Plane plane6(ZMath::Vec2D(0, 0), ZMath::Vec2D(10, 20), 4.2f);
 
@@ -169,6 +169,212 @@ bool testPointAndPlane() {
 
     std::cout << "[PASSED] Point not on Plane, but would be if the plane was infinite.\n";
 
+    return 0;
+};
+
+bool testPointAndSphere() {
+    // test 1
+    ZMath::Vec3D point(2);
+    Primitives::Sphere sphere(5.0f, ZMath::Vec3D(4, 3, 2));
+
+    if (POINT_AND_SPHERE_FAIL(point, sphere, 1)) {
+        std::cout << "[FAILED] Point in Sphere.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point in Sphere.\n";
+
+    // test 2
+    point.set(1, 0, 0);
+    sphere.rb.pos.zero();
+    sphere.r = 1.0f;
+
+    if (POINT_AND_SPHERE_FAIL(point, sphere, 1)) {
+        std::cout << "[FAILED] Point on Circumference of Sphere.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point on Circumference of Sphere.\n";
+
+    // test 3
+    point.set(1);
+    
+    if (POINT_AND_SPHERE_FAIL(point, sphere, 0)) {
+        std::cout << "[FAILED] Point not in Sphere.\nExpected: false. Obtained: true." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point not in Sphere.\n";
+    return 0;
+};
+
+bool testPointAndAABB() {
+    // test 1
+    ZMath::Vec3D point(2, 3, 2);
+    Primitives::AABB aabb1(ZMath::Vec3D(-1), ZMath::Vec3D(5));
+
+    if (POINT_AND_AABB_FAIL(point, aabb1, 1)) {
+        std::cout << "[FAILED] Point in AABB.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point in AABB.\n";
+
+    // test 2
+    point.zero();
+    Primitives::AABB aabb2(ZMath::Vec3D(-2), ZMath::Vec3D());
+
+    if (POINT_AND_AABB_FAIL(point, aabb2, 1)) {
+        std::cout << "[FAILED] Point on Vertex of AABB.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point on Vertex of AABB.\n";
+
+    // test 3
+    point.set(5);
+    Primitives::AABB aabb3(ZMath::Vec3D(), ZMath::Vec3D(5, 6, 6));
+
+    if (POINT_AND_AABB_FAIL(point, aabb3, 1)) {
+        std::cout << "[FAILED] Point on Edge of AABB.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point on Edge of AABB.\n";
+
+    // test 5
+    point.zero();
+    Primitives::AABB aabb4(ZMath::Vec3D(-2), ZMath::Vec3D(-1));
+
+    if (POINT_AND_AABB_FAIL(point, aabb4, 0)) {
+        std::cout << "[FAILED] Point not in AABB.\nExpected: false. Obtained: true." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point not in AABB.\n";
+    return 0;
+};
+
+bool testPointAndCube() {
+    // test 1
+    ZMath::Vec3D point(1);
+    Primitives::Cube cube1(ZMath::Vec3D(-100), ZMath::Vec3D(100), 10.0f, 20.0f);
+
+    if (POINT_AND_CUBE_FAIL(point, cube1, 1)) {
+        std::cout << "[FAILED] Point in Cube.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point in Cube.\n";
+
+    // test 2
+    point.set(8.242641f, 0, 1.141421f);
+    Primitives::Cube cube2(ZMath::Vec3D(-6), ZMath::Vec3D(6), 45.0f, 45.0f);
+
+    if (POINT_AND_CUBE_FAIL(point, cube2, 1)) {
+        std::cout << "[FAILED] Point on Cube Edge.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point on Cube Edge.\n";
+
+    // test 3
+    point.set(10.0f);
+    Primitives::Cube cube3(ZMath::Vec3D(-6), ZMath::Vec3D(6), 45.0f, 45.0f);
+
+    if (POINT_AND_CUBE_FAIL(point, cube3, 0)) {
+        std::cout << "[FAILED] Point not in Cube.\nExpected: false. Obtained: true." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point not in Cube.\n";
+
+    // test 4
+    point.set(-5.9f);
+    Primitives::Cube cube4(ZMath::Vec3D(-6), ZMath::Vec3D(6), 45.0f, 45.0f);
+
+    if (POINT_AND_CUBE_FAIL(point, cube4, 0)) {
+        std::cout << "[FAILED] Point not in Cube, but would be if the cube was an AABB.\nExpected: false. Obtained: true." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point not in Cube, but would be if the cube was an AABB.\n";
+    return 0;
+};
+
+bool testLineAndLine() {
+    return 0;
+};
+
+bool testLineAndPlane() {
+    return 0;
+};
+
+bool testLineAndSphere() {
+    return 0;
+};
+
+bool testLineAndAABB() {
+    return 0;
+};
+
+bool testLineAndCube() {
+    return 0;
+};
+
+bool testRaycastingVSPlane() {
+    return 0;
+};
+
+bool testRaycastingVSSphere() {
+    return 0;
+};
+
+bool testRaycastingVSAABB() {
+    return 0;
+};
+
+bool testRaycastingVSCube() {
+    return 0;
+};
+
+bool testPlaneAndPlane() {
+    return 0;
+};
+
+bool testPlaneAndSphere() {
+    return 0;
+};
+
+bool testPlaneAndAABB() {
+    return 0;
+};
+
+bool testPlaneAndCube() {
+    return 0;
+};
+
+bool testSphereAndSphere() {
+    return 0;
+};
+
+bool testSphereAndAABB() {
+    return 0;
+};
+
+bool testSphereAndCube() {
+    return 0;
+};
+
+bool testAABBAndAABB() {
+    return 0;
+};
+
+bool testAABBAndCube() {
+    return 0;
+};
+
+bool testCubeAndCube() {
     return 0;
 };
 
@@ -192,6 +398,36 @@ int main() {
     }
 
     std::cout << "\n================ [PASSED] PointAndPlane. ================\n\n";
+
+    // Point vs Sphere
+    std::cout << "================== PointAndSphere Tests. ==================\n\n";
+
+    if (testPointAndSphere()) {
+        std::cout << "\n================ [FAILED] PointAndSphere. ================\n\n";
+        return 1;
+    }
+
+    std::cout << "\n================ [PASSED] PointAndSphere. ================\n\n";
+
+    // Point vs AABB
+    std::cout << "================== PointAndAABB Tests. ==================\n\n";
+
+    if (testPointAndAABB()) {
+        std::cout << "\n================ [FAILED] PointAndAABB. ================\n\n";
+        return 1;
+    }
+
+    std::cout << "\n================ [PASSED] PointAndAABB. ================\n\n";
+
+    // Point vs Cube
+    std::cout << "================== PointAndCube Tests. ==================\n\n";
+
+    if (testPointAndCube()) {
+        std::cout << "\n================ [FAILED] PointAndCube. ================\n\n";
+        return 1;
+    }
+
+    std::cout << "\n================ [PASSED] PointAndCube. ================\n\n";
 
     return 0;
 };

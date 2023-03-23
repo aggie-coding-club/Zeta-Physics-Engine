@@ -51,8 +51,8 @@ namespace Primitives {
         ZMath::Vec3D p = point; // create a copy so we can rotate into our local cords
 
         // rotate into our UVW cords
-        ZMath::rotateXY(p, cube.rb.pos, cube.rb.theta);
         ZMath::rotateXZ(p, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXY(p, cube.rb.pos, cube.rb.theta);
 
         return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
     };
@@ -222,10 +222,10 @@ namespace Primitives {
 
         Line3D l(line.start, line.end);
 
-        ZMath::rotateXY(l.start, cube.rb.pos, cube.rb.theta);
         ZMath::rotateXZ(l.start, cube.rb.pos, cube.rb.phi);
-        ZMath::rotateXY(l.end, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXY(l.start, cube.rb.pos, cube.rb.theta);
         ZMath::rotateXZ(l.end, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXY(l.end, cube.rb.pos, cube.rb.theta);
 
         return LineAndAABB(l, AABB(cube.getLocalMin(), cube.getLocalMax()));
     };
