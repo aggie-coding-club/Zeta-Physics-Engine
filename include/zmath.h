@@ -10,7 +10,7 @@ namespace ZMath {
     #define PI 3.1415926535897932L
 
     // * Default tolerance value for a floating point comparison
-    #define EPSILON 0.0000000001
+    #define EPSILON 0.00001
 
     // todo go through all of ZMath and check where overloaded functions can be replaced by default parameters
 
@@ -317,7 +317,7 @@ namespace ZMath {
     // * Handle tolerance for floating point numbers.
     bool compare(float a, float b, float epsilon);
 
-    // * Handle tolerance for floating point numbers using the default tolerance of 10^-10.
+    // * Handle tolerance for floating point numbers using the default tolerance of 10^-5.
     bool compare(float a, float b);
 
     // * Clamp a float between a min and max.

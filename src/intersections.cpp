@@ -1,6 +1,8 @@
 // ? Define functions from our intersections header here.
 
 // todo unit tests
+// todo probably need to add in comparison function calls to account for floating point errors
+// todo go through each rotation and make sure it rotates XZ before XY when taking something into the local plane and XY before XZ when taking something out
 
 #include "intersections.h"
 #include <cmath>
@@ -23,19 +25,18 @@ namespace Primitives {
         if (point.x < min.x || point.x > max.x || point.y < min.y || point.y > max.y || point.z < min.z || point.z > max.z) { return 0; }
 
         // We don't need to divide by ||u|| to know if it will evaluate to 0.
-        return !((point - line.start).cross((line.end - line.start)).magSq());
+        return ZMath::compare((point - line.start).cross((line.end - line.start)).magSq(), 0);
     };
 
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        ZMath::Vec3D p(point); // allows for rotation
 
-        ZMath::rotateXY(min, plane.sb.pos, plane.sb.theta);
-        ZMath::rotateXZ(min, plane.sb.pos, plane.sb.phi);
-        ZMath::rotateXY(max, plane.sb.pos, plane.sb.theta);
-        ZMath::rotateXZ(max, plane.sb.pos, plane.sb.phi);
-        
-        if (plane.normal.x*(point.x - min.x) + plane.normal.y*(point.y - min.y) + plane.normal.z*(point.z - min.z) != 0) { return 0; }
-        return point.x <= min.x && point.y <= min.y && point.z <= min.z && point.x >= max.x && point.y >= max.y && point.z >= max.z;
+        // must rotate it in the proper order
+        ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
+        ZMath::rotateXY(p, plane.sb.pos, plane.sb.theta);
+
+        return p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, min.z);
     };
 
     bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.rb.pos.distSq(point) <= sphere.r*sphere.r; };

@@ -47,7 +47,7 @@ bool testPointAndLine() {
     if(POINT_AND_LINE_FAIL(point, line, 1)) {
         std::cout << 
         "[FAILED] Point on Line.\nExpected: true. Obtained: false." << std::endl;
-        return 0;
+        return 1;
     }
 
     std::cout << "[PASSED] Point on Line.\n";
@@ -59,7 +59,7 @@ bool testPointAndLine() {
 
     if (POINT_AND_LINE_FAIL(point, line, 1)) {
         std::cout << "[FAILED] Point on Horizontal Line.\nExpected: true. Obtained: false." << std::endl;
-        return 0;
+        return 1;
     }
 
     std::cout << "[PASSED] Point on Horizontal Line.\n";
@@ -71,57 +71,127 @@ bool testPointAndLine() {
     
     if (POINT_AND_LINE_FAIL(point, line, 1)) {
         std::cout << "[FAILED] Point on Vertical Line.\nExpected: true. Obtained: false." << std::endl;
-        return 0;
+        return 1;
     }
 
     std::cout << "[PASSED] Point on Vertical Line.\n";
 
-    // test 3
+    // test 4
     line.start = ZMath::Vec3D(-1.2f, 9.8f, -204.5f);
     point.set(line.end);
 
     if (POINT_AND_LINE_FAIL(point, line, 1)) {
         std::cout << "[FAILED] Point on Endpoint of Line.\nExpected: true. Obtained: false." << std::endl;
-        return 0;
+        return 1;
     }
 
     std::cout << "[PASSED] Point on Endpoint of Line.\n";
 
-    // test 4
+    // test 5
     line.start = ZMath::Vec3D(6, -2, -4);
     line.end = ZMath::Vec3D(5, 8, -6);
     point.set(4.9f, 8, -6);
 
     if (POINT_AND_LINE_FAIL(point, line, 0)) {
         std::cout << "[FAILED] Point not on Line.\nExpected: false. Obtained: true." << std::endl;
-        return 0;
+        return 1;
     }
 
     std::cout << "[PASSED] Point not on Line.\n";
 
-    // test 5
+    // test 6
     line.start = ZMath::Vec3D(2, -4, -3);
     line.end = ZMath::Vec3D(-4, 4, 1);
     point.set(-10, 12, 5);
 
     if (POINT_AND_LINE_FAIL(point, line, 0)) {
         std::cout << "[FAILED] Point not on Line, but would be if the line was infinite.\nExpected: false. Obtained: true." << std::endl;
-        return 0;
+        return 1;
     }
 
     std::cout << "[PASSED] Point not on Line, but would be if the line was infinite.\n";
-    return 1;
+    return 0;
+};
+
+bool testPointAndPlane() {
+    // test 1
+    ZMath::Vec3D point(0.866f, 1, 0.5f);
+    Primitives::Plane plane1(ZMath::Vec2D(-2, -4), ZMath::Vec2D(2, 4), 0, 0.0f, 30.0f);
+
+    if(POINT_AND_PLANE_FAIL(point, plane1, 1)) {
+        std::cout << "[FAILED] Point on XZ Rotated Plane.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point on XZ Rotated Plane.\n";
+
+    // test 2
+    point.set(-3, 22.3f, 7.77f);
+    Primitives::Plane plane2(ZMath::Vec2D(-3, -2), ZMath::Vec2D(20, 50), 7.77f);
+
+    if (POINT_AND_PLANE_FAIL(point, plane2, 1)) {
+        std::cout << "[FAILED] Point on Edge of Unrotated Plane.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point on Edge of Unrotated Plane.\n";
+
+    // test 3
+    point.set(0, 1.5f, 1.2f);
+    Primitives::Plane plane3(ZMath::Vec2D(-2, -4), ZMath::Vec2D(2, 4), 0, 90.0f, 90.0f);
+
+    if(POINT_AND_PLANE_FAIL(point, plane3, 1)) {
+        std::cout << "[FAILED] Point on Vertical Plane.\nExpected: true. Obtained: false." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point on Vertical Plane.\n";
+
+    // test 4
+    point.set(-0.5f, 100, 20.0f);
+    Primitives::Plane plane5(ZMath::Vec2D(-2, -4), ZMath::Vec2D(2, 4), 0, 0.0f, 30.0f);
+
+    if(POINT_AND_PLANE_FAIL(point, plane5, 0)) {
+        std::cout << "[FAILED] Point not on Plane.\nExpected: false. Obtained: true." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point not on Plane.\n";
+
+    // test 6
+    point.set(5, 22.3f, 4.2f);
+    Primitives::Plane plane6(ZMath::Vec2D(0, 0), ZMath::Vec2D(10, 20), 4.2f);
+
+    if (POINT_AND_PLANE_FAIL(point, plane6, 0)) {
+        std::cout << "[FAILED] Point not on Plane, but would be if the plane was infinite.\nExpected: false. Obtained: true." << std::endl;
+        return 1;
+    }
+
+    std::cout << "[PASSED] Point not on Plane, but would be if the plane was infinite.\n";
+
+    return 0;
 };
 
 int main() {
     // Point vs Line
     std::cout << "================== PointAndLine Tests. ==================\n\n";
 
-    if (!testPointAndLine()) {
+    if (testPointAndLine()) {
         std::cout << "\n================ [FAILED] PointAndLine. ================\n\n";
         return 1;
     }
 
     std::cout << "\n================ [PASSED] PointAndLine. ================\n\n";
+
+    // Point vs Plane
+    std::cout << "================== PointAndPlane Tests. ==================\n\n";
+
+    if (testPointAndPlane()) {
+        std::cout << "\n================ [FAILED] PointAndPlane. ================\n\n";
+        return 1;
+    }
+
+    std::cout << "\n================ [PASSED] PointAndPlane. ================\n\n";
+
     return 0;
 };

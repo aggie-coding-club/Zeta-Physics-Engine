@@ -43,8 +43,13 @@ namespace Primitives {
             StaticBody3D sb;
             ZMath::Vec3D normal; // normal vector to the plane. Stored as it is commonly used in computations.
 
-            // todo create documentation
-
+            /**
+             * @brief Create an unrotated plane.
+             * 
+             * @param min (Vec2D) The min vertex of the plane.
+             * @param max (Vec2D) The max vertex of the plane.
+             * @param z (float) The z-level the plane lies on.
+             */
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) 
                     : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f) {
                 
@@ -54,11 +59,20 @@ namespace Primitives {
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
 
+            /**
+             * @brief Create a rotated plane.
+             * 
+             * @param min (Vec2D) The min vertex of the plane as if it was unrotated.
+             * @param max (Vec2D) The max vertex of the plane as if it was unrotated.
+             * @param z (float) The z-level the plane lies on.
+             * @param angXY (float) The angle, in degrees, the plane is rotated with respect to the XY plane.
+             * @param angXZ (float) The angle, in degrees, the plane is rotated with respect to the XZ plane.
+             */
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) 
                     : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ) {
 
                 ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
-                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
 
                 ZMath::rotateXY(v1, sb.pos, sb.theta);
                 ZMath::rotateXZ(v1, sb.pos, sb.phi);
