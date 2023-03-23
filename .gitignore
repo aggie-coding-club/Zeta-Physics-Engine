@@ -1,3 +1,4 @@
 .vscode/
+unitTesting/bin/*
 examples/bin/
 .DS_Store

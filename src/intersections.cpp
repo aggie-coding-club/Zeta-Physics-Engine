@@ -23,8 +23,7 @@ namespace Primitives {
         if (point.x < min.x || point.x > max.x || point.y < min.y || point.y > max.y || point.z < min.z || point.z > max.z) { return 0; }
 
         // We don't need to divide by ||u|| to know if it will evaluate to 0.
-        // ! We might not need the normalize. I'll do some math to figure out if it is needed shortly.
-        return !((point - line.start).cross((line.end - line.start).normalize()).magSq());
+        return !((point - line.start).cross((line.end - line.start)).magSq());
     };
 
     bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
