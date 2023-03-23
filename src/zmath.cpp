@@ -3,26 +3,24 @@
 #include "zmath.h"
 #include <cmath>
 
-using ZMath::Vec2D, ZMath::Vec3D;
-
 // * ============================================
 // * Vec 2D Functions
 // * ============================================
 
 // todo change the method by which I am obtaining the angle as it is ridiculously expensive
 
-float Vec2D::mag() { return sqrt(x*x + y*y); };
-float Vec2D::magSq() { return x*x + y*y; };
-float Vec2D::dist(Vec2D const &vec) { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
-float Vec2D::angle(Vec2D const &vec) { return acos((x*vec.x + y*vec.y)/(sqrt(x*x + y*y) * sqrt(vec.x*vec.x + vec.y*vec.y))); };
+float ZMath::Vec2D::mag() { return sqrt(x*x + y*y); };
+float ZMath::Vec2D::magSq() { return x*x + y*y; };
+float ZMath::Vec2D::dist(Vec2D const &vec) { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
+float ZMath::Vec2D::angle(Vec2D const &vec) { return acos((x*vec.x + y*vec.y)/(sqrt(x*x + y*y) * sqrt(vec.x*vec.x + vec.y*vec.y))); };
 
-Vec2D Vec2D::normalize() { return (*this) * (1.0f/sqrt(x*x + y*y)); };
-const Vec2D Vec2D::normalize() const { return (*this) * (1.0f/sqrt(x*x + y*y)); };
+ZMath::Vec2D ZMath::Vec2D::normalize() { return (*this) * (1.0f/sqrt(x*x + y*y)); };
+const ZMath::Vec2D ZMath::Vec2D::normalize() const { return (*this) * (1.0f/sqrt(x*x + y*y)); };
 
-float Vec2D::mag() const { return sqrt(x*x + y*y); };
-float Vec2D::magSq() const { return x*x + y*y; };
+float ZMath::Vec2D::mag() const { return sqrt(x*x + y*y); };
+float ZMath::Vec2D::magSq() const { return x*x + y*y; };
 
-float Vec2D::dist(Vec2D const &vec) const { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
+float ZMath::Vec2D::dist(Vec2D const &vec) const { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
 
 // * ============================================
 // * Vec 3D Functions
@@ -30,18 +28,18 @@ float Vec2D::dist(Vec2D const &vec) const { return sqrt((x - vec.x) * (x - vec.x
 
 // todo check my work for Vec3D::angle() -- also change because this method currently is ridicolously expensive
 
-float Vec3D::mag() { return sqrt(x*x + y*y + z*z); };
-float Vec3D::magSq() { return x*x + y*y + z*z; };
-float Vec3D::dist(Vec3D const &vec) { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
-float Vec3D::angle(Vec3D const &vec) { return acos((x*vec.x + y*vec.y + z*vec.z)/(sqrt(x*x + y*y + z*z) * sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z))); };
+float ZMath::Vec3D::mag() { return sqrt(x*x + y*y + z*z); };
+float ZMath::Vec3D::magSq() { return x*x + y*y + z*z; };
+float ZMath::Vec3D::dist(Vec3D const &vec) { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
+float ZMath::Vec3D::angle(Vec3D const &vec) { return acos((x*vec.x + y*vec.y + z*vec.z)/(sqrt(x*x + y*y + z*z) * sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z))); };
 
-Vec3D Vec3D::normalize() { return (*this) * (1.0f/sqrt(x*x + y*y + z*z)); };
-const Vec3D Vec3D::normalize() const { return (*this) * (1.0f/sqrt(x*x + y*y + z*z)); };
+ZMath::Vec3D ZMath::Vec3D::normalize() { return (*this) * (1.0f/sqrt(x*x + y*y + z*z)); };
+const ZMath::Vec3D ZMath::Vec3D::normalize() const { return (*this) * (1.0f/sqrt(x*x + y*y + z*z)); };
 
-float Vec3D::mag() const { return sqrt(x*x + y*y + z*z); };
-float Vec3D::magSq() const { return x*x + y*y + z*z; };
+float ZMath::Vec3D::mag() const { return sqrt(x*x + y*y + z*z); };
+float ZMath::Vec3D::magSq() const { return x*x + y*y + z*z; };
 
-float Vec3D::dist(Vec3D const &vec) const { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
+float ZMath::Vec3D::dist(Vec3D const &vec) const { return sqrt((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
 
 // * ============================================
 // * ZMath Functions

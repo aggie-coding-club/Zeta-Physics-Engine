@@ -1,7 +1,43 @@
 #include <iostream>
 #include "../include/intersections.h"
 
+// Point functions
 #define POINT_AND_LINE_FAIL(point, line, expected) (Primitives::PointAndLine(point, line) != expected)
+#define POINT_AND_PLANE_FAIL(point, plane, expected) (Primitives::PointAndPlane(point, plane) != expected)
+#define POINT_AND_SPHERE_FAIL(point, sphere, expected) (Primitives::PointAndSphere(point, sphere) != expected)
+#define POINT_AND_AABB_FAIL(point, aabb, expected) (Primitives::PointAndAABB(point, aabb) != expected)
+#define POINT_AND_CUBE_FAIL(point, cube, expected) (Primitives::PointAndCube(point, cube) != expected)
+
+// Line functions
+#define LINE_AND_LINE_FAIL(line1, line2, expected) (Primitives::LineAndLine(line1, line2) != expected)
+#define LINE_AND_PLANE_FAIL(line, plane, expected) (Primitives::LineAndPlane(line, plane) != expected)
+#define LINE_AND_SPHERE_FAIL(line, sphere, expected) (Primitives::LineAndSphere(line, sphere) != expected)
+#define LINE_AND_AABB_FAIL(line, aabb, expected) (Primitives::LineAndAABB(line, aabb) != expected)
+#define LINE_AND_CUBE_FAIL(line, cube, expected) (Primitives::LineAndCube(line, cube) != expected)
+
+// raycasting
+#define RAYCAST_PLANE_FAIL(plane, ray, dist, expected, expectedDist) (Primitives::raycast(plane, ray, dist) != expected && dist != expectedDist)
+#define RAYCAST_SPHERE_FAIL(sphere, ray, dist, expected, expectedDist) (Primitives::raycast(sphere, ray, dist) != expected && dist != expectedDist)
+#define RAYCAST_AABB_FAIL(aabb, ray, dist, expected, expectedDist) (Primitives::raycast(aabb, ray, dist) != expected && dist != expectedDist)
+#define RAYCAST_CUBE_FAIL(cube, ray, dist, expected, expectedDist) (Primitives::raycast(cube, ray, dist) != expected && dist != expectedDist)
+
+// Plane functions
+#define PLANE_AND_PLANE_FAIL(plane1, plane2, expected) (Primitives::PlaneAndPlane(plane1, plane2) != expected)
+#define PLANE_AND_SPHERE_FAIL(plane, sphere, expected) (Primitives::PlaneAndSphere(plane, sphere) != expected)
+#define PLANE_AND_AABB_FAIL(plane, aabb, expected) (Primitives::PlaneAndAABB(plane, aabb) != expected)
+#define PLANE_AND_CUBE_FAIL(plane, cube, expected) (Primitives::PlaneAndCube(plane, cube) != expected)
+
+// Sphere functions
+#define SPHERE_AND_SPHERE_FAIL(sphere1, sphere2, expected) (Primitives::SphereAndSphere(sphere1, sphere2) != expected)
+#define SPHERE_AND_AABB_FAIL(sphere, aabb, expected) (Primitives::SphereAndAABB(sphere, aabb) != expected)
+#define SPHERE_AND_CUBE_FAIL(sphere, cube, expected) (Primitives::SphereAndCube(sphere, cube) != expected)
+
+// AABB functions
+#define AABB_AND_AABB_FAIL(aabb1, aabb2, expected) (Primitives::AABBAndAABB(aabb1, aabb2) != expected)
+#define AABB_AND_CUBE_FAIL(aabb, cube, expected) (Primitives::AABBAndCube(aabb, cube) != expected)
+
+// Cube function
+#define CUBE_AND_CUBE_FAIL(cube1, cube2, expected) (Primitives::CubeAndCube(cube1, cube2) != expected)
 
 bool testPointAndLine() {
     // test 1
