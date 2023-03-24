@@ -3,10 +3,11 @@
 // todo unit tests
 // todo probably need to add in comparison function calls to account for floating point errors
 // todo go through each rotation and make sure it rotates XZ before XY when taking something into the local plane and XY before XZ when taking something out
+// todo for each rotation do 360 - when converting it back
 
 #include "intersections.h"
 #include <cmath>
-#include <iostream> // ! for debugging
+//#include <iostream> // ! for debugging
 
 namespace Primitives {
     // * ===================
@@ -34,8 +35,8 @@ namespace Primitives {
         ZMath::Vec3D p(point); // allows for rotation
 
         // must rotate it in the proper order
-        ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
-        ZMath::rotateXY(p, plane.sb.pos, plane.sb.theta);
+        ZMath::rotateXZ(p, plane.sb.pos, 360 - plane.sb.phi);
+        ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
 
         return p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, min.z);
     };
@@ -52,9 +53,8 @@ namespace Primitives {
         ZMath::Vec3D p = point; // create a copy so we can rotate into our local cords
 
         // rotate into our UVW cords
-        // todo might be doing this in the wrong order
-        ZMath::rotateXY(p, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(p, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXZ(p, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(p, cube.rb.pos, 360 - cube.rb.theta);
 
         return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
     };

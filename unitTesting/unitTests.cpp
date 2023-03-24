@@ -268,15 +268,15 @@ bool testPointAndCube() {
     std::cout << "[PASSED] Point in Cube.\n";
 
     // test 2
-    point.set(8.242641f, 0, 1.141421f);
+    point.set(-4.24f, 8.48f, 4.24f);
     Primitives::Cube cube2(ZMath::Vec3D(-6), ZMath::Vec3D(6), 45.0f, 45.0f);
 
     if (POINT_AND_CUBE_FAIL(point, cube2, 1)) {
-        std::cout << "[FAILED] Point on Cube Edge.\nExpected: true. Obtained: false." << std::endl;
+        std::cout << "[FAILED] Point on Cube Vertex.\nExpected: true. Obtained: false." << std::endl;
         return 1;
     }
 
-    std::cout << "[PASSED] Point on Cube Edge.\n";
+    std::cout << "[PASSED] Point on Cube Vertex.\n";
 
     // test 3
     point.set(10.0f);
