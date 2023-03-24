@@ -81,7 +81,11 @@ namespace ZMath {
 
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
+            // * This function is very expensive. Only call if absolutely needed.
             float angle (Vec2D const &vec);
+
+            // * Get the value of cos^2(theta) between the vectors.
+            float cos2Ang (Vec2D const &vec);
 
             // * Zero this vector.
             void zero() {
@@ -215,7 +219,11 @@ namespace ZMath {
 
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
+            // * This function is very expensive. Only call if absolutely needed.
             float angle (Vec3D const &vec);
+
+            // * Get the value of cos^2(theta) between the vectors.
+            float cos2Ang (Vec3D const &vec);
 
             // * Zero this vector.
             void zero() {
