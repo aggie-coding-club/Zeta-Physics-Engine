@@ -123,9 +123,9 @@ namespace Primitives {
 
             // @brief Instantiate a 3D AABB.
             // 
-            // @param max (Vec3D) Min vertex of the AABB.
-            // @param min (Vec3D) Max vertex of the AABB.
-            AABB(ZMath::Vec3D const &max, ZMath::Vec3D const &min) 
+            // @param min (Vec3D) Min vertex of the AABB.
+            // @param max (Vec3D) Max vertex of the AABB.
+            AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) 
                     : halfSize((max - min) * 0.5f), rb(min + halfSize) {};
 
             ZMath::Vec3D getMin();
