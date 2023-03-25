@@ -1,12 +1,10 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
-#include "primitives.h"
+#include "intersections.h"
 
 // todo move all of the collision related stuff (intersections and manifolds) into here
-
-// ! handle with a broad phase and narrow phase
-// ! retrieve data in the narrow phase and prune which objects to check in the broad phase
+// todo move the intersection detection check into the findCollisionFeatures stuff
 
 // We can use the normals for each as possible separation axes
 // We have to account for certain edge cases when moving this to 3D
@@ -14,22 +12,12 @@
 namespace Collisions {
     // ? Note: if we have objects A and B colliding, the collison normal will point away from A and towards B.
 
-    class CollisionManifold {
-        public:
-            // ! look through a refresher for the rule of 5 and add in the stuff
-
-            ZMath::Vec3D normal; // collision normal
-            float p; // penetration distance
-            ZMath::Vec3D* contactPoints; // contact points of the collision
-            int numPoints; // number of contact points
-
-            CollisionManifold(ZMath::Vec3D const &n, float dist, ZMath::Vec3D* contactPoints, int numPoints) : normal(n), p(dist) {
-                this->contactPoints = new ZMath::Vec3D[numPoints];
-                for (int i = 0; i < numPoints; i++) { this->contactPoints[i] = contactPoints[i]; }
-                this->numPoints = numPoints;
-            };
-
-            ~CollisionManifold() { delete[] contactPoints; };
+    struct CollisionManifold {
+        ZMath::Vec3D normal; // collision normal
+        float pDist; // penetration distance
+        ZMath::Vec3D* contactPoints; // contact points of the collision
+        int numPoints; // number of contact points
+        bool hit; // do they intersect
     };
 
     // Should we bother checking for collisions between the objects?
@@ -65,7 +53,28 @@ namespace Collisions {
         // * Private functions
         // * ======================
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2);
+        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
+            CollisionManifold result;
+
+            float r = sphere1.r + sphere2.r;
+
+            if (sphere1.rb.pos.distSq(sphere2.rb.pos) > r*r) {
+                result.hit = 0;
+                return result;
+            }
+
+            float d = abs(sphere1.rb.pos.dist(sphere2.rb.pos));
+            result.pDist = (sphere1.r + sphere2.r - d) * 0.5f;
+            result.normal = (sphere1.rb.pos - sphere2.rb.pos).normalize();
+            result.hit = 1;
+
+            // determine the contact point
+            result.numPoints = 1;
+            result.contactPoints = new ZMath::Vec3D[result.numPoints];
+            result.contactPoints[0] = sphere1.rb.pos + (result.normal * (sphere1.r - result.pDist));
+
+            return result;
+        };
 
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::AABB const &aabb);
 

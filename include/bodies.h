@@ -6,6 +6,8 @@
 #include "zmath.h"
 
 namespace Primitives {
+    // todo make these into structs (well at least rigidbody and staticbody)
+
     class RigidBody3D {
         private:
             float mass; // mass must remain constant 
