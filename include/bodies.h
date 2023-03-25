@@ -57,7 +57,7 @@ namespace Primitives {
 
     // ! Just a flag class. I'm sure there's a better way to do this so I'll update it once I get the chance to look into it.
     // ! Rn I'm dealing with too much architecture all at once to figure this out so once I don't have to worry about that so much I will.
-    class Collider3D { Collider3D() = default; };
+    class Collider3D {};
 }
 
 #endif // !RIGIDBODY_H
