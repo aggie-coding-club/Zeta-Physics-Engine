@@ -1,7 +1,7 @@
 #ifndef COLLISION_MANIFOLDS_H
 #define COLLISION_MANIFOLDS_H
 
-#include "intersections.h"
+// ! This is mostly just for storing notes at this point
 
 // 1st: We need to retrieve the collision normal and the penetration distance
     // ! Note: for planes we should attempt to use raycasting for detection by normalizing the kineticbody's velocity and testing
@@ -41,13 +41,5 @@
     // After determing this clipping plane using the same steps as in determining the adjacent face clipping, we remove all
     //  the points that lie within this clipping plane.
     // This leaves us with only our contact points.
-
-
-
-namespace Primitives {
-    class collisionManifold {
-        
-    };
-}
 
 #endif // !COLLISION_MANIFOLDS_H

@@ -10,7 +10,7 @@ namespace Collisions {
     };
     
     ZMath::Vec3D collisionNormal(Primitives::Sphere const &sphere, Primitives::AABB const &aabb, float &dist) {
-
+        
     };
 
     ZMath::Vec3D collisionNormal(Primitives::Sphere const &sphere, Primitives::Cube const &cube, float &dist) {

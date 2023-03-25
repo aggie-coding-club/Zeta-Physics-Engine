@@ -1,8 +1,9 @@
 #ifndef PRIMITIVES_H
 #define PRIMITIVES_H
 
-#include "rigidbody.h"
-#include "staticbody.h"
+// todo create a collider3D class
+
+#include "bodies.h"
 
 namespace Primitives {
     class Ray3D {
