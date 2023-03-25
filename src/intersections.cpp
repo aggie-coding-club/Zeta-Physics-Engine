@@ -4,6 +4,7 @@
 // todo probably need to add in comparison function calls to account for floating point errors
 // todo go through each rotation and make sure it rotates XZ before XY when taking something into the local plane and XY before XZ when taking something out
 // todo for each rotation do 360 - when converting it back
+// todo replace objects with pointers
 
 #include "intersections.h"
 #include <cmath>
@@ -177,7 +178,7 @@ namespace Primitives {
         if (D < 0) { return 0; } // no intersections even if the line was infinite
 
         // ! slow sqrt, optimize away if possible
-        float sq = sqrt(D);
+        float sq = sqrtf(D);
         float div = 1.0f/(2.0f*A);
         float t1 = (-B - sq)*div, t2 = (-B + sq)*div;
 
@@ -289,7 +290,7 @@ namespace Primitives {
 
         // standard intersection
         // ! optimize the sqrt away if possible
-        dist = t - sqrt(rSq - dSq);
+        dist = t - sqrtf(rSq - dSq);
         return 1;
     };
 
@@ -356,8 +357,8 @@ namespace Primitives {
         ZMath::Vec3D closest(sphere.rb.pos);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
 
-        ZMath::rotateXY(closest, plane.sb.pos, plane.sb.theta);
-        ZMath::rotateXZ(closest, plane.sb.pos, plane.sb.phi);
+        ZMath::rotateXZ(closest, plane.sb.pos, 360 - plane.sb.phi);
+        ZMath::rotateXY(closest, plane.sb.pos, 360 - plane.sb.theta);
 
         closest.x = ZMath::clamp(closest.x, min.x, max.x);
         closest.y = ZMath::clamp(closest.y, min.y, max.y);

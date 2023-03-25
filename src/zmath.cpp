@@ -76,6 +76,5 @@ void ZMath::rotateXZ (Vec3D &point, const Vec3D &origin, float angle) {
 };
 
 bool ZMath::compare (float a, float b, float epsilon) { return abs(a - b) <= epsilon; };
-bool ZMath::compare (float a, float b) { return abs(a - b) <= EPSILON; };
 
 float ZMath::clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };

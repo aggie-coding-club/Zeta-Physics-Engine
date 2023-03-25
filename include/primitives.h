@@ -4,9 +4,6 @@
 #include "rigidbody.h"
 #include "staticbody.h"
 
-// todo might want to make some of the attributes public.
-// todo refactor to do what I stated above.
-
 namespace Primitives {
     class Ray3D {
         public:

@@ -12,8 +12,6 @@ namespace ZMath {
     // * Default tolerance value for a floating point comparison
     #define EPSILON 0.00001
 
-    // todo go through all of ZMath and check where overloaded functions can be replaced by default parameters
-
 
     class Vec2D {
         public:
@@ -323,17 +321,11 @@ namespace ZMath {
     void rotateXZ(Vec3D &point, const Vec3D &origin, float angle);
 
     // * Handle tolerance for floating point numbers.
-    bool compare(float a, float b, float epsilon);
-
-    // * Handle tolerance for floating point numbers using the default tolerance of 10^-5.
-    bool compare(float a, float b);
+    // * If no epsilon is specified, it will use the default of 10^-5.
+    bool compare(float a, float b, float epsilon = EPSILON);
 
     // * Clamp a float between a min and max.
     float clamp(float n, float min, float max);
-
-    // * Fast algorithm for computing 1/sqrt(n). This is not super accurate but is sufficient for a physics engine.
-    // * Primarily used for computing directional vectors.
-    float invSqrt(float n);
 }
 
 #endif // ! ZMATH_H
