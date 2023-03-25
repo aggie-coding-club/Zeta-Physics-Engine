@@ -18,6 +18,7 @@ namespace Primitives {
             float theta; // rotation with respect to the XY plane
             float phi; // rotation with respect to the XZ plane
             ZMath::Vec3D velocity;
+            ZMath::Vec3D netForce; // net force as a vector
             
             // @brief Create an unrotated 3D rigid body.
             // 
