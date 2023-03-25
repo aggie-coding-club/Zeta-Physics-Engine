@@ -2,5 +2,4 @@
 unitTesting/unitTests
 unitTesting/unitTests.exe
 example/bin/*
-example/gunslinger/*
 .DS_Store
