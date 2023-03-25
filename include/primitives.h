@@ -105,13 +105,13 @@ namespace Primitives {
             RigidBody3D rb; // rigidbody representing the sphere -- stores its centerpoint
 
             // @brief Create a Sphere centered at (0, 0, 0) with a radius of 1.
-            Sphere() : r(1.0f), rb(ZMath::Vec3D()){};
+            Sphere() : r(1.0f), rb(ZMath::Vec3D(), 1.0f){};
 
             // @brief Create a Sphere with an arbitrary radius and center.
             //
             // @param rho (float) Radius of the sphere.
             // @param center (Vec3D) Center of the sphere.
-            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), rb(center){};
+            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), rb(center, 1.0f){};
     };
 
     class AABB {
@@ -126,7 +126,7 @@ namespace Primitives {
             // @param min (Vec3D) Min vertex of the AABB.
             // @param max (Vec3D) Max vertex of the AABB.
             AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) 
-                    : halfSize((max - min) * 0.5f), rb(min + halfSize) {};
+                    : halfSize((max - min) * 0.5f), rb(min + halfSize, 1.0f) {};
 
             ZMath::Vec3D getMin();
             ZMath::Vec3D getMax();
@@ -150,7 +150,7 @@ namespace Primitives {
 
             // @brief Create a cube rotated by 45 degrees with respect to both the XY and XZ planes, 
             //         its center at (0, 0, 0), and its halfsize as 1.
-            Cube() : rb(RigidBody3D(ZMath::Vec3D(0), 45.0f, 45.0f)), halfSize(ZMath::Vec3D(1)) {};
+            Cube() : rb(RigidBody3D(ZMath::Vec3D(0), 1.0f, 45.0f, 45.0f)), halfSize(ZMath::Vec3D(1)) {};
 
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
             //
@@ -159,7 +159,7 @@ namespace Primitives {
             // @param angXY Angle the cube is rotated by with respect to the XY plane in degrees.
             // @param angXZ Angle the cube is rotated by with respect to the XZ plane in degrees.
             Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) 
-                    : halfSize((max - min) * 0.5f), rb(RigidBody3D(min + halfSize, angXY, angXZ)) {};
+                    : halfSize((max - min) * 0.5f), rb(RigidBody3D(min + halfSize, 1.0f, angXY, angXZ)) {};
 
             // Get the min vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMin();
