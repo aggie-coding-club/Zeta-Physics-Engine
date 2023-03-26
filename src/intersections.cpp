@@ -10,12 +10,12 @@
 #include <cmath>
 //#include <iostream> // ! for debugging
 
-namespace Primitives {
+namespace Collisions {
     // * ===================
     // * Point
     // * ===================
 
-    bool PointAndLine(ZMath::Vec3D const &point, Line3D const &line) {
+    bool PointAndLine(ZMath::Vec3D const &point, Primitives::Line3D const &line) {
         // ? Determine the distance between the line and point using the projection of that point to a point on the line.
         // ? D = ||PQ x u||/||u||
         // ? If this distance is 0, we know it lies on the line.
@@ -31,7 +31,7 @@ namespace Primitives {
         return ZMath::compare((point - line.start).cross((line.end - line.start)).magSq(), 0);
     };
 
-    bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
+    bool PointAndPlane(ZMath::Vec3D const &point, Primitives::Plane const &plane) {
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p(point); // allows for rotation
 
@@ -42,14 +42,14 @@ namespace Primitives {
         return p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, min.z);
     };
 
-    bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.rb.pos.distSq(point) <= sphere.r*sphere.r; };
+    bool PointAndSphere(ZMath::Vec3D const &point, Primitives::Sphere const &sphere) { return sphere.rb.pos.distSq(point) <= sphere.r*sphere.r; };
 
-    bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb) {
+    bool PointAndAABB(ZMath::Vec3D const &point, Primitives::AABB const &aabb) {
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
         return point.x <= max.x && point.y <= max.y && point.z <= max.z && point.x >= min.x && point.y >= min.y && point.z >= min.z;
     };
 
-    bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube) {
+    bool PointAndCube(ZMath::Vec3D const &point, Primitives::Cube const &cube) {
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
         ZMath::Vec3D p = point; // create a copy so we can rotate into our local cords
 
@@ -66,9 +66,9 @@ namespace Primitives {
     // * Line3D
     // * ===================
 
-    bool LineAndPoint(Line3D const &line, ZMath::Vec3D const &point) { return PointAndLine(point, line); };
+    bool LineAndPoint(Primitives::Line3D const &line, ZMath::Vec3D const &point) { return PointAndLine(point, line); };
 
-    bool LineAndLine(Line3D const &line1, Line3D const &line2) {
+    bool LineAndLine(Primitives::Line3D const &line1, Primitives::Line3D const &line2) {
         // ? First check if the lines are parallel.
         // ? If the lines are parallel, we check to ensure overlap and that the start point of line2 lies on line1 if the lines were infinite.
         // ? If the lines are not parallel, we then solve for the point of intersection using the parametric equations for a 3D line.
@@ -135,7 +135,7 @@ namespace Primitives {
         return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
     };
 
-    bool LineAndPlane(Line3D const &line, Plane const &plane) {
+    bool LineAndPlane(Primitives::Line3D const &line, Primitives::Plane const &plane) {
         // ? We can use the same approach to solve this problem as for the raycasting.
         // ? We just ensure the point of intersection also lies within the bounds of the line.
 
@@ -158,7 +158,7 @@ namespace Primitives {
                 p.x <= line.end.x && p.y <= line.end.y && p.z <= line.end.z;
     };
 
-    bool LineAndSphere(Line3D const &line, Sphere const &sphere) {
+    bool LineAndSphere(Primitives::Line3D const &line, Primitives::Sphere const &sphere) {
         // todo could maybe take inspiration from the raycasting solution
 
         // ? Use the parametric equations for a 3D line.
@@ -186,7 +186,7 @@ namespace Primitives {
         return (0.0f <= t1 && t1 <= 1.0f) || (0.0f <= t2 && t2 <= 1.0f);
     };
 
-    bool LineAndAABB(Line3D const &line, AABB const &aabb) {
+    bool LineAndAABB(Primitives::Line3D const &line, Primitives::AABB const &aabb) {
         // ? We can use the same logic as when raycasting an AABB.
         // ? Then we just have to make sure the distance to the AABB is less than the length of the line segment.
 
@@ -220,17 +220,17 @@ namespace Primitives {
         return tMin*tMin <= lengthSq;
     };
 
-    bool LineAndCube(Line3D const &line, Cube const &cube) {
+    bool LineAndCube(Primitives::Line3D const &line, Primitives::Cube const &cube) {
         // ? This will be the same as the AABB vs Line check after rotating the line into the cube's UVW coordinates.
 
-        Line3D l(line.start, line.end);
+        Primitives::Line3D l(line.start, line.end);
 
         ZMath::rotateXZ(l.start, cube.rb.pos, cube.rb.phi);
         ZMath::rotateXY(l.start, cube.rb.pos, cube.rb.theta);
         ZMath::rotateXZ(l.end, cube.rb.pos, cube.rb.phi);
         ZMath::rotateXY(l.end, cube.rb.pos, cube.rb.theta);
 
-        return LineAndAABB(l, AABB(cube.getLocalMin(), cube.getLocalMax()));
+        return LineAndAABB(l, Primitives::AABB(cube.getLocalMin(), cube.getLocalMax()));
     };
 
     // * ====================================================================================================================
@@ -239,7 +239,7 @@ namespace Primitives {
     // * Raycasting
     // * =================
 
-    bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {
+    bool raycast(Primitives::Plane const &plane, Primitives::Ray3D const &ray, float &dist) {
         float dot = plane.normal * ray.dir;
 
         // check if the ray is parallel to the plane
@@ -259,7 +259,7 @@ namespace Primitives {
         return 0;
     };
     
-    bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {
+    bool raycast(Primitives::Sphere const &sphere, Primitives::Ray3D const &ray, float &dist) {
         // todo at some point we may want to get the hit point.
         // todo if we do, we simply do hit = ray.origin + dist*ray.dir;
 
@@ -294,7 +294,7 @@ namespace Primitives {
         return 1;
     };
 
-    bool raycast(AABB const &aabb, Ray3D const &ray, float &dist) {
+    bool raycast(Primitives::AABB const &aabb, Primitives::Ray3D const &ray, float &dist) {
         // ? We can determine the distance from the ray to a certain edge by dividing a select min or max vector component
         // ?  by the corresponding component from the unit directional vector.
         // ? We know if tMin > tMax, then we have no intersection and if tMax is negative the AABB is behind us and we do not have a hit.
@@ -329,7 +329,7 @@ namespace Primitives {
         return 1;
     };
 
-    bool raycast(Cube const &cube, Ray3D const &ray, float &dist) {};
+    bool raycast(Primitives::Cube const &cube, Primitives::Ray3D const &ray, float &dist) {};
 
     // * ====================================================================================================================
 
@@ -337,13 +337,13 @@ namespace Primitives {
     // * Plane
     // * =================
 
-    bool PlaneAndPoint(Plane const &plane, ZMath::Vec3D const &point) { return PointAndPlane(point, plane); };
+    bool PlaneAndPoint(Primitives::Plane const &plane, ZMath::Vec3D const &point) { return PointAndPlane(point, plane); };
 
-    bool PlaneAndLine(Plane const &plane, Line3D const &line) { return LineAndPlane(line, plane); };
+    bool PlaneAndLine(Primitives::Plane const &plane, Primitives::Line3D const &line) { return LineAndPlane(line, plane); };
 
-    bool PlaneAndPlane(Plane const &plane1, Plane const &plane2) {};
+    bool PlaneAndPlane(Primitives::Plane const &plane1, Primitives::Plane const &plane2) {};
 
-    bool PlaneAndSphere(Plane const &plane, Sphere const &sphere) {
+    bool PlaneAndSphere(Primitives::Plane const &plane, Primitives::Sphere const &sphere) {
         // ? A line from the center of the sphere along the normal of the plane will eventually
         // ?  intersect an infinite plane at the closest point of intersection.
         // ? Using this, we can take the distance to the plane from that point using the equation
@@ -367,16 +367,16 @@ namespace Primitives {
         return closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
     };
 
-    bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {
+    bool PlaneAndAABB(Primitives::Plane const &plane, Primitives::AABB const &aabb) {
         float r = abs(plane.normal.x * aabb.rb.pos.x) + abs(plane.normal.y * aabb.rb.pos.y) + abs(plane.normal.z * aabb.rb.pos.z);
-        return PlaneAndSphere(plane, Sphere(r, aabb.rb.pos));
+        return PlaneAndSphere(plane, Primitives::Sphere(r, aabb.rb.pos));
     };
 
-    bool PlaneAndCube(Plane const &plane, Cube const &cube) {
-        AABB aabb(cube.getLocalMin(), cube.getLocalMax());
+    bool PlaneAndCube(Primitives::Plane const &plane, Primitives::Cube const &cube) {
+        Primitives::AABB aabb(cube.getLocalMin(), cube.getLocalMax());
 
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
-        Plane p(ZMath::Vec2D(min.x, min.y), ZMath::Vec2D(max.x, max.y), plane.sb.pos.z, plane.sb.theta - cube.rb.theta, plane.sb.phi - cube.rb.phi);
+        Primitives::Plane p(ZMath::Vec2D(min.x, min.y), ZMath::Vec2D(max.x, max.y), plane.sb.pos.z, plane.sb.theta - cube.rb.theta, plane.sb.phi - cube.rb.phi);
 
         return PlaneAndAABB(p, aabb);
     };
@@ -387,18 +387,18 @@ namespace Primitives {
     // * Sphere
     // * =================
 
-    bool SphereAndPoint(Sphere const &sphere, ZMath::Vec3D const &point) { return PointAndSphere(point, sphere); };
+    bool SphereAndPoint(Primitives::Sphere const &sphere, ZMath::Vec3D const &point) { return PointAndSphere(point, sphere); };
 
-    bool SphereAndLine(Sphere const &sphere, Line3D const &line) { return LineAndSphere(line, sphere); };
+    bool SphereAndLine(Primitives::Sphere const &sphere, Primitives::Line3D const &line) { return LineAndSphere(line, sphere); };
 
-    bool SphereAndPlane(Sphere const &sphere, Plane const &plane) { return PlaneAndSphere(plane, sphere); };
+    bool SphereAndPlane(Primitives::Sphere const &sphere, Primitives::Plane const &plane) { return PlaneAndSphere(plane, sphere); };
 
-    bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {
+    /*bool SphereAndSphere(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
         float r = sphere1.r + sphere2.r;
         return sphere1.rb.pos.distSq(sphere2.rb.pos) <= r*r;
     };
 
-    bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {
+    bool SphereAndAABB(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
         // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
         // ?  from the center is less than or equal to the radius of the sphere.
         // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
@@ -414,7 +414,7 @@ namespace Primitives {
         return closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
     };
 
-    bool SphereAndCube(Sphere const &sphere, Cube const &cube) {
+    bool SphereAndCube(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
         // ? We can use the same approach as for SphereAndAABB, just we have to rotate the sphere into the Cube's UVW coordinates.
 
         ZMath::Vec3D center = sphere.rb.pos;
@@ -432,7 +432,7 @@ namespace Primitives {
         closest.z = ZMath::clamp(closest.z, min.z, max.z);
 
         return closest.distSq(center) <= sphere.r*sphere.r;
-    };
+    };*/
 
     // * ====================================================================================================================
 
@@ -440,15 +440,15 @@ namespace Primitives {
     // * AABB
     // * =============
     
-    bool AABBAndPoint(AABB const &aabb, ZMath::Vec3D const &point) { return PointAndAABB(point, aabb); };
+    bool AABBAndPoint(Primitives::AABB const &aabb, ZMath::Vec3D const &point) { return PointAndAABB(point, aabb); };
 
-    bool AABBAndLine(AABB const &aabb, Line3D const &line) { return LineAndAABB(line, aabb); };
+    bool AABBAndLine(Primitives::AABB const &aabb, Primitives::Line3D const &line) { return LineAndAABB(line, aabb); };
 
-    bool AABBAndPlane(AABB const &aabb, Plane const &plane) { return PlaneAndAABB(plane, aabb); };
+    bool AABBAndPlane(Primitives::AABB const &aabb, Primitives::Plane const &plane) { return PlaneAndAABB(plane, aabb); };
 
-    bool AABBAndSphere(AABB const &aabb, Sphere const &sphere) { return SphereAndAABB(sphere, aabb); };
+    /*bool AABBAndSphere(Primitives::AABB const &aabb, Primitives::Sphere const &sphere) { return SphereAndAABB(sphere, aabb); };
 
-    bool AABBAndAABB(AABB const &aabb1, AABB const &aabb2) {
+    bool AABBAndAABB(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
         // ? Check if there's overlap for the AABBs on all three axes.
         // ? If there is, we know the two AABBs intersect.
 
@@ -458,7 +458,7 @@ namespace Primitives {
         return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
     };
 
-    bool AABBAndCube(AABB const &aabb, Cube const &cube) {
+    bool AABBAndCube(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
         // ? Rotate the AABB into the cube's UVW coordinates.
         // ? Afterwards, use the same logic as AABB vs AABB.
 
@@ -468,7 +468,7 @@ namespace Primitives {
         ZMath::rotateXZ(max1, cube.rb.pos, cube.rb.phi);
 
         return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
-    };
+    };*/
 
     // * ====================================================================================================================
 
@@ -476,25 +476,25 @@ namespace Primitives {
     // * Cube
     // * ===============
 
-    bool CubeAndPoint(Cube const &cube, ZMath::Vec3D const &point) { return PointAndCube(point, cube); };
+    bool CubeAndPoint(Primitives::Cube const &cube, ZMath::Vec3D const &point) { return PointAndCube(point, cube); };
 
-    bool CubeAndLine(Cube const &cube, Line3D const &line) { return LineAndCube(line, cube); };
+    bool CubeAndLine(Primitives::Cube const &cube, Primitives::Line3D const &line) { return LineAndCube(line, cube); };
 
-    bool CubeAndPlane(Cube const &cube, Plane const &plane) { return PlaneAndCube(plane, cube); };
+    bool CubeAndPlane(Primitives::Cube const &cube, Primitives::Plane const &plane) { return PlaneAndCube(plane, cube); };
 
-    bool CubeAndSphere(Cube const &cube, Sphere const &sphere) { return SphereAndCube(sphere, cube); };
+    /*bool CubeAndSphere(Primitives::Cube const &cube, Primitives::Sphere const &sphere) { return SphereAndCube(sphere, cube); };
 
-    bool CubeAndAABB(Cube const &cube, AABB const &aabb) { return AABBAndCube(aabb, cube); };
+    bool CubeAndAABB(Primitives::Cube const &cube, Primitives::AABB const &aabb) { return AABBAndCube(aabb, cube); };
 
-    bool CubeAndCube(Cube const &cube1, Cube const &cube2) {
+    bool CubeAndCube(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
         // ? We can make an AABB object from the first cube and create a new cube object by subtracting the angles
         // ?  the first cube was rotated by from the second cube and perform an AABB vs Cube check.
 
-        AABB aabb(cube1.getLocalMin(), cube2.getLocalMax());
-        Cube cube(cube2.getLocalMin(), cube2.getLocalMax(), cube2.rb.theta - cube1.rb.theta, cube2.rb.phi - cube1.rb.phi);
+        Primitives::AABB aabb(cube1.getLocalMin(), cube2.getLocalMax());
+        Primitives::Cube cube(cube2.getLocalMin(), cube2.getLocalMax(), cube2.rb.theta - cube1.rb.theta, cube2.rb.phi - cube1.rb.phi);
 
         return AABBAndCube(aabb, cube);
-    };
+    };*/
 
     // * ====================================================================================================================
 }

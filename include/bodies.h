@@ -8,55 +8,36 @@
 namespace Primitives {
     // todo make these into structs (well at least rigidbody and staticbody)
 
-    class RigidBody3D {
-        private:
-            float mass; // mass must remain constant 
-            float mass_inverse;
-        
-        public:
-            ZMath::Vec3D pos; // center point of the rigidbody
-            float theta; // rotation with respect to the XY plane
-            float phi; // rotation with respect to the XZ plane
-            ZMath::Vec3D velocity;
-            
-            // @brief Create an unrotated 3D rigid body.
-            // 
-            // @param p Center position of the rigid body.
-            RigidBody3D(ZMath::Vec3D const &p, float mass) : pos(p), mass(mass), mass_inverse(1 / mass), theta(0.0f), phi(0.0f) {};
+    struct RigidBody3D {
+        float theta; // rotation with respect to the XY plane.
+        float phi; // rotation with respect to the XZ plane.
+        float mass; // mass must remain constant.
+        float invMass; // 1/mass. Must remain constant.
 
-            // @brief Create a rotated 3D rigid body.
-            // 
-            // @param p Center position of the rigid body.
-            // @param angXY Angle the rigid body is rotated with respect to the XY plane.
-            // @param angXZ Angle the rigid body is rotated with respect to the XZ plane.
-            RigidBody3D(ZMath::Vec3D const &p, float mass, float angXY, float angXZ) : pos(p), mass(mass), mass_inverse(1 / mass), theta(angXY), phi(angXZ) {};
-
-            float & get_mass() {return mass;}
-            float & get_inverse_mass() {return mass_inverse;}
+        ZMath::Vec3D pos; // centerpoint of the rigidbody.
+        ZMath::Vec3D velocity = ZMath::Vec3D(); // velocity of the rigidbody.
+        ZMath::Vec3D netForce = ZMath::Vec3D(); // sum of all forces acting on the rigidbody.
     };
 
-    class StaticBody3D {
-        public:
-            const ZMath::Vec3D pos; // centerpoint of the staticbody
-            const float theta; // rotation with respect to the XY plane
-            const float phi; // rotation with respect to the XZ plane
-            
-            // @brief Create an unrotated StaticBody3D object.
-            // 
-            // @param p Center position of the static body.
-            StaticBody3D(ZMath::Vec3D const &p) : pos(p), theta(0.0f), phi(0.0f) {};
-
-            // @brief Create a rotated StaticBody3D object.
-            // 
-            // @param p Center position of the static body.
-            // @param angXY Angle rotated with respect to the XY plane.
-            // @param angXZ Angle rotated with respect to the XZ plane.
-            StaticBody3D(ZMath::Vec3D const &p, float angXY, float angXZ) : pos(p), theta(angXY), phi(angXZ) {};
+    struct StaticBody3D {
+        ZMath::Vec3D pos; // centerpoint of the staticbody.
+        float theta; // rotation with respect to the XY plane.
+        float phi; // rotation with respect to the XZ plane.
     };
 
     // ! Just a flag class. I'm sure there's a better way to do this so I'll update it once I get the chance to look into it.
     // ! Rn I'm dealing with too much architecture all at once to figure this out so once I don't have to worry about that so much I will.
-    class Collider3D { Collider3D() = default; };
+    class Collider3D {
+        public:
+            enum types {
+                SPHERE_COLLIDER,
+                AABB_COLLIDER,
+                CUBE_COLLIDER,
+                CUSTOM_COLLIDER
+            };
+
+            int type = CUSTOM_COLLIDER + 1; // initialize it to not have a collider type
+    };
 }
 
 #endif // !RIGIDBODY_H

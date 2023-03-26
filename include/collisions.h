@@ -20,34 +20,6 @@ namespace Collisions {
         bool hit; // do they intersect
     };
 
-    // Should we bother checking for collisions between the objects?
-    // Should not be called on spheres as sphere intersection detection functions are fast.
-    void isCollision();
-
-    // Determine the collision normal and penetration distance for two spheres.
-    // Should only be called if there is a collision.
-    ZMath::Vec3D collisionNormal(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2, float &dist);
-    
-    // Determine the collision normal and penetration distance for a sphere and an AABB.
-    // Should only be called if there is a collision.
-    ZMath::Vec3D collisionNormal(Primitives::Sphere const &sphere, Primitives::AABB const &aabb, float &dist);
-
-    // Determine the collision normal and penetration distance for a sphere and a cube.
-    // Should only be called if there is a collision.
-    ZMath::Vec3D collisionNormal(Primitives::Sphere const &sphere, Primitives::Cube const &cube, float &dist);
-    
-    // Determine the collision normal and penetration distance for two AABBs.
-    // Should only be called if there is a collision.
-    ZMath::Vec3D collisionNormal(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2, float &dist);
-
-    // Determine the collision normal and penetration distance for an AABB and a cube.
-    // Should only be called if there is a collision.
-    ZMath::Vec3D collisionNormal(Primitives::AABB const &aabb, Primitives::Cube const &cube, float &dist);
-
-    // Determine the collision normal and penetration distance for two cubes.
-    // Should only be called if there is a collision.
-    ZMath::Vec3D collisionNormal(Primitives::Cube const &cube1, Primitives::Cube const &cube2, float &dist);
-
     namespace {
         // * ======================
         // * Private functions
@@ -63,7 +35,7 @@ namespace Collisions {
                 return result;
             }
 
-            float d = abs(sphere1.rb.pos.dist(sphere2.rb.pos));
+            float d = sphere1.rb.pos.dist(sphere2.rb.pos);
             result.pDist = (sphere1.r + sphere2.r - d) * 0.5f;
             result.normal = (sphere1.rb.pos - sphere2.rb.pos).normalize();
             result.hit = 1;
@@ -76,7 +48,27 @@ namespace Collisions {
             return result;
         };
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::AABB const &aabb);
+        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
+            CollisionManifold result;
+
+            // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
+            // ?  from the center is less than or equal to the radius of the sphere.
+            // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
+            // ? From here, we can check the distance from this point to the sphere's center.
+
+            ZMath::Vec3D closest(sphere.rb.pos);
+            ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
+
+            closest.x = ZMath::clamp(closest.x, min.x, max.x);
+            closest.y = ZMath::clamp(closest.y, min.y, max.y);
+            closest.z = ZMath::clamp(closest.z, min.z, max.z);
+
+            result.hit = closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
+
+            if (!result.hit) { return result; }
+
+            return result;
+        };
 
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube);
 
@@ -88,7 +80,14 @@ namespace Collisions {
     }
 
     // Find the collision features between two arbitrary primitives.
-    CollisionManifold findCollisionFeatures(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2);
+    CollisionManifold findCollisionFeatures(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2) {
+        if (c1.type == Primitives::Collider3D::SPHERE_COLLIDER && c2.type == Primitives::Collider3D::SPHERE_COLLIDER) {
+            // ! set up user defined casting
+            // ! alternatively, handle the manifold stuff directly in here.
+            // todo maybe store the rigidbody in the collider
+            // ! I'll fix this later
+        }
+    };
 };
 
 #endif // !COLLISIONS_H

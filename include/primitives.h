@@ -1,9 +1,9 @@
 #ifndef PRIMITIVES_H
 #define PRIMITIVES_H
 
-// todo create a collider3D class
-
 #include "bodies.h"
+
+// todo add masses for each of the primitives for their rigidbodies
 
 namespace Primitives {
     class Ray3D {
@@ -49,7 +49,7 @@ namespace Primitives {
              * @param z (float) The z-level the plane lies on.
              */
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) 
-                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f) {
+                    : halfSize((max - min) * 0.5f), sb({ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f}) {
                 
                 ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
                 ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
@@ -67,7 +67,7 @@ namespace Primitives {
              * @param angXZ (float) The angle, in degrees, the plane is rotated with respect to the XZ plane.
              */
             Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) 
-                    : halfSize((max - min) * 0.5f), sb(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ) {
+                    : halfSize((max - min) * 0.5f), sb({ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ}) {
 
                 ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
                 ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
@@ -97,34 +97,50 @@ namespace Primitives {
             ZMath::Vec3D* getVertices() const;
     };
 
-    class Sphere {
+    class Sphere : public Collider3D {
         public:
             float r; // radius
             RigidBody3D rb; // rigidbody representing the sphere -- stores its centerpoint
 
             // @brief Create a Sphere centered at (0, 0, 0) with a radius of 1.
-            Sphere() : r(1.0f), rb(ZMath::Vec3D(), 1.0f){};
+            Sphere() : r(1.0f) {
+                rb.pos = ZMath::Vec3D();
+                rb.theta = 0.0f;
+                rb.phi = 0.0f;
+                type = SPHERE_COLLIDER;
+            };
 
             // @brief Create a Sphere with an arbitrary radius and center.
             //
             // @param rho (float) Radius of the sphere.
             // @param center (Vec3D) Center of the sphere.
-            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), rb(center, 1.0f){};
+            Sphere(float rho, ZMath::Vec3D const &center) : r(rho) {
+                rb.pos = center;
+                rb.theta = 0.0f;
+                rb.phi = 0.0f;
+                type = SPHERE_COLLIDER;
+            };
     };
 
-    class AABB {
+    class AABB : public Collider3D {
         private:
             ZMath::Vec3D halfSize;
 
         public:
             RigidBody3D rb; // rigid body representing the AABB -- stores the center point
 
-            // @brief Instantiate a 3D AABB.
-            // 
-            // @param min (Vec3D) Min vertex of the AABB.
-            // @param max (Vec3D) Max vertex of the AABB.
-            AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) 
-                    : halfSize((max - min) * 0.5f), rb(min + halfSize, 1.0f) {};
+            /** 
+             * @brief Instantiate a 3D unrotated Cube.
+             * 
+             * @param min (Vec3D) Min vertex of the AABB.
+             * @param max (Vec3D) Max vertex of the AABB.
+             */
+            AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) : halfSize((max - min) * 0.5f) {
+                rb.pos = min + halfSize;
+                rb.theta = 0.0f;
+                rb.phi = 0.0f;
+                type = AABB_COLLIDER;
+            };
 
             ZMath::Vec3D getMin();
             ZMath::Vec3D getMax();
@@ -139,7 +155,7 @@ namespace Primitives {
             ZMath::Vec3D* getVertices() const;
     };
 
-    class Cube {
+    class Cube : public Collider3D {
         private:
             ZMath::Vec3D halfSize;
 
@@ -148,7 +164,12 @@ namespace Primitives {
 
             // @brief Create a cube rotated by 45 degrees with respect to both the XY and XZ planes, 
             //         its center at (0, 0, 0), and its halfsize as 1.
-            Cube() : rb(RigidBody3D(ZMath::Vec3D(0), 1.0f, 45.0f, 45.0f)), halfSize(ZMath::Vec3D(1)) {};
+            Cube() : halfSize(ZMath::Vec3D(1)) {
+                rb.pos = ZMath::Vec3D();
+                rb.theta = 45.0f;
+                rb.phi = 45.0f;
+                type = CUBE_COLLIDER;
+            };
 
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
             //
@@ -156,8 +177,12 @@ namespace Primitives {
             // @param p2 Max vertex of the cube as if it was not rotated.
             // @param angXY Angle the cube is rotated by with respect to the XY plane in degrees.
             // @param angXZ Angle the cube is rotated by with respect to the XZ plane in degrees.
-            Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) 
-                    : halfSize((max - min) * 0.5f), rb(RigidBody3D(min + halfSize, 1.0f, angXY, angXZ)) {};
+            Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) : halfSize((max - min) * 0.5f) {
+                rb.pos = min + halfSize;
+                rb.theta = angXY;
+                rb.phi = angXZ;
+                type = CUBE_COLLIDER;
+            };
 
             // Get the min vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMin();
