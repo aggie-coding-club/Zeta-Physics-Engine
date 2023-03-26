@@ -19,3 +19,5 @@ ___
  * Lenny Tanui
  * Jonathan Yu
  * Jude Sparks
+ * Moeez Akmal
+ * Thomas Masha
