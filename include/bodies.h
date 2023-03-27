@@ -11,7 +11,7 @@ namespace Primitives {
     struct RigidBody3D {
         float theta; // rotation with respect to the XY plane.
         float phi; // rotation with respect to the XZ plane.
-        float mass; // mass must remain constant.
+        float mass; // Must remain constant.
         float invMass; // 1/mass. Must remain constant.
 
         ZMath::Vec3D pos; // centerpoint of the rigidbody.
@@ -23,6 +23,8 @@ namespace Primitives {
         ZMath::Vec3D pos; // centerpoint of the staticbody.
         float theta; // rotation with respect to the XY plane.
         float phi; // rotation with respect to the XZ plane.
+        float mass; // Must remain constant.
+        float invMass; // 1/mass. Must remain constant.
     };
 
     // ! Just a flag class. I'm sure there's a better way to do this so I'll update it once I get the chance to look into it.

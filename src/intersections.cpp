@@ -4,7 +4,6 @@
 // todo probably need to add in comparison function calls to account for floating point errors
 // todo go through each rotation and make sure it rotates XZ before XY when taking something into the local plane and XY before XZ when taking something out
 // todo for each rotation do 360 - when converting it back
-// todo replace objects with pointers
 
 #include "intersections.h"
 #include <cmath>
@@ -159,10 +158,6 @@ namespace Collisions {
     };
 
     bool LineAndSphere(Primitives::Line3D const &line, Primitives::Sphere const &sphere) {
-        // todo could maybe take inspiration from the raycasting solution
-        // todo find the closest point on the circle to line segment. See if its distSq is <= r*r
-        // ! this may allow us to remove the sqrt
-
         // ? Use the parametric equations for a 3D line.
         // ? Relate the parametric equations with the distance squared to the center of the sphere.
         // ? Since we define our start point as the point at t_0 and end point as the point at t_1,
@@ -179,7 +174,6 @@ namespace Collisions {
 
         if (D < 0) { return 0; } // no intersections even if the line was infinite
 
-        // ! slow sqrt, optimize away if possible
         float sq = sqrtf(D);
         float div = 1.0f/(2.0f*A);
         float t1 = (-B - sq)*div, t2 = (-B + sq)*div;
@@ -276,7 +270,7 @@ namespace Collisions {
         float t = ray.dir * (sphere.rb.pos - ray.origin);
         ZMath::Vec3D close = ray.origin + ray.dir * t;
 
-        float dSq = t*t;
+        float dSq = sphere.rb.pos.distSq(close);
 
         // no intersection
         if (dSq > rSq) {
@@ -291,7 +285,6 @@ namespace Collisions {
         }
 
         // standard intersection
-        // ! optimize the sqrt away if possible
         dist = t - sqrtf(rSq - dSq);
         return 1;
     };
@@ -353,8 +346,6 @@ namespace Collisions {
         // ? If this distance squared is less than the radius squared, we have an intersection.
         // ? Since we are not dealing with infinite planes, we will first need to clamp the 
         // ?  sphere's center between the min and max vertices of the plane.
-
-        // * Saw a better approach so I will implement that and test if it works after making unit tests
 
         ZMath::Vec3D closest(sphere.rb.pos);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
