@@ -10,7 +10,7 @@
 // We have to account for certain edge cases when moving this to 3D
 
 namespace Collisions {
-    // ? Note: if we have objects A and B colliding, the collison normal will point away from A and towards B.
+    // ? Note: if we have objects A and B colliding, the collison normal will point towards A and away from B.
 
     struct CollisionManifold {
         ZMath::Vec3D normal; // collision normal
