@@ -141,7 +141,7 @@ namespace PhysicsHandler {
                 // * Add code to handle collision manifolds and impulse resolution here
 
                 // Update our rigidbodies
-                for (int i = 0; i < objects.count; i++) {  Primitives::updateRigidbody(objects.rigidbodies[i], g, dt); }
+                for (int i = 0; i < objects.count; i++) { Primitives::updateRigidbody(objects.rigidbodies[i], g, dt); }
             };
     };
 }
