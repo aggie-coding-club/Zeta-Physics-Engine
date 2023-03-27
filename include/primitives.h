@@ -80,21 +80,51 @@ namespace Primitives {
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
 
-            ZMath::Vec3D getLocalMin();
-            ZMath::Vec3D getLocalMax();
-            ZMath::Vec2D getHalfsize();
+            ZMath::Vec3D getLocalMin() { return ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z); };
+            ZMath::Vec3D getLocalMax() { return ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z); };
+            ZMath::Vec2D getHalfsize() { return halfSize; };
 
             // Get the vertices of the plane in terms of global coordinates.
             // Remember to use delete[] on the object you assign this to afterwards to free the memory.
-            ZMath::Vec3D* getVertices();
+            ZMath::Vec3D* getVertices() {
+                ZMath::Vec3D* v = new ZMath::Vec3D[4]; // 4 as it is rectangular
 
-            ZMath::Vec3D getLocalMin() const;
-            ZMath::Vec3D getLocalMax() const;
-            ZMath::Vec2D getHalfSize() const;
+                v[0] = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+                v[1] = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+                v[2] = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+                v[3] = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+
+                // rotate each vertex
+                for (int i = 0; i < 4; i++) {
+                    ZMath::rotateXY(v[i], sb.pos, sb.theta);
+                    ZMath::rotateXZ(v[i], sb.pos, sb.phi);
+                }
+
+                return v;
+            };
+
+            ZMath::Vec3D getLocalMin() const { return ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z); };
+            ZMath::Vec3D getLocalMax() const { return ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z); };
+            ZMath::Vec2D getHalfSize() const { return halfSize; };
 
             // Get the vertices of the plane in terms of global coordinates.
             // Remember to use delete[] on the object you assign this to afterwards to free the memory.
-            ZMath::Vec3D* getVertices() const;
+            ZMath::Vec3D* getVertices() const {
+                ZMath::Vec3D* v = new ZMath::Vec3D[4]; // 4 as it is rectangular
+
+                v[0] = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+                v[1] = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+                v[2] = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+                v[3] = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+
+                // rotate each vertex
+                for (int i = 0; i < 4; i++) {
+                    ZMath::rotateXY(v[i], sb.pos, sb.theta);
+                    ZMath::rotateXZ(v[i], sb.pos, sb.phi);
+                }
+
+                return v;
+            };
     };
 
     class Sphere : public Collider3D {
@@ -142,17 +172,45 @@ namespace Primitives {
                 type = AABB_COLLIDER;
             };
 
-            ZMath::Vec3D getMin();
-            ZMath::Vec3D getMax();
-            ZMath::Vec3D getHalfSize();
+            ZMath::Vec3D getMin() { return rb.pos - halfSize; };
+            ZMath::Vec3D getMax() { return rb.pos + halfSize; };
+            ZMath::Vec3D getHalfSize() { return halfSize; };
 
-            ZMath::Vec3D* getVertices();
+            ZMath::Vec3D* getVertices() {
+                ZMath::Vec3D* vertices = new ZMath::Vec3D[4];
 
-            ZMath::Vec3D getMin() const;
-            ZMath::Vec3D getMax() const;
-            ZMath::Vec3D getHalfSize() const;
+                vertices[0] = {rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z}; // bottom left
+                vertices[1] = {rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z}; // top left
+                vertices[2] = {rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z}; // top right
+                vertices[3] = {rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z};  // bottom right
+                
+                vertices[4] = {rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z}; // bottom left
+                vertices[5] = {rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z}; // top left
+                vertices[6] = {rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z}; // top right
+                vertices[7] = {rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z}; // bottom right
 
-            ZMath::Vec3D* getVertices() const;
+                return vertices;
+            };
+
+            ZMath::Vec3D getMin() const { return rb.pos - halfSize; };
+            ZMath::Vec3D getMax() const { return rb.pos + halfSize; };
+            ZMath::Vec3D getHalfSize() const { return halfSize; };
+
+            ZMath::Vec3D* getVertices() const{
+                ZMath::Vec3D* vertices = new ZMath::Vec3D[4];
+
+                vertices[0] = {rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z}; // bottom left
+                vertices[1] = {rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z}; // top left
+                vertices[2] = {rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z}; // top right
+                vertices[3] = {rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z};  // bottom right
+                
+                vertices[4] = {rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z}; // bottom left
+                vertices[5] = {rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z}; // top left
+                vertices[6] = {rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z}; // top right
+                vertices[7] = {rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z}; // bottom right
+
+                return vertices;
+            };
     };
 
     class Cube : public Collider3D {
@@ -185,30 +243,68 @@ namespace Primitives {
             };
 
             // Get the min vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMin();
+            ZMath::Vec3D getLocalMin() { return rb.pos - halfSize; };
 
             // Get the max vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMax();
+            ZMath::Vec3D getLocalMax() { return rb.pos + halfSize; };
 
             // Get half the distance between the cube's min and max vertices.
-            ZMath::Vec3D getHalfSize();
+            ZMath::Vec3D getHalfSize() { return halfSize; };
 
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
-            ZMath::Vec3D* getVertices();
+            ZMath::Vec3D* getVertices() {
+                ZMath::Vec3D* v = new ZMath::Vec3D[8];
+
+                // todo maybe reorder
+                v[0] = rb.pos - halfSize;
+                v[1] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z +  halfSize.z);
+                v[2] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z);
+                v[3] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z);
+                v[4] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z);
+                v[5] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z);
+                v[6] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z);
+                v[7] = rb.pos + halfSize;
+
+                for (int i = 0; i < 8; i++) {
+                    ZMath::rotateXY(v[i], rb.pos, rb.theta);
+                    ZMath::rotateXZ(v[i], rb.pos, rb.phi);
+                }
+
+                return v;
+            };
 
             // Get the min vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMin() const;
+            ZMath::Vec3D getLocalMin() const { return rb.pos - halfSize; };
 
             // Get the max vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMax() const;
+            ZMath::Vec3D getLocalMax() const { return rb.pos + halfSize; };
 
             // Get half the distance between the cube's min and max vertices.
-            ZMath::Vec3D getHalfSize() const;
+            ZMath::Vec3D getHalfSize() const { return halfSize; };
 
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
-            ZMath::Vec3D* getVertices() const;
+            ZMath::Vec3D* getVertices() const {
+                ZMath::Vec3D* v = new ZMath::Vec3D[8];
+
+                // todo maybe reorder
+                v[0] = rb.pos - halfSize;
+                v[1] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z +  halfSize.z);
+                v[2] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z);
+                v[3] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z);
+                v[4] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z);
+                v[5] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z);
+                v[6] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z);
+                v[7] = rb.pos + halfSize;
+
+                for (int i = 0; i < 8; i++) {
+                    ZMath::rotateXY(v[i], rb.pos, rb.theta);
+                    ZMath::rotateXZ(v[i], rb.pos, rb.phi);
+                }
+
+                return v;
+            };
     };
 } // namespace Primitives
 

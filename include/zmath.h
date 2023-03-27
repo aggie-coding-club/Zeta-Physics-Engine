@@ -1,6 +1,8 @@
 #ifndef ZMATH_H
 #define ZMATH_H
 
+#include <cmath>
+
 namespace ZMath {
     // * ============================================
     // * ZMath Constants
@@ -58,32 +60,35 @@ namespace ZMath {
             float cross (Vec2D const &vec) { return x*vec.y - y*vec.x; };
 
             // * Get the magnitude.
-            float mag();
+            float mag() { return sqrtf(x*x + y*y); };
 
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
-            float magSq();
+            float magSq() { return x*x + y*y; };
 
             // * Get the vector projection of another vector onto this vector (Parameter onto this).
             Vec2D proj (Vec2D const &vec) { return (*this) * ((x*vec.x + y*vec.y)/(x*x + y*y)); };
 
             // * Get the distance between this and another vector.
-            float dist (Vec2D const &vec);
+            float dist (Vec2D const &vec) { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
 
             // * Get the distance squared between this and another vector.
             // * This should be used over dist() when possible as it is less expensive.
             float distSq (Vec2D const &vec) { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            Vec2D normalize();
+            Vec2D normalize() { return (*this) * (1.0f/sqrtf(x*x + y*y)); };
 
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
             // * This function is very expensive. Only call if absolutely needed.
-            float angle (Vec2D const &vec);
+            float angle (Vec2D const &vec) { return acos((x*vec.x + y*vec.y)/(sqrtf(x*x + y*y) * sqrtf(vec.x*vec.x + vec.y*vec.y))); };
 
             // * Get the value of cos^2(theta) between the vectors.
-            float cos2Ang (Vec2D const &vec);
+            float cos2Ang (Vec2D const &vec) {
+                float d = x*vec.x + y*vec.y;
+                return (d*d)/((x*x + y*y)*(vec.x*vec.x + vec.y*vec.y));
+            };
 
             // * Zero this vector.
             void zero() {
@@ -133,21 +138,21 @@ namespace ZMath {
             const Vec2D proj (Vec2D const &vec) const { return (*this) * ((x*vec.x + y*vec.y)/(x*x + y*y)); };
 
             // * Get the distance between this and another vector.
-            float dist (Vec2D const &vec) const;
+            float dist (Vec2D const &vec) const { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
 
             // * Get the distance squared between this and another vector.
             // * This should be used over dist() when possible as it is less expensive.
             float distSq (Vec2D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            const Vec2D normalize() const;
+            const Vec2D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y)); };
 
             // * Get the magnitude.
-            float mag() const;
+            float mag() const { return sqrtf(x*x + y*y); };
 
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
-            float magSq() const;
+            float magSq() const { return x*x + y*y; };
     };
 
 
@@ -196,32 +201,35 @@ namespace ZMath {
             Vec3D cross (Vec3D const &vec) { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
 
             // * Get the magnitude.
-            float mag();
+            float mag() { return sqrtf(x*x + y*y + z*z); };
 
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
-            float magSq();
+            float magSq() { return x*x + y*y + z*z; };
 
             // * Get the vector projection of another vector onto this vector (Parameter onto this).
             Vec3D proj (Vec3D const &vec) { return (*this) * ((x*vec.x + y*vec.y + z*vec.z)/(x*x + y*y + z*z)); };
 
             // * Get the distance between this and another vector.
-            float dist (Vec3D const &vec);
+            float dist (Vec3D const &vec) { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
 
             // * Get the distance squared between this and another vector.
             // * This should be used over dist() when possible as it is less expensive.
             float distSq (Vec3D const &vec) { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            Vec3D normalize();
+            Vec3D normalize() { return (*this) * (1.0f/sqrtf(x*x + y*y + z*z)); };
 
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
             // * This function is very expensive. Only call if absolutely needed.
-            float angle (Vec3D const &vec);
+            float angle (Vec3D const &vec) { return acos((x*vec.x + y*vec.y + z*vec.z)/(sqrtf(x*x + y*y + z*z) * sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z))); };
 
             // * Get the value of cos^2(theta) between the vectors.
-            float cos2Ang (Vec3D const &vec);
+            float cos2Ang (Vec3D const &vec) {
+                float d = x*vec.x + y*vec.y + z*vec.z;
+                return (d*d)/((x*x + y*y + z*z)*(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z));
+            };
 
             // * Zero this vector.
             void zero() {
@@ -275,21 +283,21 @@ namespace ZMath {
             const Vec3D proj (Vec3D const &vec) const { return (*this) * ((x*vec.x + y*vec.y + z*vec.z)/(x*x + y*y + z*z)); };
 
             // * Get the distance between this and another vector.
-            float dist (Vec3D const &vec) const;
+            float dist (Vec3D const &vec) const { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
 
             // * Get the distance squared between this and another vector.
             // * This should be used over dist() when possible as it is less expensive.
             float distSq (Vec3D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            const Vec3D normalize() const;
+            const Vec3D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y + z*z)); };
 
             // * Get the magnitude.
-            float mag() const;
+            float mag() const { return sqrtf(x*x + y*y + z*z); };
 
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
-            float magSq() const;
+            float magSq() const { return x*x + y*y + z*z; };
     };
 
 
@@ -298,34 +306,52 @@ namespace ZMath {
     // * ============================================
 
     // * Get the max value of two floats.
-    float max(float a, float b);
+    float max(float a, float b) { return a > b ? a : b; };
 
     // * Get the min value of two floats.
-    float min(float a, float b);
+    float min(float a, float b) { return a < b ? a : b; };
 
     // * Convert an angle in degrees to radians.
-    float toRadians(float degrees);
+    float toRadians(float degrees) { return (degrees/180) * PI; };
 
     // * @brief Rotate a point in 3D space with respect to the XY-plane about an origin.
     // * 
     // * @param point The point in 3D space to rotate.
     // * @param origin The origin the point will be rotated about.
     // * @param angle The angle, in degrees, to rotate the point by.
-    void rotateXY(Vec3D &point, const Vec3D &origin, float angle);
+    void rotateXY(Vec3D &point, const Vec3D &origin, float angle) {
+        float x = point.x - origin.x, y = point.y - origin.y;
+
+        float cosine = cos(toRadians(angle));
+        float sine = sin(toRadians(angle));
+
+        // compute the new point -- z component is unchanged
+        point.x = x*cosine - y*sine + origin.x;
+        point.y = x*sine + y*cosine + origin.y;
+    };
 
     // * @brief Rotate a point in 3D space with respect to the XZ-plane about an origin.
     // * 
     // * @param point The point in 3D space to rotate.
     // * @param origin The origin the point will be rotated about.
     // * @param angle The angle, in degrees, to rotate the point by.
-    void rotateXZ(Vec3D &point, const Vec3D &origin, float angle);
+    void rotateXZ(Vec3D &point, const Vec3D &origin, float angle) {
+        float x = point.x - origin.x, z = point.z - origin.z;
+
+        float cosine = cos(toRadians(angle));
+        float sine = sin(toRadians(angle));
+
+        // compute the new point -- y component is unchanged
+        point.x = x*cosine - z*sine + origin.x;
+        point.z = x*sine + z*cosine + origin.z;
+    };
 
     // * Handle tolerance for floating point numbers.
     // * If no epsilon is specified, it will use the default of 10^-5.
-    bool compare(float a, float b, float epsilon = EPSILON);
+    bool compare(float a, float b, float epsilon = EPSILON) { return abs(a - b) <= epsilon; };
 
     // * Clamp a float between a min and max.
-    float clamp(float n, float min, float max);
+    float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
 }
 
 #endif // ! ZMATH_H
