@@ -11,7 +11,7 @@ namespace PhysicsHandler {
         struct Objects {
             Primitives::RigidBody3D* rigidbodies; // list of active rigidbodies
             int capacity; // current max capacity
-            int count; // number of ridigbodies
+            int count; // number of ridigbodies 
         };
     }
 
@@ -24,6 +24,8 @@ namespace PhysicsHandler {
             // * ===================================
             // * Constructors, Destructors, Etc.
             // * ===================================
+
+            // todo add stuff for the rule of 5
 
             /**
              * @brief Make a physics handler with a default gravity value of -9.8.
@@ -45,6 +47,63 @@ namespace PhysicsHandler {
                 objects.capacity = 8;
                 objects.count = 0;
             };
+
+            /**
+             * @brief Make a physics handler from an exisiting handler.
+             * 
+             * @param handler (Handler) The physics handler to copy.
+             */
+            Handler(Handler const &handler) : g (handler.g) {
+                objects.capacity = handler.objects.capacity;
+                objects.count = handler.objects.count;
+
+                for (int i = 0; i < objects.count; i++) { objects.rigidbodies[i] = handler.objects.rigidbodies[i]; }
+            };
+
+            /**
+             * @brief Make a physics handler from an existing handler.
+             * 
+             * @param handler (Handler) The physics handler to move.
+             */
+            Handler(Handler&& handler) : g(handler.g) {
+                objects.rigidbodies = handler.objects.rigidbodies;
+                objects.capacity = handler.objects.capacity;
+                objects.count = handler.objects.count;
+
+                handler.objects.rigidbodies = nullptr;
+            };
+
+            Handler& operator = (Handler const &handler) {
+                g = handler.g;
+
+                delete[] objects.rigidbodies;
+
+                objects.rigidbodies = new Primitives::RigidBody3D[handler.objects.capacity];
+                objects.capacity = handler.objects.capacity;
+                objects.count = handler.objects.count;
+
+                for (int i = 0; i < objects.count; i++) { objects.rigidbodies[i] = handler.objects.rigidbodies[i]; }
+
+                return *this;
+            };
+
+            Handler& operator = (Handler&& handler) {
+                if (this != &handler) { // ensure no self assignment
+                    g = handler.g;
+
+                    delete[] objects.rigidbodies;
+
+                    objects.rigidbodies = handler.objects.rigidbodies;
+                    objects.capacity = handler.objects.capacity;
+                    objects.count = handler.objects.count;
+
+                    handler.objects.rigidbodies = nullptr;
+                }
+
+                return *this;
+            };
+
+            ~Handler() { delete[] objects.rigidbodies; };
 
 
             // * ===========================
