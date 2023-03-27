@@ -160,6 +160,8 @@ namespace Collisions {
 
     bool LineAndSphere(Primitives::Line3D const &line, Primitives::Sphere const &sphere) {
         // todo could maybe take inspiration from the raycasting solution
+        // todo find the closest point on the circle to line segment. See if its distSq is <= r*r
+        // ! this may allow us to remove the sqrt
 
         // ? Use the parametric equations for a 3D line.
         // ? Relate the parametric equations with the distance squared to the center of the sphere.

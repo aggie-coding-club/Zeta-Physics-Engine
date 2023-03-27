@@ -14,8 +14,8 @@ namespace Collisions {
 
     struct CollisionManifold {
         ZMath::Vec3D normal; // collision normal
-        float pDist; // penetration distance
         ZMath::Vec3D* contactPoints; // contact points of the collision
+        float pDist; // penetration distance
         int numPoints; // number of contact points
         bool hit; // do they intersect
     };
@@ -35,9 +35,11 @@ namespace Collisions {
                 return result;
             }
 
-            float d = sphere1.rb.pos.dist(sphere2.rb.pos);
+            ZMath::Vec3D sphereDiff = sphere2.rb.pos - sphere1.rb.pos;
+            float d = sphereDiff.mag(); // allows us to only take the sqrt once
+
             result.pDist = (sphere1.r + sphere2.r - d) * 0.5f;
-            result.normal = (sphere1.rb.pos - sphere2.rb.pos).normalize();
+            result.normal = sphereDiff * (1.0f/d);
             result.hit = 1;
 
             // determine the contact point
@@ -67,6 +69,20 @@ namespace Collisions {
 
             if (!result.hit) { return result; }
 
+            // The closest point to the sphere's center will be our contact point.
+            // Therefore, we just set our contact point to closest.
+
+            result.numPoints = 1;
+            result.contactPoints = new ZMath::Vec3D[1];
+            result.contactPoints[0] = closest;
+
+            // determine the penetration distance and collision normal
+
+            ZMath::Vec3D diff = sphere.rb.pos - closest;
+            float d = diff.mag(); // allows us to only take the sqrt once
+            result.pDist = sphere.r - d;
+            result.normal = diff * (1.0f/d);
+
             return result;
         };
 
@@ -82,10 +98,7 @@ namespace Collisions {
     // Find the collision features between two arbitrary primitives.
     CollisionManifold findCollisionFeatures(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2) {
         if (c1.type == Primitives::Collider3D::SPHERE_COLLIDER && c2.type == Primitives::Collider3D::SPHERE_COLLIDER) {
-            // ! set up user defined casting
-            // ! alternatively, handle the manifold stuff directly in here.
-            // todo maybe store the rigidbody in the collider
-            // ! I'll fix this later
+            // ! I'll fix this part of it later
         }
     };
 };
