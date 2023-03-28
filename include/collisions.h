@@ -39,7 +39,7 @@ namespace Collisions {
                 return result;
             }
 
-            ZMath::Vec3D sphereDiff = sphere2.rb.pos - sphere1.rb.pos;
+            ZMath::Vec3D sphereDiff = sphere1.rb.pos - sphere2.rb.pos;
             float d = sphereDiff.mag(); // allows us to only take the sqrt once
 
             result.pDist = (sphere1.r + sphere2.r - d) * 0.5f;
@@ -49,7 +49,7 @@ namespace Collisions {
             // determine the contact point
             result.numPoints = 1;
             result.contactPoints = new ZMath::Vec3D[result.numPoints];
-            result.contactPoints[0] = sphere1.rb.pos + (result.normal * (sphere1.r - result.pDist));
+            result.contactPoints[0] = sphere2.rb.pos + (result.normal * (sphere2.r - result.pDist));
 
             return result;
         };
@@ -101,6 +101,8 @@ namespace Collisions {
 
     // Find the collision features between two arbitrary primitives.
     CollisionManifold findCollisionFeatures(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2) {
+        // todo add for opposite order as order does matter
+
         if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.sphere); }
         if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.aabb); }
         if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.cube); }
@@ -130,7 +132,22 @@ namespace Collisions {
         void collisionResponse(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2, CollisionManifold const &manifold) {};
 
         // Resolve a collision between a sphere and an AABB
-        void collisionResponse(Primitives::Sphere const &sphere, Primitives::AABB const &aabb, CollisionManifold const &manifold) {};
+        void collisionResponse(Primitives::Sphere const &sphere, Primitives::AABB const &aabb, CollisionManifold const &manifold) {
+            // delta v = J/m
+            // For this calculation we need to acocunt for the relative velocity between the two objects
+            // v_r = v_1 - v_2
+            // To determine the total velocity of the collision: v_j = -(1 + coeffOfRestitution)v_r dot collisionNormal
+            // Impulse then equals: J = v_j/(invMass_1 + invMass_2)
+            // v_1' = v_1 + invMass_1 * J * collisionNormal
+            // v_2' = v_2 - invMass_2 * J * collisionNormal. Note the - is to account for the direction which the normal is pointing.
+            // It's opposite for one of the two objects.
+
+            float J = (((sphere.rb.velocity - aabb.rb.velocity) * -(1 + sphere.rb.coeffOfRestitution * aabb.rb.coeffOfRestitution)) 
+                    * manifold.normal)/(sphere.rb.invMass + aabb.rb.invMass);
+
+            sphere.rb.velocity += manifold.normal * (sphere.rb.invMass * J);
+            aabb.rb.velocity -= manifold.normal * (aabb.rb.invMass * J);
+        };
 
         // Resolve a collision between a sphere and a cube
         void collisionResponse(Primitives::Sphere const &sphere, Primitives::Cube const &cube, CollisionManifold const &manifold) {};
@@ -149,7 +166,7 @@ namespace Collisions {
     // ! can probably combine this with the findCollisionFeatures thing
 
     // Resolve the collision for any two arbitrary colliders.
-    void collisionResponse(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2, CollisionManifold const &manifold) {
+    void getImpulse(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2, CollisionManifold const &manifold) {
         if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) {
             collisionResponse(c1.sphere, c2.sphere, manifold);
             return;
