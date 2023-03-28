@@ -127,7 +127,7 @@ namespace Primitives {
             };
     };
 
-    class Sphere : public Collider3D {
+    class Sphere {
         public:
             float r; // radius
             RigidBody3D rb; // rigidbody representing the sphere -- stores its centerpoint
@@ -137,7 +137,6 @@ namespace Primitives {
                 rb.pos = ZMath::Vec3D();
                 rb.theta = 0.0f;
                 rb.phi = 0.0f;
-                type = SPHERE_COLLIDER;
             };
 
             // @brief Create a Sphere with an arbitrary radius and center.
@@ -148,11 +147,10 @@ namespace Primitives {
                 rb.pos = center;
                 rb.theta = 0.0f;
                 rb.phi = 0.0f;
-                type = SPHERE_COLLIDER;
             };
     };
 
-    class AABB : public Collider3D {
+    class AABB {
         private:
             ZMath::Vec3D halfSize;
 
@@ -169,7 +167,6 @@ namespace Primitives {
                 rb.pos = min + halfSize;
                 rb.theta = 0.0f;
                 rb.phi = 0.0f;
-                type = AABB_COLLIDER;
             };
 
             ZMath::Vec3D getMin() { return rb.pos - halfSize; };
@@ -213,7 +210,7 @@ namespace Primitives {
             };
     };
 
-    class Cube : public Collider3D {
+    class Cube {
         private:
             ZMath::Vec3D halfSize;
 
@@ -226,7 +223,6 @@ namespace Primitives {
                 rb.pos = ZMath::Vec3D();
                 rb.theta = 45.0f;
                 rb.phi = 45.0f;
-                type = CUBE_COLLIDER;
             };
 
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
@@ -239,7 +235,6 @@ namespace Primitives {
                 rb.pos = min + halfSize;
                 rb.theta = angXY;
                 rb.phi = angXZ;
-                type = CUBE_COLLIDER;
             };
 
             // Get the min vertex in the cube's UVW coordinates.
@@ -304,8 +299,31 @@ namespace Primitives {
                 }
 
                 return v;
-            };
+            }; 
     };
+
+    // * ==================
+    // * Colliders
+    // * ==================
+
+    // ! Current design for this is bad; refactor later.
+    // ! This is just used to have some form of easy system to begin connecting everything together
+
+    enum {
+        SPHERE_COLLIDER,
+        AABB_COLLIDER,
+        CUBE_COLLIDER,
+        CUSTOM_COLLIDER, // ? allows users to model their own colliders
+        NONE // ? No collider. Used for initializing a value without actually assigning a collider.
+    };
+
+    struct Collider3D {
+        Sphere sphere = Sphere();
+        AABB aabb = AABB(ZMath::Vec3D(-1, -1, -1), ZMath::Vec3D(1, 1, 1));
+        Cube cube = Cube();
+        int type = NONE;
+    };
+
 } // namespace Primitives
 
 #endif // !PRIMITIVES_H

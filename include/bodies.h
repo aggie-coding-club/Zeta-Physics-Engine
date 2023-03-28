@@ -28,20 +28,6 @@ namespace Primitives {
     void updateRigidbody(RigidBody3D &rb, ZMath::Vec3D const &g, float dt) {
         // * Add code to update a rigidbody here
     };
-
-    // ! Just a flag class. I'm sure there's a better way to do this so I'll update it once I get the chance to look into it.
-    // ! Rn I'm dealing with too much architecture all at once to figure this out so once I don't have to worry about that so much I will.
-    class Collider3D {
-        public:
-            enum types {
-                SPHERE_COLLIDER,
-                AABB_COLLIDER,
-                CUBE_COLLIDER,
-                CUSTOM_COLLIDER
-            };
-
-            int type = CUSTOM_COLLIDER + 1; // initialize it to not have a collider type
-    };
 }
 
 #endif // !RIGIDBODY_H

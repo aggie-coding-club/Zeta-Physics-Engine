@@ -97,9 +97,18 @@ namespace Collisions {
 
     // Find the collision features between two arbitrary primitives.
     CollisionManifold findCollisionFeatures(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2) {
-        if (c1.type == Primitives::Collider3D::SPHERE_COLLIDER && c2.type == Primitives::Collider3D::SPHERE_COLLIDER) {
-            // ! I'll fix this part of it later
-        }
+        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.sphere); }
+        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.aabb); }
+        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.cube); }
+        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c2.sphere, c1.aabb); }
+        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c1.aabb, c2.aabb); }
+        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.aabb, c2.cube); }
+        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c2.sphere, c1.cube); }
+        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c2.aabb, c1.cube); }
+        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.cube, c2.cube); }
+
+        // * User defined types begin here.
+        return (CollisionManifold) {};
     };
 };
 
