@@ -10,6 +10,10 @@
 // We have to account for certain edge cases when moving this to 3D
 
 namespace Collisions {
+    // * =========================
+    // * Collision Manifolds
+    // * =========================
+
     // ? Note: if we have objects A and B colliding, the collison normal will point towards A and away from B.
 
     struct CollisionManifold {
@@ -109,6 +113,89 @@ namespace Collisions {
 
         // * User defined types begin here.
         return (CollisionManifold) {};
+    };
+
+    // * =======================
+    // * Impulse Resolution
+    // * =======================
+
+    // ! may refactor
+
+    namespace {
+        // * ======================
+        // * Private Functions
+        // * ======================
+
+        // Resolve a collision between two spheres
+        void collisionResponse(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2, CollisionManifold const &manifold) {};
+
+        // Resolve a collision between a sphere and an AABB
+        void collisionResponse(Primitives::Sphere const &sphere, Primitives::AABB const &aabb, CollisionManifold const &manifold) {};
+
+        // Resolve a collision between a sphere and a cube
+        void collisionResponse(Primitives::Sphere const &sphere, Primitives::Cube const &cube, CollisionManifold const &manifold) {};
+
+        // Resolve a collision between two AABBs
+        void collisionResponse(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2, CollisionManifold const &manifold) {};
+
+        // Resolve a collision between an AABB and a cube
+        void collisionResponse(Primitives::AABB const &aabb, Primitives::Cube const &cube, CollisionManifold const &manifold) {};
+
+        // Resolve a collision between two cubes
+        void collisionResponse(Primitives::Cube const &cube1, Primitives::Cube const &cube2, CollisionManifold const &manifold) {};
+    }
+
+    // ! Refactor later
+    // ! can probably combine this with the findCollisionFeatures thing
+
+    // Resolve the collision for any two arbitrary colliders.
+    void collisionResponse(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2, CollisionManifold const &manifold) {
+        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) {
+            collisionResponse(c1.sphere, c2.sphere, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) {
+            collisionResponse(c1.sphere, c2.aabb, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) {
+            collisionResponse(c1.sphere, c2.cube, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) {
+            collisionResponse(c2.sphere, c1.aabb, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::AABB_COLLIDER) {
+            collisionResponse(c1.aabb, c2.aabb, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) {
+            collisionResponse(c1.aabb, c2.cube, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) {
+            collisionResponse(c2.sphere, c1.cube, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) {
+            collisionResponse(c2.aabb, c1.cube, manifold);
+            return;
+        }
+
+        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) {
+            collisionResponse(c1.cube, c2.cube, manifold);
+            return;
+        }
+
+        // * User defined types begin here.
     };
 };
 
