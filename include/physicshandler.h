@@ -12,21 +12,23 @@ namespace PhysicsHandler {
             Primitives::Collider3D collider;
 
         public:
+            // Create a physics object.
             Object() {};
+
+            // Create a physics object with a predefined collider.
             Object(Primitives::Collider3D collider) : collider(collider) {};
 
-            void update(ZMath::Vec3D g, float dt) {
-                if (collider.type == Primitives::SPHERE_COLLIDER) { Primitives::updateRigidbody(collider.sphere.rb, g, dt); }
-                else if (collider.type == Primitives::AABB_COLLIDER) { Primitives::updateRigidbody(collider.aabb.rb, g, dt); }
-                else if (collider.type == Primitives::CUBE_COLLIDER) { Primitives::updateRigidbody(collider.cube.rb, g, dt); }
+            void update(ZMath::Vec3D const &g, float dt) {
+                if (collider.type == Primitives::SPHERE_COLLIDER) { collider.sphere.rb.update(g, dt); }
+                else if (collider.type == Primitives::AABB_COLLIDER) { collider.aabb.rb.update(g, dt); }
+                else if (collider.type == Primitives::CUBE_COLLIDER) { collider.cube.rb.update(g, dt); }
             };
 
             Primitives::Collider3D getCollider() { return collider; };
     };
 
     namespace { // make this struct private to this file
-        // ? This struct can be expanded to accomidate kineticbodies too as we can just add a second list
-        // ? For now, default to allocating 8 slots for RigidBodies. Probably up once we start implementing more stuff.
+        // ? For now, default to allocating 8 slots for Objects. Probably up once we start implementing more stuff.
 
         struct Objects {
             Object* objects; // list of active objects

@@ -15,6 +15,10 @@ namespace Primitives {
         ZMath::Vec3D pos; // centerpoint of the rigidbody.
         ZMath::Vec3D velocity = ZMath::Vec3D(); // velocity of the rigidbody.
         ZMath::Vec3D netForce = ZMath::Vec3D(); // sum of all forces acting on the rigidbody.
+
+        void update(ZMath::Vec3D const &g, float dt) {
+            // * Add code to update a rigidbody here.
+        };
     };
 
     struct StaticBody3D {
@@ -23,10 +27,6 @@ namespace Primitives {
         float phi; // rotation with respect to the XZ plane.
         float mass; // Must remain constant.
         float invMass; // 1/mass. Must remain constant.
-    };
-
-    void updateRigidbody(RigidBody3D &rb, ZMath::Vec3D const &g, float dt) {
-        // * Add code to update a rigidbody here
     };
 }
 
