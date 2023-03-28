@@ -25,9 +25,9 @@ namespace Collisions {
     };
 
     namespace {
-        // * ======================
-        // * Private functions
-        // * ======================
+        // * ===================================
+        // * Collision Manifold Calculators
+        // * ===================================
 
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
             CollisionManifold result;
@@ -97,36 +97,10 @@ namespace Collisions {
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube);
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2);
-    }
 
-    // Find the collision features between two arbitrary primitives.
-    CollisionManifold findCollisionFeatures(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2) {
-        // todo add for opposite order as order does matter
-
-        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.sphere); }
-        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.aabb); }
-        if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.cube); }
-        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c2.sphere, c1.aabb); }
-        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c1.aabb, c2.aabb); }
-        if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.aabb, c2.cube); }
-        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c2.sphere, c1.cube); }
-        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c2.aabb, c1.cube); }
-        if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.cube, c2.cube); }
-
-        // * User defined types begin here.
-        return (CollisionManifold) {};
-    };
-
-    // * =======================
-    // * Impulse Resolution
-    // * =======================
-
-    // ! may refactor
-
-    namespace {
-        // * ======================
-        // * Private Functions
-        // * ======================
+        // * =========================
+        // * Impulse Resolution
+        // * =========================
 
         // Resolve a collision between two spheres
         void collisionResponse(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2, CollisionManifold const &manifold) {};
@@ -141,6 +115,8 @@ namespace Collisions {
             // v_1' = v_1 + invMass_1 * J * collisionNormal
             // v_2' = v_2 - invMass_2 * J * collisionNormal. Note the - is to account for the direction which the normal is pointing.
             // It's opposite for one of the two objects.
+
+            // todo signs might be messed up
 
             float J = (((sphere.rb.velocity - aabb.rb.velocity) * -(1 + sphere.rb.coeffOfRestitution * aabb.rb.coeffOfRestitution)) 
                     * manifold.normal)/(sphere.rb.invMass + aabb.rb.invMass);
@@ -162,53 +138,66 @@ namespace Collisions {
         void collisionResponse(Primitives::Cube const &cube1, Primitives::Cube const &cube2, CollisionManifold const &manifold) {};
     }
 
-    // ! Refactor later
-    // ! can probably combine this with the findCollisionFeatures thing
+    // * ====================
+    // * Main Handler
+    // * ====================
 
-    // Resolve the collision for any two arbitrary colliders.
-    void getImpulse(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2, CollisionManifold const &manifold) {
+    // Find the collision features and resolve the impulse between two arbitrary primitives.
+    void resolveCollision(Primitives::Collider3D const &c1, Primitives::Collider3D const &c2) {
         if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) {
-            collisionResponse(c1.sphere, c2.sphere, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c1.sphere, c2.sphere);
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) {
-            collisionResponse(c1.sphere, c2.aabb, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c1.sphere, c2.aabb);
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::SPHERE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) {
-            collisionResponse(c1.sphere, c2.cube, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c1.sphere, c2.cube);
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) {
-            collisionResponse(c2.sphere, c1.aabb, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c2.sphere, c1.aabb);
+            manifold.normal *= -1; // flip the direction as the original order passed in was reversed
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::AABB_COLLIDER) {
-            collisionResponse(c1.aabb, c2.aabb, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c1.aabb, c2.aabb);
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::AABB_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) {
-            collisionResponse(c1.aabb, c2.cube, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c1.aabb, c2.cube);
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::SPHERE_COLLIDER) {
-            collisionResponse(c2.sphere, c1.cube, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c2.sphere, c1.cube);
+            manifold.normal *= -1; // flip the direction as the original order passed in was reversed
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::AABB_COLLIDER) {
-            collisionResponse(c2.aabb, c1.cube, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c2.aabb, c1.cube);
+            manifold.normal *= -1; // flip the direction as the original order passed in was reversed
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
         if (c1.type == Primitives::CUBE_COLLIDER && c2.type == Primitives::CUBE_COLLIDER) {
-            collisionResponse(c1.cube, c2.cube, manifold);
+            CollisionManifold manifold = findCollisionFeatures(c1.cube, c2.cube);
+            if (manifold.hit) { collisionResponse(c1.sphere, c2.sphere, manifold); }
             return;
         }
 
