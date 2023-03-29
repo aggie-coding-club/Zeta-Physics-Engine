@@ -12,13 +12,14 @@ namespace Primitives {
         float mass; // Must remain constant.
         float invMass; // 1/mass. Must remain constant.
 
+        // Coefficient of Restitution.
         // Represents a loss of kinetic energy due to heat.
         // Between 0 and 1 for our purposes.
         // 1 = perfectly elastic.
-        float coeffOfRestitution;
+        float cor;
 
         ZMath::Vec3D pos; // centerpoint of the rigidbody.
-        ZMath::Vec3D velocity = ZMath::Vec3D(); // velocity of the rigidbody.
+        ZMath::Vec3D vel = ZMath::Vec3D(); // velocity of the rigidbody.
         ZMath::Vec3D netForce = ZMath::Vec3D(); // sum of all forces acting on the rigidbody.
 
         void update(ZMath::Vec3D const &g, float dt) {
