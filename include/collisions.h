@@ -132,10 +132,22 @@ namespace Collisions {
         void collisionResponse(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2, CollisionManifold const &manifold) {};
 
         // Resolve a collision between an AABB and a cube
-        void collisionResponse(Primitives::AABB const &aabb, Primitives::Cube const &cube, CollisionManifold const &manifold) {};
+        void collisionResponse(Primitives::AABB const &aabb, Primitives::Cube const &cube, CollisionManifold const &manifold) {
+            float J = (((aabb.rb.velocity - cube.rb.velocity) * -(1 + aabb.rb.coeffOfRestitution * cube.rb.coeffOfRestitution)) 
+                    * manifold.normal)/(aabb.rb.invMass + cube.rb.invMass);
+
+            aabb.rb.velocity += manifold.normal * (aabb.rb.invMass * J);
+            cube.rb.velocity -= manifold.normal * (cube.rb.invMass * J);
+        };
 
         // Resolve a collision between two cubes
-        void collisionResponse(Primitives::Cube const &cube1, Primitives::Cube const &cube2, CollisionManifold const &manifold) {};
+        void collisionResponse(Primitives::Cube const &cube1, Primitives::Cube const &cube2, CollisionManifold const &manifold) {
+            float J = (((cube1.rb.velocity - cube2.rb.velocity) * -(1 + cube1.rb.coeffOfRestitution * cube2.rb.coeffOfRestitution)) 
+                    * manifold.normal)/(cube1.rb.invMass + cube2.rb.invMass);
+
+            cube1.rb.velocity += manifold.normal * (cube1.rb.invMass * J);
+            cube2.rb.velocity -= manifold.normal * (cube2.rb.invMass * J);
+        };
     }
 
     // * ====================
