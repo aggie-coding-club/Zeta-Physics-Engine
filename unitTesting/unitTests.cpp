@@ -1,17 +1,18 @@
 #include <iostream>
+#include <string>
 #include "../include/intersections.h"
 
 // Macro for unit testing.
 #define UNIT_TEST(test, obtained, expected) \
 ({ \
-    if (obtained == expected) { \
-        std::cout << "[PASSED] " << test << "\n"; \
+    if ((obtained) == (expected)) { \
+        std::cout << "[PASSED] " << (test) << "\n"; \
  \
     } else { \
-        std::cout << "[FAILED] " << test << "\nExpected: " << expected << ". Obtained: " << obtained << ".\n"; \
+        std::cout << "[FAILED] " << (test) << "\nExpected: " << (expected) << ". Obtained: " << (obtained) << ".\n"; \
     } \
 \
-    obtained != expected; \
+    (obtained) != (expected); \
 })
 
 
@@ -275,7 +276,7 @@ bool testPlaneAndCube() {
     return 0;
 };
 
-/*bool testSphereAndSphere() {
+bool testSphereAndSphere() {
     return 0;
 };
 
@@ -297,68 +298,31 @@ bool testAABBAndCube() {
 
 bool testCubeAndCube() {
     return 0;
-};*/
+};
+
+
+bool testCases(std::string test, bool (*func)()) {
+    std::cout << "================== " << test << " Tests. ==================\n\n";
+
+    if (func()) {
+        std::cout << "\n================ [FAILED] " << test << ". ================\n\n";
+        return 1;
+    }
+
+    std::cout << "\n================ [PASSED] " << test << ". ================\n\n";
+    return 0;
+};
 
 int main() {
-    // Point vs Line
-    std::cout << "================== PointAndLine Tests. ==================\n\n";
-
-    if (testPointAndLine()) {
-        std::cout << "\n================ [FAILED] PointAndLine. ================\n\n";
-        return 1;
-    }
-
-    std::cout << "\n================ [PASSED] PointAndLine. ================\n\n";
-
-    // Point vs Plane
-    std::cout << "================== PointAndPlane Tests. ==================\n\n";
-
-    if (testPointAndPlane()) {
-        std::cout << "\n================ [FAILED] PointAndPlane. ================\n\n";
-        return 1;
-    }
-
-    std::cout << "\n================ [PASSED] PointAndPlane. ================\n\n";
-
-    // Point vs Sphere
-    std::cout << "================== PointAndSphere Tests. ==================\n\n";
-
-    if (testPointAndSphere()) {
-        std::cout << "\n================ [FAILED] PointAndSphere. ================\n\n";
-        return 1;
-    }
-
-    std::cout << "\n================ [PASSED] PointAndSphere. ================\n\n";
-
-    // Point vs AABB
-    std::cout << "================== PointAndAABB Tests. ==================\n\n";
-
-    if (testPointAndAABB()) {
-        std::cout << "\n================ [FAILED] PointAndAABB. ================\n\n";
-        return 1;
-    }
-
-    std::cout << "\n================ [PASSED] PointAndAABB. ================\n\n";
-
-    // Point vs Cube
-    std::cout << "================== PointAndCube Tests. ==================\n\n";
-
-    if (testPointAndCube()) {
-        std::cout << "\n================ [FAILED] PointAndCube. ================\n\n";
-        return 1;
-    }
-
-    std::cout << "\n================ [PASSED] PointAndCube. ================\n\n";
-
-    // Line vs Line
-    std::cout << "================== LineAndLine Tests. ==================\n\n";
-
-    if (testLineAndLine()) {
-        std::cout << "\n================ [FAILED] LineAndLine. ================\n\n";
-        return 1;
-    }
-
-    std::cout << "\n================ [PASSED] LineAndLine. ================\n\n";
-
+    if (testCases("PointAndLine", &testPointAndLine)) { return 1; }
+    if (testCases("PointAndPlane", &testPointAndPlane)) { return 1; }
+    if (testCases("PointAndSphere", &testPointAndSphere)) { return 1; }
+    if (testCases("PointAndAABB", &testPointAndAABB)) { return 1; }
+    if (testCases("PointAndCube", &testPointAndCube)) { return 1; }
+    if (testCases("LineAndLine", &testLineAndLine)) { return 1; }
+    if (testCases("LineAndPlane", &testLineAndPlane)) { return 1; }
+    if (testCases("LineAndSphere", &testLineAndSphere)) { return 1; }
+    if (testCases("LineAndAABB", &testLineAndAABB)) { return 1; }
+    if (testCases("LineAndCube", &testLineAndCube)) { return 1; }
     return 0;
 };
