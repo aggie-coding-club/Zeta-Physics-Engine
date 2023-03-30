@@ -2,6 +2,10 @@
 #include <string>
 #include "../include/intersections.h"
 
+// * =====================================
+// * Primary Unit Testing Functions
+// * =====================================
+
 // Macro for unit testing.
 #define UNIT_TEST(test, obtained, expected) \
 ({ \
@@ -15,6 +19,23 @@
     (obtained) != (expected); \
 })
 
+// Run a function of unit tests.
+bool testCases(std::string test, bool (*func)()) {
+    std::cout << "================== " << test << " Tests. ==================\n\n";
+
+    if (func()) {
+        std::cout << "\n================ [FAILED] " << test << ". ================\n\n";
+        return 1;
+    }
+
+    std::cout << "\n================ [PASSED] " << test << ". ================\n\n";
+    return 0;
+};
+
+
+// * ===================
+// * Unit Tests
+// * ===================
 
 bool testPointAndLine() {
     // test 1
@@ -297,19 +318,6 @@ bool testAABBAndCube() {
 };
 
 bool testCubeAndCube() {
-    return 0;
-};
-
-
-bool testCases(std::string test, bool (*func)()) {
-    std::cout << "================== " << test << " Tests. ==================\n\n";
-
-    if (func()) {
-        std::cout << "\n================ [FAILED] " << test << ". ================\n\n";
-        return 1;
-    }
-
-    std::cout << "\n================ [PASSED] " << test << ". ================\n\n";
     return 0;
 };
 
