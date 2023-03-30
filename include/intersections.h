@@ -7,6 +7,7 @@
 // todo for each rotation do 360 - when converting it back
 
 #include "primitives.h"
+#include <iostream> // ! for debugging
 
 namespace Collisions {
     // * ===================================
@@ -78,14 +79,16 @@ namespace Collisions {
         // ? We then ensure this point in time statisfies all 3 equations.
         // ? If it does and there's overlap, we have an intersection; otherwise we do not.
 
-        // todo may need to normalize the slopes for parallel line check
-        // todo potentially could use the proportions method instead
+       // todo potentially could use the proportions method instead
 
         ZMath::Vec3D s1 = line1.start, s2 = line2.start, e1 = line1.end, e2 = line2.end;
         ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
 
+        // ! This works but could probably take the ratios between the lines instead
+        ZMath::Vec3D n1 = v1.normalize(), n2 = v2.normalize(); // used for checking for parallel lines
+
         // check for parallel lines
-        if (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z) {
+        if (n1.x == n2.x && n1.y == n2.y && n1.z == n2.z) {
             ZMath::Vec3D min1(ZMath::min(s1.x, e1.x), ZMath::min(s1.y, e1.y), ZMath::min(s1.z, e1.z));
             ZMath::Vec3D max1(ZMath::max(s1.x, e1.x), ZMath::max(s1.y, e1.y), ZMath::max(s1.z, e1.z));
             ZMath::Vec3D min2(ZMath::min(s2.x, e2.x), ZMath::min(s2.y, e2.y), ZMath::min(s2.z, e2.z));
@@ -146,18 +149,21 @@ namespace Collisions {
         // ? We can use the same approach to solve this problem as for the raycasting.
         // ? We just ensure the point of intersection also lies within the bounds of the line.
 
+        // todo this function doesn't work -- fix it
+
         ZMath::Vec3D dir = (line.end - line.start).normalize();
         float dot = plane.normal * dir;
 
         // check if the line is parallel to the plane
+        // todo this would probably causes issues as it's possible for a line to be parallel but lie on top of the plane
         if (!dot) { return 0; }
 
         float t = -((plane.normal * (line.start - plane.sb.pos))/dot);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p = line.start + dir*t;
 
-        ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
         ZMath::rotateXZ(p, plane.sb.pos, 360 - plane.sb.phi);
+        ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
 
         // Make sure the point of intersection is within our bounds.
         // We don't need to check if it's greater than or equal to the start point on the line segment as t >= 0 ensures that already.
