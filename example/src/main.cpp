@@ -10,6 +10,7 @@
 
 #include "primitives.h"
 #include "zmath.h"
+#include "scene.h"
 
 typedef struct fps_camera_t {
     float pitch;
@@ -36,6 +37,7 @@ void init() {
     our_sphere = Primitives::Sphere();
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
+    SetupScene();
 }
 
 void fps_camera_update(fps_camera_t* fps)
@@ -89,6 +91,10 @@ void update() {
     if (gs_platform_mouse_locked()) {
         fps_camera_update(&fps);
     }
+
+
+    // scene
+    UpdateScene();
 
     // Update the cube
     if (dt >= 0.0167f) {
