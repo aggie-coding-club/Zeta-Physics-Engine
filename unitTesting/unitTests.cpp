@@ -8,7 +8,7 @@
         std::cout << "[PASSED] " << test << "\n"; \
  \
     } else { \
-        std::cout << "[FAILED] " << test << "\nExpected: " << expected << ". Obtained: " << obtained << "."; \
+        std::cout << "[FAILED] " << test << "\nExpected: " << expected << ". Obtained: " << obtained << ".\n"; \
     } \
 \
     obtained != expected; \
