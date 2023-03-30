@@ -250,6 +250,34 @@ bool testLineAndLine() {
 };
 
 bool testLineAndPlane() {
+    // test 1
+    Primitives::Line3D line(ZMath::Vec3D(-0.4f, -0.1f, -2), ZMath::Vec3D(2));
+    Primitives::Plane plane1(ZMath::Vec2D(), ZMath::Vec2D(2), 0);
+
+    if (UNIT_TEST("Line and Unrotated Plane.", Collisions::LineAndPlane(line, plane1), 1)) { return 1; }
+
+    // test 2
+    plane1.sb.theta = 30;
+    plane1.sb.phi = 60;
+    line.start.set(2.9f, 0.65f, -0.71f);
+    line.end.set(-0.05f, 2.37f, 2.18f);
+
+    if (UNIT_TEST("Line and Rotated Plane.", Collisions::LineAndPlane(line, plane1), 1)) { return 1; }
+
+    // test 3
+    Primitives::Plane plane2(ZMath::Vec2D(-1), ZMath::Vec2D(1), 0, 0, 90);
+    line.start.set(0, 0, -3);
+    line.end.set(0, 0, 5);
+
+    if (UNIT_TEST("Vertical Line and Vertical Plane.", Collisions::LineAndPlane(line, plane2), 1)) { return 1; }
+
+    // test 4
+    Primitives::Plane plane3(ZMath::Vec2D(-0.5f), ZMath::Vec2D(0.5f), 5, 55.6f, 1);
+    line.start.set(-9.8f, -2.3f, -1.4f);
+    line.end.set(9.7f, 9.7f, 2);
+
+    if (UNIT_TEST("Not Line and Plane.", Collisions::LineAndPlane(line, plane3), 0)) { return 1; }
+
     return 0;
 };
 

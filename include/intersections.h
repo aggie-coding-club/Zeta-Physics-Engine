@@ -156,8 +156,8 @@ namespace Collisions {
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p = line.start + dir*t;
 
-        ZMath::rotateXY(p, plane.sb.pos, plane.sb.theta);
-        ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
+        ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
+        ZMath::rotateXZ(p, plane.sb.pos, 360 - plane.sb.phi);
 
         // Make sure the point of intersection is within our bounds.
         // We don't need to check if it's greater than or equal to the start point on the line segment as t >= 0 ensures that already.
