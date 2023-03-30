@@ -1,14 +1,14 @@
 # **Zeta-Physics-Engine**
 
-3D Physics Engine (Mechanics) created to be used by a 3D graphics library.
+3D header-only physics engine (Mechanics) created to be used by a 3D graphics library.
 
-![Logo](yourmom_png.png)
+![Logo](yourmom.png)
 
 ___
 
 ## Example Compilation:
 * On linux: `make -f makefile`
-* With WSL: `make win -f makefile`
+* On Windows: `make win -f makefile`
 * With MinGW: `mingw32-make.exe win`
 
 ___
@@ -19,3 +19,5 @@ ___
  * Lenny Tanui
  * Jonathan Yu
  * Jude Sparks
+ * Moeez Akmal
+ * Thomas Masha
