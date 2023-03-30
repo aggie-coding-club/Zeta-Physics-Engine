@@ -78,6 +78,9 @@ namespace Collisions {
         // ? We then ensure this point in time statisfies all 3 equations.
         // ? If it does and there's overlap, we have an intersection; otherwise we do not.
 
+        // todo may need to normalize the slopes for parallel line check
+        // todo potentially could use the proportions method instead
+
         ZMath::Vec3D s1 = line1.start, s2 = line2.start, e1 = line1.end, e2 = line2.end;
         ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
 

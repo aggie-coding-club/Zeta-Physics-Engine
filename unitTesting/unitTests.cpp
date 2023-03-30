@@ -169,6 +169,61 @@ bool testPointAndCube() {
 };
 
 bool testLineAndLine() {
+    // test 1
+    Primitives::Line3D line1(ZMath::Vec3D(0, 0, -1), ZMath::Vec3D(10, 10, 9));
+    Primitives::Line3D line2(ZMath::Vec3D(10, 0, 9), ZMath::Vec3D(0, 10, -1));
+
+    if (UNIT_TEST("Standard Line Intersection.", Collisions::LineAndLine(line1, line2), 1)) { return 1; }
+
+    // test 2
+    line1.start = ZMath::Vec3D(100, -1000, 77);
+    line2.end = ZMath::Vec3D(100, -1000, 77);
+    line2.start = ZMath::Vec3D(200, -1200, 100);
+
+    if (UNIT_TEST("Line Intersects End Point.", Collisions::LineAndLine(line1, line2), 1)) { return 1; }
+
+    // test 3
+    line1.start = ZMath::Vec3D(-3, -2.5f, 0);
+    line1.end = ZMath::Vec3D(8, 2.5f, 0);
+    line2.start = ZMath::Vec3D(-3.2f, 2.5f, 0);
+    line2.end = ZMath::Vec3D(10, -1.2f, 0);
+
+    if (UNIT_TEST("Line and Line on XY Plane.", Collisions::LineAndLine(line1, line2), 1)) { return 1; }
+
+    // test 4
+    line1.start = ZMath::Vec3D();
+    line1.end = ZMath::Vec3D(2);
+    line2.start = ZMath::Vec3D(1);
+    line2.end = ZMath::Vec3D(3);
+
+    if (UNIT_TEST("Parallel Line Intersection.", Collisions::LineAndLine(line1, line2), 1)) { return 1; }
+
+    // test 5
+    line1.end.set(0, 0, 5);
+    line2.start.set(0, 0, 4);
+    line2.end.set(0, 0, 10);
+
+    if (UNIT_TEST("Vertical Line Intersection.", Collisions::LineAndLine(line1, line2), 1)) { return 1; }
+
+    // test 6
+    line1.end.set(0, 0, 3);
+
+    if (UNIT_TEST("Vertical Lines not Intersecting.", Collisions::LineAndLine(line1, line2), 0)) { return 1; }
+
+    // test 7
+    line1.start.set(3.2f);
+    line1.end.set(3.3f);
+    line2.start.set(-2.2f);
+    line2.end.set(100, 200, -1.2f);
+
+    if (UNIT_TEST("Lines not Intersecting.", Collisions::LineAndLine(line1, line2), 0)) { return 1; }
+
+    // test 8
+    line2.start.set(3.5f);
+    line2.end.set(3.7f);
+
+    if (UNIT_TEST("Parallel Lines not Intersecting.", Collisions::LineAndLine(line1, line2), 0)) { return 1; }
+
     return 0;
 };
 
@@ -294,6 +349,16 @@ int main() {
     }
 
     std::cout << "\n================ [PASSED] PointAndCube. ================\n\n";
+
+    // Line vs Line
+    std::cout << "================== LineAndLine Tests. ==================\n\n";
+
+    if (testLineAndLine()) {
+        std::cout << "\n================ [FAILED] LineAndLine. ================\n\n";
+        return 1;
+    }
+
+    std::cout << "\n================ [PASSED] LineAndLine. ================\n\n";
 
     return 0;
 };
