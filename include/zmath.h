@@ -347,8 +347,12 @@ namespace ZMath {
     };
 
     // * Handle tolerance for floating point numbers.
-    // * If no epsilon is specified, it will use the default of 10^-5.
+    // * If no epsilon is specified, the default of 10^-5 will be used.
     bool compare(float a, float b, float epsilon = EPSILON) { return abs(a - b) <= epsilon; };
+
+    // * Handler tolerance for 3D vectors of floating point numbers.
+    // * If no epsilon is specified, the default of 10^-5 will be used.
+    bool compare(Vec3D u, Vec3D v, float epsilon = EPSILON) { return abs(u.x - v.x) <= epsilon && abs(u.y - v.y) <= epsilon && abs(u.z - v.z) <= epsilon; };
 
     // * Clamp a float between a min and max.
     float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
