@@ -26,6 +26,7 @@ gs_immediate_draw_t gsi = {0};
 fps_camera_t fps = {0};
 
 float dt; // dt loop
+AppState appState = {};
 
 void init() {
     cb = gs_command_buffer_new();
@@ -33,11 +34,16 @@ void init() {
     fps.cam = gs_camera_perspective();
     fps.cam.transform.position = gs_v3(4.f, 2.f, 4.f);
 
+    DrawRectPrism(&appState,  {1, 1, 2}, {4, 2, 4}, {1.0f, 0.0f, 0.0f, 1.0f});
+    DrawRectPrism(&appState,  {1, 4, 2}, {4, 2, 4}, {0.0f, 1.0f, 0.0f, 1.0f});
+
+
     our_cube = Primitives::Cube(ZMath::Vec3D(-2, -2, -2), ZMath::Vec3D(2, 2, 2), 45, 45);
+
     our_sphere = Primitives::Sphere();
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
-    SetupScene();
+    SetupScene(fps.cam);
 }
 
 void fps_camera_update(fps_camera_t* fps)
@@ -92,10 +98,7 @@ void update() {
         fps_camera_update(&fps);
     }
 
-
-    // scene
-    UpdateScene();
-
+    #if 0
     // Update the cube
     if (dt >= 0.0167f) {
         our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
@@ -148,6 +151,12 @@ void update() {
     // gsi_pop_matrix(&gsi);
     gsi_renderpass_submit(&gsi, &cb, gs_v4(0.f, 0.f, fbs.x, fbs.y), gs_color(10, 10, 10, 255));
     gs_graphics_command_buffer_submit(&cb);
+
+    #endif
+
+    
+    // scene
+    UpdateScene(&appState, fps.cam);
 
     dt += gs_platform_delta_time();
 }
