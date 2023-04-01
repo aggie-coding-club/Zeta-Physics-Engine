@@ -290,18 +290,65 @@ bool testLineAndSphere() {
     // test 2
     sphere.r = 5.0f;
     sphere.rb.pos.set(-5, 0, 0);
+    line.start.set(-6, 0, 0);
+    line.end.set(-4, 0, 0);
 
-    if (UNIT_TEST("Sphere and Line Circumference Check.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
+    if (UNIT_TEST("Sphere and Line on Circumference.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
 
     // test 3
     sphere.r = 2.5f;
 
     if (UNIT_TEST("Sphere and not Line.", Collisions::LineAndSphere(line, sphere), 0)) { return 1; }
 
+    // test 4
+    sphere.r = 1;
+    line.start.set(-0.5f, 0, 0);
+    line.end.set(10);
+
+    if (UNIT_TEST("Sphere and Endpoint of Line.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
+
+    // test 5
+    line.start.set(2);
+
+    if (UNIT_TEST("Sphere and not Line, but would be if the line was infinite.", Collisions::LineAndSphere(line, sphere), 0)) { return 1; }
+
     return 0;
 };
 
 bool testLineAndAABB() {
+    // test 1
+    Primitives::AABB aabb1(ZMath::Vec3D(-1), ZMath::Vec3D(1));
+    Primitives::Line3D line(ZMath::Vec3D(-2), ZMath::Vec3D(1.5f, 1.2f, 1));
+
+    if (UNIT_TEST("Line and AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
+    // test 2
+    Primitives::AABB aabb2(ZMath::Vec3D(-4), ZMath::Vec3D(-2));
+
+    if (UNIT_TEST("Line and Vertex of AABB.", Collisions::LineAndAABB(line, aabb2), 1)) { return 1; }
+
+    // test 3
+    line.start.set(-0.2f, -0.3f, -9);
+    line.end.set(-0.2f, -0.3f, 120);
+
+    if (UNIT_TEST("AABB and Vertical Line.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
+    // test 4
+    line.start.set(-0.5f);
+
+    if (UNIT_TEST("AABB and Line Starting in AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
+    // test 5
+    line.start.set(8, 9, 10);
+
+    if (UNIT_TEST("Line and not AABB.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
+
+    // test 6
+    line.start.set(2);
+    line.end.set(-0.1f);
+
+    if (UNIT_TEST("Line and not AABB, but would be if the line was infinite.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
+
     return 0;
 };
 
