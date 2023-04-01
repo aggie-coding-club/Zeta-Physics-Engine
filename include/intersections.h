@@ -231,15 +231,9 @@ namespace Collisions {
 
         float lengthSq = (line.end - line.start).magSq();
 
-        // if tMax < 0 the ray is intersecting behind it. Therefore, we do not actually have a collision.
-        if (tMax < 0) {
-            // ! unsure if this part will cause errors. Will figure out after unit tests are developed.
-            // ! If this part causes errors we will have to manually check for end point in the AABB.
-            return tMax*tMax <= lengthSq;
-        }
-
-        // ray doesn't intersect the AABB.
-        if (tMax < tMin) { return 0; }
+        // if tMax < 0 the line is intersecting behind it. Therefore, we do not actually have a collision.
+        // if tMax is < tMin we don't intersect the AABB.
+        if (tMax < 0 || tMax < tMin) { return 0; }
 
         return tMin*tMin <= lengthSq;
     };
