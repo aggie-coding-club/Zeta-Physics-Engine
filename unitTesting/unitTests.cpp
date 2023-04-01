@@ -250,14 +250,105 @@ bool testLineAndLine() {
 };
 
 bool testLineAndPlane() {
+    // test 1
+    Primitives::Line3D line(ZMath::Vec3D(-0.4f, -0.1f, -2), ZMath::Vec3D(2));
+    Primitives::Plane plane1(ZMath::Vec2D(), ZMath::Vec2D(2), 0);
+
+    if (UNIT_TEST("Line and Unrotated Plane.", Collisions::LineAndPlane(line, plane1), 1)) { return 1; }
+
+    // test 2
+    Primitives::Plane plane4(ZMath::Vec2D(-1), ZMath::Vec2D(1), 0, 30, 60);
+    line.start.set(0.5915f, -2.04904f, -0.97548f);
+    line.end.set(-0.774519f, 0.68301f, 0.65849f);
+
+    if (UNIT_TEST("Line and Rotated Plane.", Collisions::LineAndPlane(line, plane4), 1)) { return 1; }
+
+    // test 3
+    Primitives::Plane plane2(ZMath::Vec2D(-1), ZMath::Vec2D(1), 0, 0, 90);
+    line.start.set(0, 0, -3);
+    line.end.set(0, 0, 5);
+
+    if (UNIT_TEST("Vertical Line and Vertical Plane.", Collisions::LineAndPlane(line, plane2), 1)) { return 1; }
+
+    // test 4
+    Primitives::Plane plane3(ZMath::Vec2D(-0.5f), ZMath::Vec2D(0.5f), 5, 55.6f, 1);
+    line.start.set(-9.8f, -2.3f, -1.4f);
+    line.end.set(9.7f, 9.7f, 2);
+
+    if (UNIT_TEST("Not Line and Plane.", Collisions::LineAndPlane(line, plane3), 0)) { return 1; }
+
     return 0;
 };
 
 bool testLineAndSphere() {
+    // test 1
+    Primitives::Sphere sphere(2.0f, ZMath::Vec3D());
+    Primitives::Line3D line(ZMath::Vec3D(-10), ZMath::Vec3D(10));
+
+    if (UNIT_TEST("Sphere and Line.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
+
+    // test 2
+    sphere.r = 5.0f;
+    sphere.rb.pos.set(-5, 0, 0);
+    line.start.set(-6, 0, 0);
+    line.end.set(-4, 0, 0);
+
+    if (UNIT_TEST("Sphere and Line on Circumference.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
+
+    // test 3
+    sphere.r = 2.5f;
+
+    if (UNIT_TEST("Sphere and not Line.", Collisions::LineAndSphere(line, sphere), 0)) { return 1; }
+
+    // test 4
+    sphere.r = 1;
+    line.start.set(-0.5f, 0, 0);
+    line.end.set(10);
+
+    if (UNIT_TEST("Sphere and Endpoint of Line.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
+
+    // test 5
+    line.start.set(2);
+
+    if (UNIT_TEST("Sphere and not Line, but would be if the line was infinite.", Collisions::LineAndSphere(line, sphere), 0)) { return 1; }
+
     return 0;
 };
 
 bool testLineAndAABB() {
+    // test 1
+    Primitives::AABB aabb1(ZMath::Vec3D(-1), ZMath::Vec3D(1));
+    Primitives::Line3D line(ZMath::Vec3D(-2), ZMath::Vec3D(1.5f, 1.2f, 1));
+
+    if (UNIT_TEST("Line and AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
+    // test 2
+    Primitives::AABB aabb2(ZMath::Vec3D(-4), ZMath::Vec3D(-2));
+
+    if (UNIT_TEST("Line and Vertex of AABB.", Collisions::LineAndAABB(line, aabb2), 1)) { return 1; }
+
+    // test 3
+    line.start.set(-0.2f, -0.3f, -9);
+    line.end.set(-0.2f, -0.3f, 120);
+
+    if (UNIT_TEST("AABB and Vertical Line.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
+    // test 4
+    line.start.set(-0.5f);
+
+    if (UNIT_TEST("AABB and Line Starting in AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
+    // test 5
+    line.start.set(8, 9, 10);
+
+    if (UNIT_TEST("Line and not AABB.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
+
+    // test 6
+    line.start.set(2);
+    line.end.set(-0.1f);
+
+    if (UNIT_TEST("Line and not AABB, but would be if the line was infinite.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
+
     return 0;
 };
 
@@ -298,6 +389,24 @@ bool testPlaneAndCube() {
 };
 
 bool testSphereAndSphere() {
+    // test 1
+    Primitives::Sphere sphere1(3.5f, ZMath::Vec3D());
+    Primitives::Sphere sphere2(2, ZMath::Vec3D(1, 0, 0));
+
+    if (UNIT_TEST("Sphere and Sphere.", Collisions::SphereAndSphere(sphere1, sphere2), 1)) { return 1; }
+
+    // test 2
+    sphere1.r = 1;
+    sphere2.r = 1;
+    sphere2.rb.pos.set(2, 0, 0);
+
+    if (UNIT_TEST("Sphere and Sphere on Circumference.", Collisions::SphereAndSphere(sphere1, sphere2), 1)) { return 1; }
+
+    // test 3
+    sphere1.r = 0.5f;
+
+    if (UNIT_TEST("Sphere and not Sphere.", Collisions::SphereAndSphere(sphere1, sphere2), 0)) { return 1; }
+
     return 0;
 };
 
@@ -332,5 +441,19 @@ int main() {
     if (testCases("LineAndSphere", &testLineAndSphere)) { return 1; }
     if (testCases("LineAndAABB", &testLineAndAABB)) { return 1; }
     if (testCases("LineAndCube", &testLineAndCube)) { return 1; }
+    if (testCases("RaycastingVSPlane", &testRaycastingVSPlane)) { return 1; }
+    if (testCases("RaycastingVSSphere", &testRaycastingVSSphere)) { return 1; }
+    if (testCases("RaycastingVSAABB", &testRaycastingVSAABB)) { return 1; }
+    if (testCases("RaycastingVSCube", &testRaycastingVSCube)) { return 1; }
+    if (testCases("PlaneAndPlane", &testPlaneAndPlane)) { return 1; }
+    if (testCases("PlaneAndSphere", &testPlaneAndSphere)) { return 1; }
+    if (testCases("PlaneAndAABB", &testPlaneAndAABB)) { return 1; }
+    if (testCases("PlaneAndCube", &testPlaneAndCube)) { return 1; }
+    if (testCases("SphereAndSphere", &testSphereAndSphere)) { return 1; }
+    if (testCases("SphereAndAABB", &testSphereAndAABB)) { return 1; }
+    if (testCases("SphereAndCube", &testSphereAndCube)) { return 1; }
+    if (testCases("AABBAndAABB", &testAABBAndAABB)) { return 1; }
+    if (testCases("AABBAndCube", &testAABBAndCube)) { return 1; }
+    if (testCases("CubeAndCube", &testCubeAndCube)) { return 1; }
     return 0;
 };

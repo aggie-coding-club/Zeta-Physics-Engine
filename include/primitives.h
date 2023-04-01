@@ -27,6 +27,18 @@ namespace Primitives {
             // @param p1 (Vec3D) Starting point.
             // @param p2 (Vec3D) Ending point.
             Line3D(ZMath::Vec3D const &p1, ZMath::Vec3D const &p2) : start(p1), end(p2) {};
+
+            // A vector with the lowest value of x, y, and z the line segment reaches.
+            ZMath::Vec3D getMin() { return ZMath::Vec3D(ZMath::min(start.x, end.x), ZMath::min(start.y, end.y), ZMath::min(start.z, end.z)); };
+
+            // A vector with greatest value of x, y, and z the line segment reaches.
+            ZMath::Vec3D getMax() { return ZMath::Vec3D(ZMath::max(start.x, end.x), ZMath::max(start.y, end.y), ZMath::max(start.z, end.z)); };
+
+            // A vector with the lowest value of x, y, and z the line segment reaches.
+            ZMath::Vec3D getMin() const { return ZMath::Vec3D(ZMath::min(start.x, end.x), ZMath::min(start.y, end.y), ZMath::min(start.z, end.z)); };
+
+            // A vector with greatest value of x, y, and z the line segment reaches.
+            ZMath::Vec3D getMax() const { return ZMath::Vec3D(ZMath::max(start.x, end.x), ZMath::max(start.y, end.y), ZMath::max(start.z, end.z)); };
     };
 
     // Models a rectangular, finite plane in 3D space.
@@ -39,7 +51,7 @@ namespace Primitives {
             // static body representing the plane -- stores angles and the centerpoint.
             // We use a static body for a plane as it should not be affected by forces and impulse.
             StaticBody3D sb;
-            ZMath::Vec3D normal; // normal vector to the plane. Stored as it is commonly used in computations.
+            ZMath::Vec3D normal; // Normal vector to the plane in the plane's local coordinates.
 
             /**
              * @brief Create an unrotated plane.
@@ -52,7 +64,7 @@ namespace Primitives {
                     : halfSize((max - min) * 0.5f), sb({ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f}) {
                 
                 ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
-                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
+                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
 
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
@@ -132,13 +144,6 @@ namespace Primitives {
             float r; // radius
             RigidBody3D rb; // rigidbody representing the sphere -- stores its centerpoint
 
-            // @brief Create a Sphere centered at (0, 0, 0) with a radius of 1.
-            Sphere() : r(1.0f) {
-                rb.pos = ZMath::Vec3D();
-                rb.theta = 0.0f;
-                rb.phi = 0.0f;
-            };
-
             // @brief Create a Sphere with an arbitrary radius and center.
             //
             // @param rho (float) Radius of the sphere.
@@ -217,18 +222,10 @@ namespace Primitives {
         public:
             RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
 
-            // @brief Create a cube rotated by 45 degrees with respect to both the XY and XZ planes, 
-            //         its center at (0, 0, 0), and its halfsize as 1.
-            Cube() : halfSize(ZMath::Vec3D(1)) {
-                rb.pos = ZMath::Vec3D();
-                rb.theta = 45.0f;
-                rb.phi = 45.0f;
-            };
-
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
             //
-            // @param p1 Min vertex of the cube as if it was not rotated.
-            // @param p2 Max vertex of the cube as if it was not rotated.
+            // @param min Min vertex of the cube as if it was not rotated.
+            // @param max Max vertex of the cube as if it was not rotated.
             // @param angXY Angle the cube is rotated by with respect to the XY plane in degrees.
             // @param angXZ Angle the cube is rotated by with respect to the XZ plane in degrees.
             Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) : halfSize((max - min) * 0.5f) {
@@ -318,9 +315,9 @@ namespace Primitives {
     };
 
     struct Collider3D {
-        Sphere sphere = Sphere();
+        Sphere sphere = Sphere(1.0f, ZMath::Vec3D());
         AABB aabb = AABB(ZMath::Vec3D(-1, -1, -1), ZMath::Vec3D(1, 1, 1));
-        Cube cube = Cube();
+        Cube cube = Cube(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45.0f, 45.0f);
         int type = NONE;
     };
 
