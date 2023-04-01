@@ -281,6 +281,23 @@ bool testLineAndPlane() {
 };
 
 bool testLineAndSphere() {
+    // test 1
+    Primitives::Sphere sphere(2.0f, ZMath::Vec3D());
+    Primitives::Line3D line(ZMath::Vec3D(-10), ZMath::Vec3D(10));
+
+    if (UNIT_TEST("Sphere and Line.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
+
+    // test 2
+    sphere.r = 5.0f;
+    sphere.rb.pos.set(-5, 0, 0);
+
+    if (UNIT_TEST("Sphere and Line Circumference Check.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
+
+    // test 3
+    sphere.r = 2.5f;
+
+    if (UNIT_TEST("Sphere and not Line.", Collisions::LineAndSphere(line, sphere), 0)) { return 1; }
+
     return 0;
 };
 

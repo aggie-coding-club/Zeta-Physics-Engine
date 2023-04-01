@@ -178,8 +178,8 @@ namespace Collisions {
 
         // todo issue with calculating p -- probably stems from the calculation of t
 
-        float t = -((plane.normal * (l.start - plane.sb.pos))/dot);
         ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        float t = -((plane.normal * (l.start - max))/dot);
         ZMath::Vec3D p = l.start + dir*t;
 
         /*std::cout << "P: " << p.x << ", " << p.y << ", " << p.z << "\n";

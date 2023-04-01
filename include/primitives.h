@@ -144,13 +144,6 @@ namespace Primitives {
             float r; // radius
             RigidBody3D rb; // rigidbody representing the sphere -- stores its centerpoint
 
-            // @brief Create a Sphere centered at (0, 0, 0) with a radius of 1.
-            Sphere() : r(1.0f) {
-                rb.pos = ZMath::Vec3D();
-                rb.theta = 0.0f;
-                rb.phi = 0.0f;
-            };
-
             // @brief Create a Sphere with an arbitrary radius and center.
             //
             // @param rho (float) Radius of the sphere.
@@ -330,7 +323,7 @@ namespace Primitives {
     };
 
     struct Collider3D {
-        Sphere sphere = Sphere();
+        Sphere sphere = Sphere(1.0f, ZMath::Vec3D());
         AABB aabb = AABB(ZMath::Vec3D(-1, -1, -1), ZMath::Vec3D(1, 1, 1));
         Cube cube = Cube();
         int type = NONE;
