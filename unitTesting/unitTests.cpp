@@ -389,6 +389,24 @@ bool testPlaneAndCube() {
 };
 
 bool testSphereAndSphere() {
+    // test 1
+    Primitives::Sphere sphere1(3.5f, ZMath::Vec3D());
+    Primitives::Sphere sphere2(2, ZMath::Vec3D(1, 0, 0));
+
+    if (UNIT_TEST("Sphere and Sphere.", Collisions::SphereAndSphere(sphere1, sphere2), 1)) { return 1; }
+
+    // test 2
+    sphere1.r = 1;
+    sphere2.r = 1;
+    sphere2.rb.pos.set(2, 0, 0);
+
+    if (UNIT_TEST("Sphere and Sphere on Circumference.", Collisions::SphereAndSphere(sphere1, sphere2), 1)) { return 1; }
+
+    // test 3
+    sphere1.r = 0.5f;
+
+    if (UNIT_TEST("Sphere and not Sphere.", Collisions::SphereAndSphere(sphere1, sphere2), 0)) { return 1; }
+
     return 0;
 };
 
@@ -423,5 +441,19 @@ int main() {
     if (testCases("LineAndSphere", &testLineAndSphere)) { return 1; }
     if (testCases("LineAndAABB", &testLineAndAABB)) { return 1; }
     if (testCases("LineAndCube", &testLineAndCube)) { return 1; }
+    if (testCases("RaycastingVSPlane", &testRaycastingVSPlane)) { return 1; }
+    if (testCases("RaycastingVSSphere", &testRaycastingVSSphere)) { return 1; }
+    if (testCases("RaycastingVSAABB", &testRaycastingVSAABB)) { return 1; }
+    if (testCases("RaycastingVSCube", &testRaycastingVSCube)) { return 1; }
+    if (testCases("PlaneAndPlane", &testPlaneAndPlane)) { return 1; }
+    if (testCases("PlaneAndSphere", &testPlaneAndSphere)) { return 1; }
+    if (testCases("PlaneAndAABB", &testPlaneAndAABB)) { return 1; }
+    if (testCases("PlaneAndCube", &testPlaneAndCube)) { return 1; }
+    if (testCases("SphereAndSphere", &testSphereAndSphere)) { return 1; }
+    if (testCases("SphereAndAABB", &testSphereAndAABB)) { return 1; }
+    if (testCases("SphereAndCube", &testSphereAndCube)) { return 1; }
+    if (testCases("AABBAndAABB", &testAABBAndAABB)) { return 1; }
+    if (testCases("AABBAndCube", &testAABBAndCube)) { return 1; }
+    if (testCases("CubeAndCube", &testCubeAndCube)) { return 1; }
     return 0;
 };
