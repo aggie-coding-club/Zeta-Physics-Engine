@@ -9,7 +9,6 @@
 #include "gunslinger/util/gs_idraw.h"
 
 #include "primitives.h"
-#include "zmath.h"
 #include "scene.h"
 
 typedef struct fps_camera_t {
@@ -98,7 +97,6 @@ void update() {
         fps_camera_update(&fps);
     }
 
-    #if 0
     // Update the cube
     if (dt >= 0.0167f) {
         our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
@@ -106,6 +104,7 @@ void update() {
         dt -= (float)(int)(dt/0.0167f) * 0.0167;
     }
 
+    #if 0
     gsi_depth_enabled(&gsi, true);
     gsi_face_cull_enabled(&gsi, true);
     gsi_camera(&gsi, &fps.cam, (uint32_t)fbs.x, (uint32_t)fbs.y);
@@ -156,7 +155,7 @@ void update() {
 
     
     // scene
-    UpdateScene(&appState, fps.cam);
+    // UpdateScene(&appState, fps.cam, our_cube.getVertices());
 
     dt += gs_platform_delta_time();
 }

@@ -1,7 +1,7 @@
 #ifndef PHYSICS_HANDLER_H
 #define PHYSICS_HANDLER_H
 
-#include "collisions.h"
+#include <collisions.h>
 
 // todo test the physics handler
 

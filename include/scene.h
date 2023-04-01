@@ -1,6 +1,9 @@
-#pragma once 
+#ifndef SCENE_H
+#define SCENE_H
+
 #include "gunslinger/gs.h"
 #include <vector>
+#include "zmath.h"
 
 #ifdef GS_PLATFORM_WEB
     #define GS_GL_VERSION_STR "#version 300 es\n"
@@ -139,3 +142,5 @@ struct AppState{
 void DrawRectPrism(AppState *appState, gs_vec3 position, gs_vec3 scale, gs_vec4 color);
 void SetupScene(gs_camera_t cam);
 void UpdateScene(AppState *appState, gs_camera_t cam);
+
+#endif
