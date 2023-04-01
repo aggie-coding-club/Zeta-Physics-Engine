@@ -222,18 +222,10 @@ namespace Primitives {
         public:
             RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
 
-            // @brief Create a cube rotated by 45 degrees with respect to both the XY and XZ planes, 
-            //         its center at (0, 0, 0), and its halfsize as 1.
-            Cube() : halfSize(ZMath::Vec3D(1)) {
-                rb.pos = ZMath::Vec3D();
-                rb.theta = 45.0f;
-                rb.phi = 45.0f;
-            };
-
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
             //
-            // @param p1 Min vertex of the cube as if it was not rotated.
-            // @param p2 Max vertex of the cube as if it was not rotated.
+            // @param min Min vertex of the cube as if it was not rotated.
+            // @param max Max vertex of the cube as if it was not rotated.
             // @param angXY Angle the cube is rotated by with respect to the XY plane in degrees.
             // @param angXZ Angle the cube is rotated by with respect to the XZ plane in degrees.
             Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) : halfSize((max - min) * 0.5f) {
@@ -325,7 +317,7 @@ namespace Primitives {
     struct Collider3D {
         Sphere sphere = Sphere(1.0f, ZMath::Vec3D());
         AABB aabb = AABB(ZMath::Vec3D(-1, -1, -1), ZMath::Vec3D(1, 1, 1));
-        Cube cube = Cube();
+        Cube cube = Cube(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45.0f, 45.0f);
         int type = NONE;
     };
 
