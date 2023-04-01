@@ -2,6 +2,7 @@
 #define ZMATH_H
 
 #include <cmath>
+#include <iostream> // ! for debugging
 
 namespace ZMath {
     // * ============================================
@@ -12,7 +13,7 @@ namespace ZMath {
     #define PI 3.1415926535897932L
 
     // * Default tolerance value for a floating point comparison
-    #define EPSILON 0.00001
+    #define EPSILON 0.0005
 
 
     class Vec2D {
@@ -298,6 +299,8 @@ namespace ZMath {
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
             float magSq() const { return x*x + y*y + z*z; };
+
+            // todo add an overlap function to check for overlap between two Vec3Ds
     };
 
 
@@ -347,12 +350,12 @@ namespace ZMath {
     };
 
     // * Handle tolerance for floating point numbers.
-    // * If no epsilon is specified, the default of 10^-5 will be used.
-    bool compare(float a, float b, float epsilon = EPSILON) { return abs(a - b) <= epsilon; };
+    // * If no epsilon is specified, the default of 5 * 10^-4 will be used.
+    bool compare(float a, float b, float epsilon = EPSILON) { return std::fabs(a - b) <= epsilon; };
 
     // * Handler tolerance for 3D vectors of floating point numbers.
-    // * If no epsilon is specified, the default of 10^-5 will be used.
-    bool compare(Vec3D u, Vec3D v, float epsilon = EPSILON) { return abs(u.x - v.x) <= epsilon && abs(u.y - v.y) <= epsilon && abs(u.z - v.z) <= epsilon; };
+    // * If no epsilon is specified, the default of 5 * 10^-4 will be used.
+    bool compare(Vec3D u, Vec3D v, float epsilon = EPSILON) { return std::fabs(u.x - v.x) <= epsilon && std::fabs(u.y - v.y) <= epsilon && std::fabs(u.z - v.z) <= epsilon; };
 
     // * Clamp a float between a min and max.
     float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };

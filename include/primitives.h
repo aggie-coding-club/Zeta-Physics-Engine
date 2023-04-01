@@ -51,7 +51,7 @@ namespace Primitives {
             // static body representing the plane -- stores angles and the centerpoint.
             // We use a static body for a plane as it should not be affected by forces and impulse.
             StaticBody3D sb;
-            ZMath::Vec3D normal; // Normal vector to the plane in the plane's local coordinates.
+            ZMath::Vec3D normal; // Normal vector to the plane in global coordinates.
 
             /**
              * @brief Create an unrotated plane.
@@ -91,6 +91,8 @@ namespace Primitives {
 
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
+
+            // todo refactor so the localMin and localMax functions return Vec2Ds
 
             ZMath::Vec3D getLocalMin() { return ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z); };
             ZMath::Vec3D getLocalMax() { return ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z); };

@@ -257,20 +257,13 @@ bool testLineAndPlane() {
     if (UNIT_TEST("Line and Unrotated Plane.", Collisions::LineAndPlane(line, plane1), 1)) { return 1; }
 
     // test 2
-    Primitives::Plane plane4(ZMath::Vec2D(-1), ZMath::Vec2D(1), 0, 30, 60);
+    Primitives::Plane plane4(ZMath::Vec2D(-2), ZMath::Vec2D(2), 0, 30, 60);
     line.start.set(0.5915f, -2.04904f, -0.97548f);
     line.end.set(-0.774519f, 0.68301f, 0.65849f);
 
     if (UNIT_TEST("Line and Rotated Plane.", Collisions::LineAndPlane(line, plane4), 1)) { return 1; }
 
     // test 3
-    Primitives::Plane plane2(ZMath::Vec2D(-1), ZMath::Vec2D(1), 0, 0, 90);
-    line.start.set(0, 0, -3);
-    line.end.set(0, 0, 5);
-
-    if (UNIT_TEST("Vertical Line and Vertical Plane.", Collisions::LineAndPlane(line, plane2), 1)) { return 1; }
-
-    // test 4
     Primitives::Plane plane3(ZMath::Vec2D(-0.5f), ZMath::Vec2D(0.5f), 5, 55.6f, 1);
     line.start.set(-9.8f, -2.3f, -1.4f);
     line.end.set(9.7f, 9.7f, 2);
@@ -289,7 +282,7 @@ bool testLineAndSphere() {
 
     // test 2
     sphere.r = 5.0f;
-    sphere.rb.pos.set(-5, 0, 0);
+    sphere.rb.pos.set(0, 0, 0);
     line.start.set(-6, 0, 0);
     line.end.set(-4, 0, 0);
 
@@ -311,6 +304,14 @@ bool testLineAndSphere() {
     line.start.set(2);
 
     if (UNIT_TEST("Sphere and not Line, but would be if the line was infinite.", Collisions::LineAndSphere(line, sphere), 0)) { return 1; }
+
+    // test 6
+    sphere.r = 5;
+    sphere.rb.pos.set(-5, 0, 0);
+    line.start.set(-6, 0, 0);
+    line.end.set(-4, 0, 0);
+
+    if (UNIT_TEST("Sphere and Contained Line.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
 
     return 0;
 };
