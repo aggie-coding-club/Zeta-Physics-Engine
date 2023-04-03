@@ -92,10 +92,8 @@ namespace Primitives {
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
 
-            // todo refactor so the localMin and localMax functions return Vec2Ds
-
-            ZMath::Vec3D getLocalMin() { return ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z); };
-            ZMath::Vec3D getLocalMax() { return ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z); };
+            ZMath::Vec2D getLocalMin() { return ZMath::Vec2D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y); };
+            ZMath::Vec2D getLocalMax() { return ZMath::Vec2D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y); };
             ZMath::Vec2D getHalfsize() { return halfSize; };
 
             // Get the vertices of the plane in terms of global coordinates.
@@ -117,8 +115,8 @@ namespace Primitives {
                 return v;
             };
 
-            ZMath::Vec3D getLocalMin() const { return ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z); };
-            ZMath::Vec3D getLocalMax() const { return ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z); };
+            ZMath::Vec2D getLocalMin() const { return ZMath::Vec2D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y); };
+            ZMath::Vec2D getLocalMax() const { return ZMath::Vec2D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y); };
             ZMath::Vec2D getHalfSize() const { return halfSize; };
 
             // Get the vertices of the plane in terms of global coordinates.

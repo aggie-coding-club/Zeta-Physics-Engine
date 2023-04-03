@@ -2,7 +2,6 @@
 #define ZMATH_H
 
 #include <cmath>
-#include <iostream> // ! for debugging
 
 namespace ZMath {
     // * ============================================
