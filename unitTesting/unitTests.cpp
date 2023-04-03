@@ -350,6 +350,12 @@ bool testLineAndAABB() {
 
     if (UNIT_TEST("Line and not AABB, but would be if the line was infinite.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
 
+    // test 7
+    line.start.set(-0.5f);
+    line.end.set(0.5f);
+
+    if (UNIT_TEST("Line inside AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
     return 0;
 };
 
@@ -412,6 +418,7 @@ bool testSphereAndSphere() {
 };
 
 bool testSphereAndAABB() {
+    
     return 0;
 };
 
