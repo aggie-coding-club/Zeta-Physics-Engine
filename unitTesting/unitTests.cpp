@@ -418,6 +418,33 @@ bool testSphereAndSphere() {
 };
 
 bool testSphereAndAABB() {
+    // test 1
+    Primitives::Sphere sphere(2.0f, ZMath::Vec3D());
+    Primitives::AABB aabb1(ZMath::Vec3D(-4), ZMath::Vec3D(4));
+
+    if (UNIT_TEST("Sphere and AABB.", Collisions::SphereAndAABB(sphere, aabb1), 1)) { return 1; }
+
+    // test 2
+    Primitives::AABB aabb2(ZMath::Vec3D(2, 0, 0), ZMath::Vec3D(5));
+
+    if (UNIT_TEST("AABB and Sphere circumference.", Collisions::SphereAndAABB(sphere, aabb2), 1)) { return 1; }
+
+    // test 3
+    Primitives::AABB aabb3(ZMath::Vec3D(-1), ZMath::Vec3D(1));
+    sphere.r = 5.2f;
+
+    if (UNIT_TEST("AABB inside Sphere.", Collisions::SphereAndAABB(sphere, aabb3), 1)) { return 1; }
+
+    // test 4
+    sphere.r = 0.2f;
+    
+    if (UNIT_TEST("Sphere inside AABB.", Collisions::SphereAndAABB(sphere, aabb3), 1)) { return 1; }
+
+    // test 5
+    sphere.rb.pos.set(-7);
+    sphere.r = 2.2f;
+
+    if (UNIT_TEST("Not Sphere and AABB.", Collisions::SphereAndAABB(sphere, aabb3), 0)) { return 1; }
 
     return 0;
 };
