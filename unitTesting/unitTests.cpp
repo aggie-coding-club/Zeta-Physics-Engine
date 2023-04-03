@@ -418,7 +418,7 @@ bool testSphereAndSphere() {
 };
 
 bool testSphereAndAABB() {
-    
+
     return 0;
 };
 
@@ -427,6 +427,24 @@ bool testSphereAndCube() {
 };
 
 bool testAABBAndAABB() {
+    // test 1
+    Primitives::AABB aabb1(ZMath::Vec3D(-3), ZMath::Vec3D(4, 5, 6)), aabb2(ZMath::Vec3D(-5), ZMath::Vec3D(-2));
+
+    if (UNIT_TEST("AABB and AABB.", Collisions::AABBAndAABB(aabb1, aabb2), 1)) { return 1; }
+
+    // test 2
+    Primitives::AABB aabb3(ZMath::Vec3D(), ZMath::Vec3D(1)), aabb4(ZMath::Vec3D(-1.5f), ZMath::Vec3D(3.24567f));
+
+    if (UNIT_TEST("AABB inside of AABB.", Collisions::AABBAndAABB(aabb3, aabb4), 1)) { return 1; }
+
+    // test 3
+    Primitives::AABB aabb5(ZMath::Vec3D(1, 1, 0), ZMath::Vec3D(2, 2, 1));
+
+    if (UNIT_TEST("AABB and edge of AABB.", Collisions::AABBAndAABB(aabb3, aabb5), 1)) { return 1; }
+
+    // test 4
+    if (UNIT_TEST("Not AABB and AABB.", Collisions::AABBAndAABB(aabb3, aabb2), 0)) { return 1; }
+
     return 0;
 };
 
