@@ -2,7 +2,7 @@
 
 3D header-only physics engine (Mechanics) created to be used by a 3D graphics library.
 
-<img src="yourmom_png.png" width="200" height="200"/>
+<img src="yourmom_png.png" width="400" height="400"/>
 
 ___
 
