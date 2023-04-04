@@ -315,10 +315,16 @@ namespace Primitives {
     };
 
     struct Collider3D {
-        Sphere sphere = Sphere(1.0f, ZMath::Vec3D());
-        AABB aabb = AABB(ZMath::Vec3D(-1, -1, -1), ZMath::Vec3D(1, 1, 1));
-        Cube cube = Cube(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45.0f, 45.0f);
+        // todo later overload the assignment operator and copy the union value by using memcpy.
+
+        Collider3D() {}; // default constructor to make the compiler happy
+
         int type = NONE;
+        union {
+            Sphere sphere;
+            AABB aabb;
+            Cube cube;
+        };
     };
 
 } // namespace Primitives

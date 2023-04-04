@@ -33,30 +33,43 @@ namespace PhysicsHandler {
 
 
     // todo might wanna move this object wrapper elsewhere.
-    // todo Additionally, will redesign in the future, this is just to get it working.
 
     // * ==============
     // * Wrappers
     // * ==============
 
     class Object {
-        private:
+        public:
+            // The collider associated with the physics object
             Primitives::Collider3D collider;
 
-        public:
             // Create a physics object.
             Object() {};
 
             // Create a physics object with a predefined collider.
-            Object(Primitives::Collider3D collider) : collider(collider) {};
+            Object(const Primitives::Collider3D &collider) {
+                (this->collider).type = collider.type;
+
+                switch (collider.type) {
+                    case Primitives::SPHERE_COLLIDER:
+                        (this->collider).sphere = collider.sphere;
+                        break;
+
+                    case Primitives::AABB_COLLIDER:
+                        (this->collider).aabb = collider.aabb;
+                        break;
+
+                    case Primitives::CUBE_COLLIDER:
+                        (this->collider).cube = collider.cube;
+                        break;
+                }
+            };
 
             void update(ZMath::Vec3D const &g, float dt) {
                 if (collider.type == Primitives::SPHERE_COLLIDER) { collider.sphere.rb.update(g, dt); }
                 else if (collider.type == Primitives::AABB_COLLIDER) { collider.aabb.rb.update(g, dt); }
                 else if (collider.type == Primitives::CUBE_COLLIDER) { collider.cube.rb.update(g, dt); }
             };
-
-            Primitives::Collider3D getCollider() { return collider; };
     };
 
     namespace { // make this struct private to this file
@@ -361,30 +374,29 @@ namespace PhysicsHandler {
                 // Broad phase: collision detection
                 for (int i = 0; i < objs.count - 1; i++) {
                     for (int j = i + 1; j < objs.count; j++) {
-                        Primitives::Collider3D c1 = objs.objects[i].getCollider(), c2 = objs.objects[j].getCollider();
-                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(c1, c2);
+                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(objs.objects[i].collider, objs.objects[j].collider);
 
                         if (result.hit) {
                             // todo refactor to be more efficient
                             // ! This is just to get it working
 
-                            switch (c1.type) {
+                            switch (objs.objects[i].collider.type) {
                                 case Primitives::SPHERE_COLLIDER:
-                                    if (c2.type == Primitives::SPHERE_COLLIDER) { addCollision(c1.sphere.rb, c2.sphere.rb, result); }
-                                    if (c2.type == Primitives::AABB_COLLIDER) { addCollision(c1.sphere.rb, c2.aabb.rb, result); }
-                                    if (c2.type == Primitives::CUBE_COLLIDER) { addCollision(c1.sphere.rb, c2.cube.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i].collider.sphere.rb, objs.objects[j].collider.sphere.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i].collider.sphere.rb, objs.objects[j].collider.aabb.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i].collider.sphere.rb, objs.objects[j].collider.cube.rb, result); }
                                     break;
                                 
                                 case Primitives::AABB_COLLIDER:
-                                    if (c2.type == Primitives::SPHERE_COLLIDER) { addCollision(c1.aabb.rb, c2.sphere.rb, result); }
-                                    if (c2.type == Primitives::AABB_COLLIDER) { addCollision(c1.aabb.rb, c2.aabb.rb, result); }
-                                    if (c2.type == Primitives::CUBE_COLLIDER) { addCollision(c1.aabb.rb, c2.cube.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i].collider.aabb.rb, objs.objects[j].collider.sphere.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i].collider.aabb.rb, objs.objects[j].collider.aabb.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i].collider.aabb.rb, objs.objects[j].collider.cube.rb, result); }
                                     break;
 
                                 case Primitives::CUBE_COLLIDER:
-                                    if (c2.type == Primitives::SPHERE_COLLIDER) { addCollision(c1.cube.rb, c2.sphere.rb, result); }
-                                    if (c2.type == Primitives::AABB_COLLIDER) { addCollision(c1.cube.rb, c2.aabb.rb, result); }
-                                    if (c2.type == Primitives::CUBE_COLLIDER) { addCollision(c1.cube.rb, c2.cube.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i].collider.cube.rb, objs.objects[j].collider.sphere.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i].collider.cube.rb, objs.objects[j].collider.aabb.rb, result); }
+                                    if (objs.objects[j].collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i].collider.cube.rb, objs.objects[j].collider.cube.rb, result); }
                                     break;
 
                                 default:
