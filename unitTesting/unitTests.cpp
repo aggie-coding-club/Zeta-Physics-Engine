@@ -450,6 +450,34 @@ bool testSphereAndAABB() {
 };
 
 bool testSphereAndCube() {
+    // test 1
+    Primitives::Sphere sphere(4.0f, ZMath::Vec3D());
+    Primitives::Cube cube1(ZMath::Vec3D(1), ZMath::Vec3D(6), 45.0f, 30.0f);
+
+    if (UNIT_TEST("Sphere and Cube.", Collisions::SphereAndCube(sphere, cube1), 1)) { return 1; }
+
+    // test 2
+    Primitives::Cube cube2(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45.0f, 45.0f);
+    sphere.r = 1.56f;
+
+    if (UNIT_TEST("Sphere and Vertex of Cube.", Collisions::SphereAndCube(sphere, cube2), 1)) { return 1; }
+
+    // test 3
+    sphere.r = 20;
+
+    if (UNIT_TEST("Cube inside Sphere.", Collisions::SphereAndCube(sphere, cube2), 1)) { return 1; }
+
+    // test 4
+    Primitives::Cube cube3(ZMath::Vec3D(-4.5f), ZMath::Vec3D(4.5f), 20, 20);
+    sphere.r = 1;
+
+    if (UNIT_TEST("Sphere inside Cube.", Collisions::SphereAndCube(sphere, cube3), 1)) { return 1; }
+
+    // test 5
+    sphere.rb.pos.set(10, 3, 2);
+
+    if (UNIT_TEST("Not Sphere and Cube.", Collisions::SphereAndCube(sphere, cube2), 0)) { return 1; }
+
     return 0;
 };
 
@@ -476,6 +504,8 @@ bool testAABBAndAABB() {
 };
 
 bool testAABBAndCube() {
+
+
     return 0;
 };
 

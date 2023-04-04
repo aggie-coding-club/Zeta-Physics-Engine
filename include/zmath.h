@@ -298,8 +298,6 @@ namespace ZMath {
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
             float magSq() const { return x*x + y*y + z*z; };
-
-            // todo add an overlap function to check for overlap between two Vec3Ds
     };
 
 
