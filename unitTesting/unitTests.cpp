@@ -504,7 +504,24 @@ bool testAABBAndAABB() {
 };
 
 bool testAABBAndCube() {
+    Primitives::AABB aabb1(ZMath::Vec3D(-2), ZMath::Vec3D(2));
+    Primitives::Cube cube1(ZMath::Vec3D(-1), ZMath::Vec3D(4), 32.0f, 78.0f);
 
+    if (UNIT_TEST("AABB and Cube.", Collisions::AABBAndCube(aabb1, cube1), 1)) { return 1; }
+
+    Primitives::AABB aabb2(ZMath::Vec3D(-6), ZMath::Vec3D(6));
+    Primitives::Cube cube2(ZMath::Vec3D(-2), ZMath::Vec3D(2), 45, 45);
+
+    if (UNIT_TEST("Cube inside AABB.", Collisions::AABBAndCube(aabb2, cube2), 1)) { return 1; }
+
+    Primitives::AABB aabb3(ZMath::Vec3D(-0.2f), ZMath::Vec3D(0.2f));
+
+    if (UNIT_TEST("AABB inside Cube.", Collisions::AABBAndCube(aabb3, cube2), 1)) { return 1; }
+
+    Primitives::AABB aabb4(ZMath::Vec3D(), ZMath::Vec3D(2));
+    Primitives::Cube cube3(ZMath::Vec3D(-7), ZMath::Vec3D(-4), 10, 123.4);
+
+    if (UNIT_TEST("Not AABB and Cube.", Collisions::AABBAndCube(aabb4, cube3), 0)) { return 1; }
 
     return 0;
 };
