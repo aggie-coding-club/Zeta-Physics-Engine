@@ -237,10 +237,10 @@ namespace Collisions {
 
         Primitives::Line3D l(line.start, line.end);
 
-        ZMath::rotateXZ(l.start, cube.rb.pos, cube.rb.phi);
-        ZMath::rotateXY(l.start, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(l.end, cube.rb.pos, cube.rb.phi);
-        ZMath::rotateXY(l.end, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(l.start, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(l.start, cube.rb.pos, 360 - cube.rb.theta);
+        ZMath::rotateXZ(l.end, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(l.end, cube.rb.pos, 360 - cube.rb.theta);
 
         return LineAndAABB(l, Primitives::AABB(cube.getLocalMin(), cube.getLocalMax()));
     };
@@ -447,8 +447,8 @@ namespace Collisions {
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
         // rotate the center of the sphere into the UVW coordinates of our cube
-        ZMath::rotateXY(center, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(center, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXZ(center, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(center, cube.rb.pos, 360 - cube.rb.theta);
         
         // perform the check as if it was an AABB vs Sphere
         ZMath::Vec3D closest(center);
@@ -494,8 +494,8 @@ namespace Collisions {
 
         ZMath::Vec3D min1 = aabb.getMin(), max1 = aabb.getMax(), min2 = cube.getLocalMin(), max2 = cube.getLocalMax();
 
-        ZMath::rotateXY(min1, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(max1, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXZ(max1, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(min1, cube.rb.pos, 360 - cube.rb.theta);
 
         return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
     };
