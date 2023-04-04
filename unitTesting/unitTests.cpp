@@ -527,6 +527,25 @@ bool testAABBAndCube() {
 };
 
 bool testCubeAndCube() {
+    Primitives::Cube cube1(ZMath::Vec3D(-2), ZMath::Vec3D(2), 45, 45);
+    Primitives::Cube cube2(ZMath::Vec3D(), ZMath::Vec3D(3), 30, 60);
+
+    if (UNIT_TEST("Cube and Cube.", Collisions::CubeAndCube(cube1, cube2), 1)) { return 1; }
+
+    Primitives::Cube cube6(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45, 45);
+    Primitives::Cube cube8(ZMath::Vec3D(-3, -3, -1), ZMath::Vec3D(-0.99f, -0.99f, 1), 45, 45);
+
+    if (UNIT_TEST("Cube and edge of Cube.", Collisions::CubeAndCube(cube6, cube8), 1)) { return 1; }
+
+    Primitives::Cube cube3(ZMath::Vec3D(-1), ZMath::Vec3D(-0.5f, 0, 0), 45, 45);
+    Primitives::Cube cube4(ZMath::Vec3D(-2), ZMath::Vec3D(1), 45, 45);
+
+    if (UNIT_TEST("Cube inside Cube.", Collisions::CubeAndCube(cube3, cube4), 1)) { return 1; }
+
+    Primitives::Cube cube5(ZMath::Vec3D(-1, -1, 7), ZMath::Vec3D(0, 5, 10), 2.5f, 3);
+
+    if (UNIT_TEST("Not Cube and Cube.", Collisions::CubeAndCube(cube3, cube5), 0)) { return 1; }
+
     return 0;
 };
 
