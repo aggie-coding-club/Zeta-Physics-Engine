@@ -2,7 +2,7 @@
 
 3D header-only physics engine (Mechanics) created to be used by a 3D graphics library.
 
-![Logo](yourmom.png)
+![Logo](yourmom_png.png = 1000x1000)
 
 ___
 
