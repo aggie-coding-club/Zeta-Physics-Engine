@@ -339,7 +339,12 @@ bool testLineAndAABB() {
 
     if (UNIT_TEST("AABB and Line Starting in AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
 
+    line.end.set(0.5f);
+
+    if (UNIT_TEST("Line inside AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
     // test 5
+    line.end.set(-0.2f, -0.3f, 120);
     line.start.set(8, 9, 10);
 
     if (UNIT_TEST("Line and not AABB.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
@@ -360,6 +365,36 @@ bool testLineAndAABB() {
 };
 
 bool testLineAndCube() {
+    Primitives::Line3D line(ZMath::Vec3D(-2, 3, 5), ZMath::Vec3D(4, -2, -7));
+    Primitives::Cube cube1(ZMath::Vec3D(-2), ZMath::Vec3D(1), 45, 45);
+
+    if (UNIT_TEST("Line and Cube.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+
+    // todo calculate the values for it to be along the edge of the cube
+    line.start.set(-2, 1, -2);
+    line.end.set(-2, 1, 1);
+
+    if (UNIT_TEST("Line on edge of Cube.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+
+    line.end.set(0, 0, -4);
+    line.start.set(0, 0, 4);
+
+    if (UNIT_TEST("Cube and Vertical Line.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+
+    line.end.set(0.1f);
+
+    if (UNIT_TEST("Line starting in Cube.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+
+    Primitives::Cube cube2(ZMath::Vec3D(-4), ZMath::Vec3D(5), 30, 60);
+    line.start.set(0.5f);
+
+    if (UNIT_TEST("Line in Cube.", Collisions::LineAndCube(line, cube2), 1)) { return 1; }
+
+    line.start.set(-4);
+    line.end.set(-4, -4, 2);
+
+    if (UNIT_TEST("Not line and Cube.", Collisions::LineAndCube(line, cube1), 0)) { return 1; }
+
     return 0;
 };
 
@@ -376,10 +411,6 @@ bool testRaycastingVSAABB() {
 };
 
 bool testRaycastingVSCube() {
-    return 0;
-};
-
-bool testPlaneAndPlane() {
     return 0;
 };
 
@@ -564,7 +595,6 @@ int main() {
     if (testCases("RaycastingVSSphere", &testRaycastingVSSphere)) { return 1; }
     if (testCases("RaycastingVSAABB", &testRaycastingVSAABB)) { return 1; }
     if (testCases("RaycastingVSCube", &testRaycastingVSCube)) { return 1; }
-    if (testCases("PlaneAndPlane", &testPlaneAndPlane)) { return 1; }
     if (testCases("PlaneAndSphere", &testPlaneAndSphere)) { return 1; }
     if (testCases("PlaneAndAABB", &testPlaneAndAABB)) { return 1; }
     if (testCases("PlaneAndCube", &testPlaneAndCube)) { return 1; }

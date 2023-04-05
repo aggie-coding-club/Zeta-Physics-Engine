@@ -206,34 +206,18 @@ namespace Collisions {
 
     // Determine if a line intersects an unrotated cube.
     bool LineAndAABB(Primitives::Line3D const &line, Primitives::AABB const &aabb) {
-        // ? We can use the same logic as when raycasting an AABB.
-        // ? Then we just have to make sure the distance to the AABB is less than the length of the line segment.
+        // ? Check if the line has any point within the AABB's bounds.
 
-        ZMath::Vec3D dir = (line.end - line.start).normalize();
-        ZMath::Vec3D dirfrac(1.0f/dir.x, 1.0f/dir.y, 1.0f/dir.z);
-        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
-        
-        float t1 = (min.x - line.start.x)*dirfrac.x;
-        float t2 = (max.x - line.start.x)*dirfrac.x;
-        float t3 = (min.y - line.start.y)*dirfrac.y;
-        float t4 = (max.y - line.start.y)*dirfrac.y;
-        float t5 = (min.z - line.start.z)*dirfrac.z;
-        float t6 = (max.z - line.start.z)*dirfrac.z;
+        ZMath::Vec3D minL = line.getMin(), maxL = line.getMax();
+        ZMath::Vec3D minA = aabb.getMin(), maxA = aabb.getMax();
 
-        // tMin is the max of the mins and tMx is the min of the maxes
-        float tMin = ZMath::max(ZMath::max(ZMath::min(t1, t2), ZMath::min(t3, t4)), ZMath::min(t5, t6));
-        float tMax = ZMath::min(ZMath::min(ZMath::max(t1, t2), ZMath::max(t3, t4)), ZMath::max(t5, t6));
-
-        // if tMax < 0 the line is intersecting behind it. Therefore, we do not actually have a collision.
-        // if tMax is < tMin we don't intersect the AABB.
-        if (tMax < 0 || tMax < tMin) { return 0; }
-
-        return tMin*tMin <= (line.end - line.start).magSq();
+        return minL.x <= maxA.x && minA.x <= maxL.x && minL.y <= maxA.y && minA.y <= maxL.y && minL.z <= maxA.z && minA.z <= maxL.z;
     };
 
     // Determine if a line intersects a cube.
     bool LineAndCube(Primitives::Line3D const &line, Primitives::Cube const &cube) {
-        // ? This will be the same as the AABB vs Line check after rotating the line into the cube's UVW coordinates.
+        // ? Rotate into the Cube's UVW coordinates.
+        // ? Check to see if the line is within the cube's bounds.
 
         Primitives::Line3D l(line.start, line.end);
 
@@ -242,7 +226,10 @@ namespace Collisions {
         ZMath::rotateXZ(l.end, cube.rb.pos, 360 - cube.rb.phi);
         ZMath::rotateXY(l.end, cube.rb.pos, 360 - cube.rb.theta);
 
-        return LineAndAABB(l, Primitives::AABB(cube.getLocalMin(), cube.getLocalMax()));
+        ZMath::Vec3D minL = l.getMin(), maxL = l.getMax();
+        ZMath::Vec3D minC = cube.getLocalMin(), maxC = cube.getLocalMax();
+
+        return minL.x <= maxC.x && minC.x <= maxL.x && minL.y <= maxC.y && minC.y <= maxL.y && minL.z <= maxC.z && minC.z <= maxL.z;
     };
 
     // * =================
@@ -361,9 +348,6 @@ namespace Collisions {
 
     // Determine if a plane intersects a line.
     bool PlaneAndLine(Primitives::Plane const &plane, Primitives::Line3D const &line) { return LineAndPlane(line, plane); };
-
-    // Determine if a plane intersects another plane.
-    bool PlaneAndPlane(Primitives::Plane const &plane1, Primitives::Plane const &plane2) {};
 
     // Determine if a plane intersects a sphere.
     bool PlaneAndSphere(Primitives::Plane const &plane, Primitives::Sphere const &sphere) {
