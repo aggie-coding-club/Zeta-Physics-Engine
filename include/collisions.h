@@ -29,6 +29,8 @@ namespace Collisions {
         // * Collision Manifold Calculators
         // * ===================================
 
+        // todo test these functions
+
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
             CollisionManifold result;
 
@@ -90,7 +92,45 @@ namespace Collisions {
             return result;
         };
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube);
+        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
+            CollisionManifold result;
+
+            ZMath::Vec3D center = sphere.rb.pos;
+            ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
+
+            // rotate the center of the sphere into the UVW coordinates of our cube
+            ZMath::rotateXZ(center, cube.rb.pos, 360 - cube.rb.phi);
+            ZMath::rotateXY(center, cube.rb.pos, 360 - cube.rb.theta);
+            
+            // perform the check as if it was an AABB vs Sphere
+            ZMath::Vec3D closest(center);
+
+            closest.x = ZMath::clamp(closest.x, min.x, max.x);
+            closest.y = ZMath::clamp(closest.y, min.y, max.y);
+            closest.z = ZMath::clamp(closest.z, min.z, max.z);
+
+            result.hit = closest.distSq(center) <= sphere.r*sphere.r;
+
+            if (!result.hit) { return result; }
+
+            // the closest point to the sphere's center will be our contact point rotated back into UVW coordinates
+
+            ZMath::rotateXY(closest, cube.rb.pos, cube.rb.theta);
+            ZMath::rotateXZ(closest, cube.rb.pos, cube.rb.phi);
+
+            result.numPoints = 1;
+            result.contactPoints = new ZMath::Vec3D[1];
+            result.contactPoints[0] = closest;
+
+            // determine the penetration distance and the collision normal
+
+            ZMath::Vec3D diff = sphere.rb.pos - closest;
+            float d = diff.mag(); // allows us to only take the sqrt once
+            result.pDist = sphere.r - d;
+            result.normal = diff * (1.0f/d);
+
+            return result;
+        };
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2);
 
