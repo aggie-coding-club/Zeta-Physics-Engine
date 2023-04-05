@@ -371,10 +371,12 @@ bool testLineAndCube() {
     if (UNIT_TEST("Line and Cube.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
 
     // todo calculate the values for it to be along the edge of the cube
-    line.start.set(-2, 1, -2);
-    line.end.set(-2, 1, 1);
+    Primitives::Cube cube3(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45, 45);
 
-    if (UNIT_TEST("Line on edge of Cube.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+    line.start.set(0.707107f, 1.4142f, -0.707107f);
+    line.end.set(-0.707107f, 1.4142f, 0.707107f);
+
+    if (UNIT_TEST("Line on edge of Cube.", Collisions::LineAndCube(line, cube3), 1)) { return 1; }
 
     line.end.set(0, 0, -4);
     line.start.set(0, 0, 4);
