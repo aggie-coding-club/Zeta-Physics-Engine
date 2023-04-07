@@ -268,8 +268,6 @@ namespace Collisions {
         // ? Next we solve origin + t*origin to find the closest point.
         // ? If the distance of that closest point to the center is less than or equal to the radius, we have an intersection.
 
-        float rSq = sphere.r*sphere.r;
-
         // determine the closest point and the distance to that point
         float t = ray.dir * (sphere.rb.pos - ray.origin);
 
@@ -280,7 +278,9 @@ namespace Collisions {
         }
 
         ZMath::Vec3D close = ray.origin + ray.dir * t;
+
         float dSq = sphere.rb.pos.distSq(close);
+        float rSq = sphere.r*sphere.r;
 
         // no intersection
         if (dSq > rSq) {
@@ -290,7 +290,13 @@ namespace Collisions {
 
         // lands on the circumference
         if (dSq == rSq) {
-            dist = sphere.r;
+            dist = t;
+            return 1;
+        }
+
+        // ray started in the sphere
+        if (t < sphere.r) {
+            dist = t + sqrtf(rSq - dSq);
             return 1;
         }
 

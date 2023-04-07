@@ -423,19 +423,17 @@ bool testRaycastingVSPlane() {
 };
 
 bool testRaycastingVSSphere() {
-    // todo calculate the distances associated with each for the unit tests
-
     Primitives::Ray3D ray(ZMath::Vec3D(), ZMath::Vec3D(1).normalize());
     Primitives::Sphere sphere(5.0f, ZMath::Vec3D(3, 4, 5));
 
     float dist = 0;
 
-    if (UNIT_TEST("Ray and Sphere.", Collisions::raycast(sphere, ray, dist), 1)) { return 1; }
+    if (RAYCAST_TEST("Ray and Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 2.1324f)) { return 1; }
 
     sphere.rb.pos.set(1, 1, 2);
     sphere.r = 1.0f;
 
-    if (UNIT_TEST("Ray and Circumference of Sphere.", Collisions::raycast(sphere, ray, dist), 1)) { return 1; }
+    if (RAYCAST_TEST("Ray and Circumference of Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 1.73205f)) { return 1; }
 
     sphere.rb.pos.zero();
     
