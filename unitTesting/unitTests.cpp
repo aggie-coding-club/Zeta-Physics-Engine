@@ -6,6 +6,8 @@
 // * Primary Unit Testing Functions
 // * =====================================
 
+// todo update by creating a macro which can handle the distance from the raycasting tests
+
 // Macro for unit testing.
 #define UNIT_TEST(test, obtained, expected) \
 ({ \
@@ -17,6 +19,23 @@
     } \
 \
     (obtained) != (expected); \
+})
+
+// Macro for raycast unit tests.
+#define RAYCAST_TEST(test, obtained, expected, dist, expectedDist) \
+({ \
+    if ((obtained) == (expected) && ZMath::compare((dist), (expectedDist))) { \
+        std::cout << "[PASSED] " << (test) << "\n"; \
+        \
+    } else if ((obtained) != (expected)) { \
+        std::cout << "[FAILED] " << (test) << "\nExpected: " << (expected) << ". Obtained: " << (obtained) << ".\n"; \
+        \
+    } else { \
+        std::cout << "[FAILED] " << (test) << "\nExpected Distance: " << (expectedDist) << ". Obtained: " << (dist) << ".\n"; \
+        \
+    } \
+    \
+    (obtained) != (expected) || !ZMath::compare((dist), (expectedDist)); \
 })
 
 // Run a function of unit tests.
@@ -404,6 +423,32 @@ bool testRaycastingVSPlane() {
 };
 
 bool testRaycastingVSSphere() {
+    // todo calculate the distances associated with each for the unit tests
+
+    Primitives::Ray3D ray(ZMath::Vec3D(), ZMath::Vec3D(1).normalize());
+    Primitives::Sphere sphere(5.0f, ZMath::Vec3D(3, 4, 5));
+
+    float dist = 0;
+
+    if (UNIT_TEST("Ray and Sphere.", Collisions::raycast(sphere, ray, dist), 1)) { return 1; }
+
+    sphere.rb.pos.set(1, 1, 2);
+    sphere.r = 1.0f;
+
+    if (UNIT_TEST("Ray and Circumference of Sphere.", Collisions::raycast(sphere, ray, dist), 1)) { return 1; }
+
+    sphere.rb.pos.zero();
+    
+    if (RAYCAST_TEST("Ray starting in Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 1.0f)) { return 1; }
+
+    sphere.rb.pos.set(-2);
+
+    if (RAYCAST_TEST("Sphere behind Ray.", Collisions::raycast(sphere, ray, dist), 0, dist, -1.0f)) { return 1; }
+
+    sphere.rb.pos.set(3, -3, 4);
+
+    if (RAYCAST_TEST("Not Sphere and Ray.", Collisions::raycast(sphere, ray, dist), 0, dist, -1.0f)) { return 1; }
+
     return 0;
 };
 

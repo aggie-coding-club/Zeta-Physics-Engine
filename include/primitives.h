@@ -15,7 +15,7 @@ namespace Primitives {
             // 
             // @param position The origin of the ray.
             // @param direction The direction of the ray as a normalized vector.
-            Ray3D(ZMath::Vec3D position, ZMath::Vec3D direction) : origin(position), dir(direction) {};
+            Ray3D(ZMath::Vec3D origin, ZMath::Vec3D direction) : origin(origin), dir(direction) {};
     };
 
     class Line3D {

@@ -2,9 +2,6 @@
 #define INTERSECTIONS_H
 
 // todo unit tests
-// todo probably need to add in comparison function calls to account for floating point errors
-// todo go through each rotation and make sure it rotates XZ before XY when taking something into the local plane and XY before XZ when taking something out
-// todo for each rotation do 360 - when converting it back
 
 // todo any of these involving planes may have issues regarding the z in the local coords. Remember to use Compare to the z value the plane is at in local coords.
 
@@ -249,8 +246,8 @@ namespace Collisions {
         ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p = ray.origin + ray.dir*dist;
 
-        ZMath::rotateXY(p, plane.sb.pos, plane.sb.theta);
-        ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
+        ZMath::rotateXZ(p, plane.sb.pos, 360 - plane.sb.phi);
+        ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
 
         // make sure the point of intersection is within our bounds and the intersection wouldn't occur behind the ray
         if (dist >= 0 && p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, plane.sb.pos.z)) { return 1; }
@@ -275,8 +272,14 @@ namespace Collisions {
 
         // determine the closest point and the distance to that point
         float t = ray.dir * (sphere.rb.pos - ray.origin);
-        ZMath::Vec3D close = ray.origin + ray.dir * t;
 
+        // the sphere is behind the ray
+        if (t < 0) {
+            dist = -1.0f;
+            return 0;
+        }
+
+        ZMath::Vec3D close = ray.origin + ray.dir * t;
         float dSq = sphere.rb.pos.distSq(close);
 
         // no intersection
