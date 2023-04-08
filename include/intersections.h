@@ -2,12 +2,6 @@
 #define INTERSECTIONS_H
 
 // todo unit tests
-// todo probably need to add in comparison function calls to account for floating point errors
-// todo go through each rotation and make sure it rotates XZ before XY when taking something into the local plane and XY before XZ when taking something out
-// todo for each rotation do 360 - when converting it back
-
-// todo refactor to use the line's new getMin and getMax functions
-// todo refactor to use ZMath::Compare(Vec3D, Vec3D) as well
 
 // todo any of these involving planes may have issues regarding the z in the local coords. Remember to use Compare to the z value the plane is at in local coords.
 
@@ -37,14 +31,14 @@ namespace Collisions {
 
     // Determine if a point lies on a plane.
     bool PointAndPlane(ZMath::Vec3D const &point, Primitives::Plane const &plane) {
-        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p(point); // allows for rotation
 
         // must rotate it in the proper order
         ZMath::rotateXZ(p, plane.sb.pos, 360 - plane.sb.phi);
         ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
 
-        return p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, min.z);
+        return p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, plane.sb.pos.z);
     };
 
     // Determine if a point lies within a sphere.
@@ -93,10 +87,8 @@ namespace Collisions {
 
         // check for parallel lines
         if (n1.x == n2.x && n1.y == n2.y && n1.z == n2.z) {
-            ZMath::Vec3D min1(ZMath::min(s1.x, e1.x), ZMath::min(s1.y, e1.y), ZMath::min(s1.z, e1.z));
-            ZMath::Vec3D max1(ZMath::max(s1.x, e1.x), ZMath::max(s1.y, e1.y), ZMath::max(s1.z, e1.z));
-            ZMath::Vec3D min2(ZMath::min(s2.x, e2.x), ZMath::min(s2.y, e2.y), ZMath::min(s2.z, e2.z));
-            ZMath::Vec3D max2(ZMath::max(s2.x, e2.x), ZMath::max(s2.y, e2.y), ZMath::max(s2.z, e2.z));
+            ZMath::Vec3D min1 = line1.getMin(), max1 = line1.getMax();
+            ZMath::Vec3D min2 = line2.getMin(), max2 = line2.getMax();
 
             if (v1.x) {
                 // ! unsure if we actually need to check for every interval or just x. We can test once we get unit tests.
@@ -136,13 +128,13 @@ namespace Collisions {
         ZMath::Vec3D p = ZMath::Vec3D(s1.x + t*v1.x, s1.y + t*v1.y, s1.z + t*v1.z);
 
         // determine the min and max points for both lines
-        ZMath::Vec3D max = ZMath::Vec3D(ZMath::min(ZMath::max(s1.x, e1.x), ZMath::max(s2.x, e2.x)), 
-                                        ZMath::min(ZMath::max(s1.y, e1.y), ZMath::max(s2.y, e2.y)),
-                                        ZMath::min(ZMath::max(s1.z, e1.z), ZMath::max(s2.z, e2.z)));
+        ZMath::Vec3D max(ZMath::min(ZMath::max(s1.x, e1.x), ZMath::max(s2.x, e2.x)), 
+                         ZMath::min(ZMath::max(s1.y, e1.y), ZMath::max(s2.y, e2.y)),
+                         ZMath::min(ZMath::max(s1.z, e1.z), ZMath::max(s2.z, e2.z)));
 
-        ZMath::Vec3D min = ZMath::Vec3D(ZMath::max(ZMath::min(s1.x, e1.x), ZMath::min(s2.x, e2.x)),
-                                        ZMath::max(ZMath::min(s1.y, e1.y), ZMath::min(s2.y, e2.y)),
-                                        ZMath::max(ZMath::min(s1.z, e1.z), ZMath::min(s2.z, e2.z)));
+        ZMath::Vec3D min(ZMath::max(ZMath::min(s1.x, e1.x), ZMath::min(s2.x, e2.x)),
+                         ZMath::max(ZMath::min(s1.y, e1.y), ZMath::min(s2.y, e2.y)),
+                         ZMath::max(ZMath::min(s1.z, e1.z), ZMath::min(s2.z, e2.z)));
 
         // ensure the point of intersection is between these bounds
         return p.x <= max.x && p.y <= max.y && p.z <= max.z && p.x >= min.x && p.y >= min.y && p.z >= min.z;
@@ -150,9 +142,6 @@ namespace Collisions {
 
     // Determine if a line intersects a plane.
     bool LineAndPlane(Primitives::Line3D const &line, Primitives::Plane const &plane) {
-        // ? We can use the same approach to solve this problem as for the raycasting.
-        // ? We just ensure the point of intersection also lies within the bounds of the line.
-
         Primitives::Line3D l(line.start, line.end); // copy so we can rotate it
 
         // rotate the line into the plane's local coordinates
@@ -161,38 +150,27 @@ namespace Collisions {
         ZMath::rotateXZ(l.end, plane.sb.pos, 360 - plane.sb.phi);
         ZMath::rotateXY(l.end, plane.sb.pos, 360 - plane.sb.theta);
 
-        //std::cout << "Start: " << l.start.x << ", " << l.start.y << ", " << l.start.z << "\nEnd: " << l.end.x << ", " << l.end.y << ", " << l.end.z << "\n";
+        // get the maxes and mins
+        ZMath::Vec3D minL = l.getMin(), maxL = l.getMax();
+        ZMath::Vec2D minP = plane.getLocalMin(), maxP = plane.getLocalMax();
 
-        //ZMath::Vec3D n = plane.normal; // allow for the normal to be rotated
+        // check for a line laying on the same plane as the plane we're checking against
+        if (ZMath::compare(minL.z, plane.sb.pos.z) && ZMath::compare(maxL.z, plane.sb.pos.z)) {
+            return minL.x > maxP.x || minP.x > maxL.x || minL.y > maxP.y || minP.y > maxL.y;
+        }
 
-        // rotate the normal into global coordinates
-        /*ZMath::rotateXY(n, plane.sb.pos, plane.sb.theta);
-        ZMath::rotateXZ(n, plane.sb.pos, plane.sb.phi);*/
+        // ensure an intersection is possible
+        if (minL.z > plane.sb.pos.z || plane.sb.pos.z > maxL.z) { return 0; }
 
-        ZMath::Vec3D dir = (l.end - l.start).normalize();
-        float dot = plane.normal * dir;
+        // If there was an intersection, there would be a point in time where the line's z coord = minP.z.
+        // We also know that the z component of our slope is not 0 as we checked for that case earlier.
+        ZMath::Vec3D slope = l.end - l.start;
+        float t = (plane.sb.pos.z - l.start.z)/slope.z;
+        ZMath::Vec2D p(l.start.x + t*slope.x, l.start.y + t*slope.y); // point of intersection
 
-        // check if the line is parallel to the plane
-        // todo this would probably causes issues as it's possible for a line to be parallel but lie on top of the plane
-        if (!dot) { return 0; }    
-
-        // todo issue with calculating p -- probably stems from the calculation of t
-
-        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
-        float t = -((plane.normal * (l.start - max))/dot);
-        ZMath::Vec3D p = l.start + dir*t;
-
-        /*std::cout << "P: " << p.x << ", " << p.y << ", " << p.z << "\n";
-
-        ZMath::rotateXZ(p, plane.sb.pos, 360 - plane.sb.phi);
-        ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
-
-        std::cout << "P: " << p.x << ", " << p.y << ", " << p.z << "\n";*/
-
-        // Make sure the point of intersection is within our bounds.
-        // We don't need to check if it's greater than or equal to the start point on the line segment as t >= 0 ensures that already.
-        return t >= 0 && p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, min.z) &&
-                p.x <= l.end.x && p.y <= l.end.y && p.z <= l.end.z;
+        // Ensure the point of intersection is within the bounds of the plane.
+        // We do not need to check if it is within the bounds of the line as the conditional above requires that.
+        return minP.x <= p.x && p.x <= maxP.x && minP.y <= p.y && p.y <= maxP.y;
     };
 
     // Determine if a line intersects a sphere.
@@ -201,6 +179,8 @@ namespace Collisions {
         // ? Relate the parametric equations with the distance squared to the center of the sphere.
         // ? Since we define our start point as the point at t_0 and end point as the point at t_1,
         // ?  we know that if either solution of the quadratic constructed is between 0 to 1 inclusive, we have a collision.
+
+        if (line.start.distSq(sphere.rb.pos) <= sphere.r * sphere.r || line.end.distSq(sphere.rb.pos) <= sphere.r * sphere.r) { return 1; }
 
         float dx = line.end.x - line.start.x, dy = line.end.y - line.start.y, dz = line.end.z - line.start.z;
         float xc = line.start.x - sphere.rb.pos.x, yc = line.start.y - sphere.rb.pos.y, zc = line.start.z - sphere.rb.pos.z;
@@ -223,51 +203,30 @@ namespace Collisions {
 
     // Determine if a line intersects an unrotated cube.
     bool LineAndAABB(Primitives::Line3D const &line, Primitives::AABB const &aabb) {
-        // ? We can use the same logic as when raycasting an AABB.
-        // ? Then we just have to make sure the distance to the AABB is less than the length of the line segment.
+        // ? Check if the line has any point within the AABB's bounds.
 
-        ZMath::Vec3D dir = (line.end - line.start).normalize();
-        ZMath::Vec3D dirfrac(1.0f/dir.x, 1.0f/dir.y, 1.0f/dir.z);
-        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
-        
-        float t1 = (min.x - line.start.x)*dirfrac.x;
-        float t2 = (max.x - line.start.x)*dirfrac.x;
-        float t3 = (min.y - line.start.y)*dirfrac.y;
-        float t4 = (max.y - line.start.y)*dirfrac.y;
-        float t5 = (min.z - line.start.z)*dirfrac.z;
-        float t6 = (max.z - line.start.z)*dirfrac.z;
+        ZMath::Vec3D minL = line.getMin(), maxL = line.getMax();
+        ZMath::Vec3D minA = aabb.getMin(), maxA = aabb.getMax();
 
-        // tMin is the max of the mins and tMx is the min of the maxes
-        float tMin = ZMath::max(ZMath::max(ZMath::min(t1, t2), ZMath::min(t3, t4)), ZMath::min(t5, t6));
-        float tMax = ZMath::min(ZMath::min(ZMath::max(t1, t2), ZMath::max(t3, t4)), ZMath::max(t5, t6));
-
-        float lengthSq = (line.end - line.start).magSq();
-
-        // if tMax < 0 the ray is intersecting behind it. Therefore, we do not actually have a collision.
-        if (tMax < 0) {
-            // ! unsure if this part will cause errors. Will figure out after unit tests are developed.
-            // ! If this part causes errors we will have to manually check for end point in the AABB.
-            return tMax*tMax <= lengthSq;
-        }
-
-        // ray doesn't intersect the AABB.
-        if (tMax < tMin) { return 0; }
-
-        return tMin*tMin <= lengthSq;
+        return minL.x <= maxA.x && minA.x <= maxL.x && minL.y <= maxA.y && minA.y <= maxL.y && minL.z <= maxA.z && minA.z <= maxL.z;
     };
 
     // Determine if a line intersects a cube.
     bool LineAndCube(Primitives::Line3D const &line, Primitives::Cube const &cube) {
-        // ? This will be the same as the AABB vs Line check after rotating the line into the cube's UVW coordinates.
+        // ? Rotate into the Cube's UVW coordinates.
+        // ? Check to see if the line is within the cube's bounds.
 
         Primitives::Line3D l(line.start, line.end);
 
-        ZMath::rotateXZ(l.start, cube.rb.pos, cube.rb.phi);
-        ZMath::rotateXY(l.start, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(l.end, cube.rb.pos, cube.rb.phi);
-        ZMath::rotateXY(l.end, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(l.start, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(l.start, cube.rb.pos, 360 - cube.rb.theta);
+        ZMath::rotateXZ(l.end, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(l.end, cube.rb.pos, 360 - cube.rb.theta);
 
-        return LineAndAABB(l, Primitives::AABB(cube.getLocalMin(), cube.getLocalMax()));
+        ZMath::Vec3D minL = l.getMin(), maxL = l.getMax();
+        ZMath::Vec3D minC = cube.getLocalMin(), maxC = cube.getLocalMax();
+
+        return minL.x <= maxC.x && minC.x <= maxL.x && minL.y <= maxC.y && minC.y <= maxL.y && minL.z <= maxC.z && minC.z <= maxL.z;
     };
 
     // * =================
@@ -278,22 +237,20 @@ namespace Collisions {
     // dist will be modified to equal the distance from the ray it hits the plane.
     // dist is set to -1 if there is no intersection.
     bool raycast(Primitives::Plane const &plane, Primitives::Ray3D const &ray, float &dist) {
-        // todo will need to rotate the end points of the line into the plane's UVW coords (or rotate its normal into global coords)
-
         float dot = plane.normal * ray.dir;
 
         // check if the ray is parallel to the plane
         if (!dot) { dist = -1.0f; return 0; }
 
         dist = -((plane.normal * (ray.origin - plane.sb.pos))/dot);
-        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p = ray.origin + ray.dir*dist;
 
-        ZMath::rotateXY(p, plane.sb.pos, plane.sb.theta);
-        ZMath::rotateXZ(p, plane.sb.pos, plane.sb.phi);
+        ZMath::rotateXZ(p, plane.sb.pos, 360 - plane.sb.phi);
+        ZMath::rotateXY(p, plane.sb.pos, 360 - plane.sb.theta);
 
         // make sure the point of intersection is within our bounds and the intersection wouldn't occur behind the ray
-        if (dist >= 0 && p.x >= min.x && p.y >= min.y && p.z >= min.z && p.x <= max.x && p.y <= max.y && p.z <= max.z) { return 1; }
+        if (dist >= 0 && p.x >= min.x && p.y >= min.y && p.x <= max.x && p.y <= max.y && ZMath::compare(p.z, plane.sb.pos.z)) { return 1; }
 
         dist = -1.0f;
         return 0;
@@ -311,13 +268,19 @@ namespace Collisions {
         // ? Next we solve origin + t*origin to find the closest point.
         // ? If the distance of that closest point to the center is less than or equal to the radius, we have an intersection.
 
-        float rSq = sphere.r*sphere.r;
-
         // determine the closest point and the distance to that point
         float t = ray.dir * (sphere.rb.pos - ray.origin);
+
+        // the sphere is behind the ray
+        if (t < 0) {
+            dist = -1.0f;
+            return 0;
+        }
+
         ZMath::Vec3D close = ray.origin + ray.dir * t;
 
         float dSq = sphere.rb.pos.distSq(close);
+        float rSq = sphere.r*sphere.r;
 
         // no intersection
         if (dSq > rSq) {
@@ -327,7 +290,13 @@ namespace Collisions {
 
         // lands on the circumference
         if (dSq == rSq) {
-            dist = sphere.r;
+            dist = t;
+            return 1;
+        }
+
+        // ray started in the sphere
+        if (t < sphere.r) {
+            dist = t + sqrtf(rSq - dSq);
             return 1;
         }
 
@@ -389,9 +358,6 @@ namespace Collisions {
     // Determine if a plane intersects a line.
     bool PlaneAndLine(Primitives::Plane const &plane, Primitives::Line3D const &line) { return LineAndPlane(line, plane); };
 
-    // Determine if a plane intersects another plane.
-    bool PlaneAndPlane(Primitives::Plane const &plane1, Primitives::Plane const &plane2) {};
-
     // Determine if a plane intersects a sphere.
     bool PlaneAndSphere(Primitives::Plane const &plane, Primitives::Sphere const &sphere) {
         // ? A line from the center of the sphere along the normal of the plane will eventually
@@ -403,14 +369,16 @@ namespace Collisions {
         // ?  sphere's center between the min and max vertices of the plane.
 
         ZMath::Vec3D closest(sphere.rb.pos);
-        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
+        ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
+        // todo probably need to rotate the min and max, too
 
         ZMath::rotateXZ(closest, plane.sb.pos, 360 - plane.sb.phi);
         ZMath::rotateXY(closest, plane.sb.pos, 360 - plane.sb.theta);
 
         closest.x = ZMath::clamp(closest.x, min.x, max.x);
         closest.y = ZMath::clamp(closest.y, min.y, max.y);
-        closest.z = ZMath::clamp(closest.z, min.z, max.z);
+        // if this doesn't work try replacing with ZMath::clamp(closest.z, min.z, max.z);
+        closest.z = plane.sb.pos.z;
 
         return closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
     };
@@ -424,10 +392,7 @@ namespace Collisions {
     // Determine if a plane intersects a cube.
     bool PlaneAndCube(Primitives::Plane const &plane, Primitives::Cube const &cube) {
         Primitives::AABB aabb(cube.getLocalMin(), cube.getLocalMax());
-
-        ZMath::Vec3D min = plane.getLocalMin(), max = plane.getLocalMax();
-        Primitives::Plane p(ZMath::Vec2D(min.x, min.y), ZMath::Vec2D(max.x, max.y), plane.sb.pos.z, plane.sb.theta - cube.rb.theta, plane.sb.phi - cube.rb.phi);
-
+        Primitives::Plane p(plane.getLocalMin(), plane.getLocalMax(), plane.sb.pos.z, plane.sb.theta - cube.rb.theta, plane.sb.phi - cube.rb.phi);
         return PlaneAndAABB(p, aabb);
     };
 
@@ -475,8 +440,8 @@ namespace Collisions {
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
         // rotate the center of the sphere into the UVW coordinates of our cube
-        ZMath::rotateXY(center, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(center, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXZ(center, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(center, cube.rb.pos, 360 - cube.rb.theta);
         
         // perform the check as if it was an AABB vs Sphere
         ZMath::Vec3D closest(center);
@@ -522,8 +487,8 @@ namespace Collisions {
 
         ZMath::Vec3D min1 = aabb.getMin(), max1 = aabb.getMax(), min2 = cube.getLocalMin(), max2 = cube.getLocalMax();
 
-        ZMath::rotateXY(min1, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(max1, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXZ(max1, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(min1, cube.rb.pos, 360 - cube.rb.theta);
 
         return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
     };

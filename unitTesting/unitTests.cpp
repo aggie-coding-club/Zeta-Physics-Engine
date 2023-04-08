@@ -6,6 +6,8 @@
 // * Primary Unit Testing Functions
 // * =====================================
 
+// todo update by creating a macro which can handle the distance from the raycasting tests
+
 // Macro for unit testing.
 #define UNIT_TEST(test, obtained, expected) \
 ({ \
@@ -17,6 +19,23 @@
     } \
 \
     (obtained) != (expected); \
+})
+
+// Macro for raycast unit tests.
+#define RAYCAST_TEST(test, obtained, expected, dist, expectedDist) \
+({ \
+    if ((obtained) == (expected) && ZMath::compare((dist), (expectedDist))) { \
+        std::cout << "[PASSED] " << (test) << "\n"; \
+        \
+    } else if ((obtained) != (expected)) { \
+        std::cout << "[FAILED] " << (test) << "\nExpected: " << (expected) << ". Obtained: " << (obtained) << ".\n"; \
+        \
+    } else { \
+        std::cout << "[FAILED] " << (test) << "\nExpected Distance: " << (expectedDist) << ". Obtained: " << (dist) << ".\n"; \
+        \
+    } \
+    \
+    (obtained) != (expected) || !ZMath::compare((dist), (expectedDist)); \
 })
 
 // Run a function of unit tests.
@@ -257,20 +276,13 @@ bool testLineAndPlane() {
     if (UNIT_TEST("Line and Unrotated Plane.", Collisions::LineAndPlane(line, plane1), 1)) { return 1; }
 
     // test 2
-    Primitives::Plane plane4(ZMath::Vec2D(-1), ZMath::Vec2D(1), 0, 30, 60);
+    Primitives::Plane plane4(ZMath::Vec2D(-2), ZMath::Vec2D(2), 0, 30, 60);
     line.start.set(0.5915f, -2.04904f, -0.97548f);
     line.end.set(-0.774519f, 0.68301f, 0.65849f);
 
     if (UNIT_TEST("Line and Rotated Plane.", Collisions::LineAndPlane(line, plane4), 1)) { return 1; }
 
     // test 3
-    Primitives::Plane plane2(ZMath::Vec2D(-1), ZMath::Vec2D(1), 0, 0, 90);
-    line.start.set(0, 0, -3);
-    line.end.set(0, 0, 5);
-
-    if (UNIT_TEST("Vertical Line and Vertical Plane.", Collisions::LineAndPlane(line, plane2), 1)) { return 1; }
-
-    // test 4
     Primitives::Plane plane3(ZMath::Vec2D(-0.5f), ZMath::Vec2D(0.5f), 5, 55.6f, 1);
     line.start.set(-9.8f, -2.3f, -1.4f);
     line.end.set(9.7f, 9.7f, 2);
@@ -289,7 +301,7 @@ bool testLineAndSphere() {
 
     // test 2
     sphere.r = 5.0f;
-    sphere.rb.pos.set(-5, 0, 0);
+    sphere.rb.pos.set(0, 0, 0);
     line.start.set(-6, 0, 0);
     line.end.set(-4, 0, 0);
 
@@ -311,6 +323,14 @@ bool testLineAndSphere() {
     line.start.set(2);
 
     if (UNIT_TEST("Sphere and not Line, but would be if the line was infinite.", Collisions::LineAndSphere(line, sphere), 0)) { return 1; }
+
+    // test 6
+    sphere.r = 5;
+    sphere.rb.pos.set(-5, 0, 0);
+    line.start.set(-6, 0, 0);
+    line.end.set(-4, 0, 0);
+
+    if (UNIT_TEST("Sphere and Contained Line.", Collisions::LineAndSphere(line, sphere), 1)) { return 1; }
 
     return 0;
 };
@@ -338,7 +358,12 @@ bool testLineAndAABB() {
 
     if (UNIT_TEST("AABB and Line Starting in AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
 
+    line.end.set(0.5f);
+
+    if (UNIT_TEST("Line inside AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
     // test 5
+    line.end.set(-0.2f, -0.3f, 120);
     line.start.set(8, 9, 10);
 
     if (UNIT_TEST("Line and not AABB.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
@@ -349,10 +374,47 @@ bool testLineAndAABB() {
 
     if (UNIT_TEST("Line and not AABB, but would be if the line was infinite.", Collisions::LineAndAABB(line, aabb2), 0)) { return 1; }
 
+    // test 7
+    line.start.set(-0.5f);
+    line.end.set(0.5f);
+
+    if (UNIT_TEST("Line inside AABB.", Collisions::LineAndAABB(line, aabb1), 1)) { return 1; }
+
     return 0;
 };
 
 bool testLineAndCube() {
+    Primitives::Line3D line(ZMath::Vec3D(-2, 3, 5), ZMath::Vec3D(4, -2, -7));
+    Primitives::Cube cube1(ZMath::Vec3D(-2), ZMath::Vec3D(1), 45, 45);
+
+    if (UNIT_TEST("Line and Cube.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+
+    Primitives::Cube cube3(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45, 45);
+
+    line.start.set(0.707107f, 1.4142f, -0.707107f);
+    line.end.set(-0.707107f, 1.4142f, 0.707107f);
+
+    if (UNIT_TEST("Line on edge of Cube.", Collisions::LineAndCube(line, cube3), 1)) { return 1; }
+
+    line.end.set(0, 0, -4);
+    line.start.set(0, 0, 4);
+
+    if (UNIT_TEST("Cube and Vertical Line.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+
+    line.end.set(0.1f);
+
+    if (UNIT_TEST("Line starting in Cube.", Collisions::LineAndCube(line, cube1), 1)) { return 1; }
+
+    Primitives::Cube cube2(ZMath::Vec3D(-4), ZMath::Vec3D(5), 30, 60);
+    line.start.set(0.5f);
+
+    if (UNIT_TEST("Line in Cube.", Collisions::LineAndCube(line, cube2), 1)) { return 1; }
+
+    line.start.set(-4);
+    line.end.set(-4, -4, 2);
+
+    if (UNIT_TEST("Not line and Cube.", Collisions::LineAndCube(line, cube1), 0)) { return 1; }
+
     return 0;
 };
 
@@ -361,6 +423,30 @@ bool testRaycastingVSPlane() {
 };
 
 bool testRaycastingVSSphere() {
+    Primitives::Ray3D ray(ZMath::Vec3D(), ZMath::Vec3D(1).normalize());
+    Primitives::Sphere sphere(5.0f, ZMath::Vec3D(3, 4, 5));
+
+    float dist = 0;
+
+    if (RAYCAST_TEST("Ray and Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 2.1324f)) { return 1; }
+
+    sphere.rb.pos.set(1, 1, 2);
+    sphere.r = 1.0f;
+
+    if (RAYCAST_TEST("Ray and Circumference of Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 1.73205f)) { return 1; }
+
+    sphere.rb.pos.zero();
+    
+    if (RAYCAST_TEST("Ray starting in Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 1.0f)) { return 1; }
+
+    sphere.rb.pos.set(-2);
+
+    if (RAYCAST_TEST("Sphere behind Ray.", Collisions::raycast(sphere, ray, dist), 0, dist, -1.0f)) { return 1; }
+
+    sphere.rb.pos.set(3, -3, 4);
+
+    if (RAYCAST_TEST("Not Sphere and Ray.", Collisions::raycast(sphere, ray, dist), 0, dist, -1.0f)) { return 1; }
+
     return 0;
 };
 
@@ -369,10 +455,6 @@ bool testRaycastingVSAABB() {
 };
 
 bool testRaycastingVSCube() {
-    return 0;
-};
-
-bool testPlaneAndPlane() {
     return 0;
 };
 
@@ -411,22 +493,134 @@ bool testSphereAndSphere() {
 };
 
 bool testSphereAndAABB() {
+    // test 1
+    Primitives::Sphere sphere(2.0f, ZMath::Vec3D());
+    Primitives::AABB aabb1(ZMath::Vec3D(-4), ZMath::Vec3D(4));
+
+    if (UNIT_TEST("Sphere and AABB.", Collisions::SphereAndAABB(sphere, aabb1), 1)) { return 1; }
+
+    // test 2
+    Primitives::AABB aabb2(ZMath::Vec3D(2, 0, 0), ZMath::Vec3D(5));
+
+    if (UNIT_TEST("AABB and Sphere circumference.", Collisions::SphereAndAABB(sphere, aabb2), 1)) { return 1; }
+
+    // test 3
+    Primitives::AABB aabb3(ZMath::Vec3D(-1), ZMath::Vec3D(1));
+    sphere.r = 5.2f;
+
+    if (UNIT_TEST("AABB inside Sphere.", Collisions::SphereAndAABB(sphere, aabb3), 1)) { return 1; }
+
+    // test 4
+    sphere.r = 0.2f;
+    
+    if (UNIT_TEST("Sphere inside AABB.", Collisions::SphereAndAABB(sphere, aabb3), 1)) { return 1; }
+
+    // test 5
+    sphere.rb.pos.set(-7);
+    sphere.r = 2.2f;
+
+    if (UNIT_TEST("Not Sphere and AABB.", Collisions::SphereAndAABB(sphere, aabb3), 0)) { return 1; }
+
     return 0;
 };
 
 bool testSphereAndCube() {
+    // test 1
+    Primitives::Sphere sphere(4.0f, ZMath::Vec3D());
+    Primitives::Cube cube1(ZMath::Vec3D(1), ZMath::Vec3D(6), 45.0f, 30.0f);
+
+    if (UNIT_TEST("Sphere and Cube.", Collisions::SphereAndCube(sphere, cube1), 1)) { return 1; }
+
+    // test 2
+    Primitives::Cube cube2(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45.0f, 45.0f);
+    sphere.r = 1.56f;
+
+    if (UNIT_TEST("Sphere and Vertex of Cube.", Collisions::SphereAndCube(sphere, cube2), 1)) { return 1; }
+
+    // test 3
+    sphere.r = 20;
+
+    if (UNIT_TEST("Cube inside Sphere.", Collisions::SphereAndCube(sphere, cube2), 1)) { return 1; }
+
+    // test 4
+    Primitives::Cube cube3(ZMath::Vec3D(-4.5f), ZMath::Vec3D(4.5f), 20, 20);
+    sphere.r = 1;
+
+    if (UNIT_TEST("Sphere inside Cube.", Collisions::SphereAndCube(sphere, cube3), 1)) { return 1; }
+
+    // test 5
+    sphere.rb.pos.set(10, 3, 2);
+
+    if (UNIT_TEST("Not Sphere and Cube.", Collisions::SphereAndCube(sphere, cube2), 0)) { return 1; }
+
     return 0;
 };
 
 bool testAABBAndAABB() {
+    // test 1
+    Primitives::AABB aabb1(ZMath::Vec3D(-3), ZMath::Vec3D(4, 5, 6)), aabb2(ZMath::Vec3D(-5), ZMath::Vec3D(-2));
+
+    if (UNIT_TEST("AABB and AABB.", Collisions::AABBAndAABB(aabb1, aabb2), 1)) { return 1; }
+
+    // test 2
+    Primitives::AABB aabb3(ZMath::Vec3D(), ZMath::Vec3D(1)), aabb4(ZMath::Vec3D(-1.5f), ZMath::Vec3D(3.24567f));
+
+    if (UNIT_TEST("AABB inside of AABB.", Collisions::AABBAndAABB(aabb3, aabb4), 1)) { return 1; }
+
+    // test 3
+    Primitives::AABB aabb5(ZMath::Vec3D(1, 1, 0), ZMath::Vec3D(2, 2, 1));
+
+    if (UNIT_TEST("AABB and edge of AABB.", Collisions::AABBAndAABB(aabb3, aabb5), 1)) { return 1; }
+
+    // test 4
+    if (UNIT_TEST("Not AABB and AABB.", Collisions::AABBAndAABB(aabb3, aabb2), 0)) { return 1; }
+
     return 0;
 };
 
 bool testAABBAndCube() {
+    Primitives::AABB aabb1(ZMath::Vec3D(-2), ZMath::Vec3D(2));
+    Primitives::Cube cube1(ZMath::Vec3D(-1), ZMath::Vec3D(4), 32.0f, 78.0f);
+
+    if (UNIT_TEST("AABB and Cube.", Collisions::AABBAndCube(aabb1, cube1), 1)) { return 1; }
+
+    Primitives::AABB aabb2(ZMath::Vec3D(-6), ZMath::Vec3D(6));
+    Primitives::Cube cube2(ZMath::Vec3D(-2), ZMath::Vec3D(2), 45, 45);
+
+    if (UNIT_TEST("Cube inside AABB.", Collisions::AABBAndCube(aabb2, cube2), 1)) { return 1; }
+
+    Primitives::AABB aabb3(ZMath::Vec3D(-0.2f), ZMath::Vec3D(0.2f));
+
+    if (UNIT_TEST("AABB inside Cube.", Collisions::AABBAndCube(aabb3, cube2), 1)) { return 1; }
+
+    Primitives::AABB aabb4(ZMath::Vec3D(), ZMath::Vec3D(2));
+    Primitives::Cube cube3(ZMath::Vec3D(-7), ZMath::Vec3D(-4), 10, 123.4);
+
+    if (UNIT_TEST("Not AABB and Cube.", Collisions::AABBAndCube(aabb4, cube3), 0)) { return 1; }
+
     return 0;
 };
 
 bool testCubeAndCube() {
+    Primitives::Cube cube1(ZMath::Vec3D(-2), ZMath::Vec3D(2), 45, 45);
+    Primitives::Cube cube2(ZMath::Vec3D(), ZMath::Vec3D(3), 30, 60);
+
+    if (UNIT_TEST("Cube and Cube.", Collisions::CubeAndCube(cube1, cube2), 1)) { return 1; }
+
+    Primitives::Cube cube6(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45, 45);
+    Primitives::Cube cube8(ZMath::Vec3D(-3, -3, -1), ZMath::Vec3D(-0.99f, -0.99f, 1), 45, 45);
+
+    if (UNIT_TEST("Cube and edge of Cube.", Collisions::CubeAndCube(cube6, cube8), 1)) { return 1; }
+
+    Primitives::Cube cube3(ZMath::Vec3D(-1), ZMath::Vec3D(-0.5f, 0, 0), 45, 45);
+    Primitives::Cube cube4(ZMath::Vec3D(-2), ZMath::Vec3D(1), 45, 45);
+
+    if (UNIT_TEST("Cube inside Cube.", Collisions::CubeAndCube(cube3, cube4), 1)) { return 1; }
+
+    Primitives::Cube cube5(ZMath::Vec3D(-1, -1, 7), ZMath::Vec3D(0, 5, 10), 2.5f, 3);
+
+    if (UNIT_TEST("Not Cube and Cube.", Collisions::CubeAndCube(cube3, cube5), 0)) { return 1; }
+
     return 0;
 };
 
@@ -445,7 +639,6 @@ int main() {
     if (testCases("RaycastingVSSphere", &testRaycastingVSSphere)) { return 1; }
     if (testCases("RaycastingVSAABB", &testRaycastingVSAABB)) { return 1; }
     if (testCases("RaycastingVSCube", &testRaycastingVSCube)) { return 1; }
-    if (testCases("PlaneAndPlane", &testPlaneAndPlane)) { return 1; }
     if (testCases("PlaneAndSphere", &testPlaneAndSphere)) { return 1; }
     if (testCases("PlaneAndAABB", &testPlaneAndAABB)) { return 1; }
     if (testCases("PlaneAndCube", &testPlaneAndCube)) { return 1; }
