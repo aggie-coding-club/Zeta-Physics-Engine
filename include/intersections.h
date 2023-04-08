@@ -339,6 +339,12 @@ namespace Collisions {
             return 0;
         }
 
+        // ray's origin is inside of the AABB.
+        if (tMin < 0) {
+            dist = tMax;
+            return 1;
+        }
+
         dist = tMin;
         return 1;
     };
