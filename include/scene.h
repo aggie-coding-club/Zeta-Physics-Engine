@@ -3,7 +3,7 @@
 
 #include "gunslinger/gs.h"
 #include <vector>
-#include "zmath.h"
+#include "bodies.h"
 
 #ifdef GS_PLATFORM_WEB
     #define GS_GL_VERSION_STR "#version 300 es\n"
@@ -13,48 +13,48 @@
 
 
 static float v_data[] = {
-        // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+        // positions          // normals           // texture coords    // color    
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,     
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f, 1.0f
 };
 
 static const char* v_src =
@@ -62,16 +62,19 @@ static const char* v_src =
     "layout(location = 0) in vec3 a_pos;\n"
     "layout(location = 1) in vec3 a_normal;\n"
     "layout(location = 2) in vec2 a_texcoord;\n"
+    "layout(location = 3) in vec4 a_color;\n"
     "uniform mat4 u_proj;\n"
     "uniform mat4 u_view;\n"
     "uniform mat4 u_model;\n"
     "out vec3 frag_pos;\n"
     "out vec3 normal;\n"
     "out vec2 tex_coord;\n"
+    "out vec4 color;\n"
     "void main() {\n"
     "   frag_pos = vec3(u_model * vec4(a_pos, 1.0));\n"
     "   normal = mat3(transpose(inverse(u_model))) * a_normal;\n"
     "   tex_coord = a_texcoord;\n"
+    "   color = a_color;\n"
     "   gl_Position = u_proj * u_view * vec4(frag_pos, 1.0);\n"
     "}\n";
 
@@ -82,6 +85,7 @@ static const char* f_src =
     "in vec3 frag_pos;\n"
     "in vec3 normal;\n"
     "in vec2 tex_coord;\n"
+    "in vec4 color;\n"
     "struct material_t {\n"
     "   sampler2D diffuse;\n"
     "   sampler2D specular;\n"
@@ -99,10 +103,11 @@ static const char* f_src =
     "uniform vec3 u_viewpos;\n"
     "uniform material_t u_material;\n"
     "uniform light_t u_light;\n"
+
     "void main() {\n"
    "    // ambient\n"
     // "   vec3 ambient = u_light.ambient * texture(u_material.diffuse, tex_coord).rgb;\n"
-    "   vec3 ambient = u_light.ambient * vec3(1.0f, 1.0f, 1.0f);\n"
+    "   vec3 ambient = u_light.ambient * vec3(color.r, color.g, color.b);\n"
     "                                                                           \n" 
     "   // diffuse\n"
     "   vec3 norm = normalize(normal);\n"
@@ -141,6 +146,57 @@ struct AppState{
 
 void DrawRectPrism(AppState *appState, gs_vec3 position, gs_vec3 scale, gs_vec4 color);
 void SetupScene(gs_camera_t cam);
-void UpdateScene(AppState *appState, gs_camera_t cam);
+void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices);
+
+#endif
+
+
+#if 0
+
+  float v_data_2[] = {
+                // positions          // normals           // texture coords    // color    
+                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,     
+                 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f
+            };  
+
 
 #endif
