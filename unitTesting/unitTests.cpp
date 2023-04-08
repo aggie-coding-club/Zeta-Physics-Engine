@@ -451,6 +451,35 @@ bool testRaycastingVSSphere() {
 };
 
 bool testRaycastingVSAABB() {
+    // todo calculate the values for the distances for the raycasts
+
+    Primitives::Ray3D ray(ZMath::Vec3D(1, 0, 0), ZMath::Vec3D(1).normalize());
+    Primitives::AABB aabb1(ZMath::Vec3D(1), ZMath::Vec3D(4));
+
+    float dist = 0;
+
+    if (RAYCAST_TEST("Ray and AABB.", Collisions::raycast(aabb1, ray, dist), 1, /*1.73205f*/0, dist)) { return 1; }
+
+    Primitives::AABB aabb2(ZMath::Vec3D(-2), ZMath::Vec3D(2));
+
+    // ! this one returns a negative distance when starting inside the AABB
+    if (RAYCAST_TEST("Ray starting in AABB.", Collisions::raycast(aabb2, ray, dist), 1, /*-3.464f*/0, dist)) { return 1; }
+
+    ray.origin.set(2, 2, -3);
+    ray.dir.set(0, 0, 1);
+
+    if (RAYCAST_TEST("Vertical Ray along AABB Edge.", Collisions::raycast(aabb2, ray, dist), 1, 1.0f, dist)) { return 1; }
+
+    ray.origin.zero();
+    ray.dir.set(ZMath::Vec3D(-1).normalize());
+
+    if (RAYCAST_TEST("AABB behind Ray.", Collisions::raycast(aabb1, ray, dist), 0, -1.0f, dist)) { return 1; }
+
+    ray.dir.set(1, 0, 0);
+    ray.origin.set(-1);
+
+    if (RAYCAST_TEST("Not AABB and Ray.", Collisions::raycast(aabb1, ray, dist), 0, -1.0f, dist)) { return 1; }
+
     return 0;
 };
 
