@@ -482,35 +482,47 @@ bool testRaycastingVSAABB() {
 
 bool testRaycastingVSCube() {
     // todo calculate the distances for the collisions for when utsawb finishes this function.
+    // ! will probably wait a bit to do this since it'll take a good bit of time
 
     Primitives::Ray3D ray(ZMath::Vec3D(), ZMath::Vec3D(1).normalize());
     Primitives::Cube cube1(ZMath::Vec3D(4), ZMath::Vec3D(6), 45, 45);
 
     float dist = 0;
 
+    // ! dist should be x, set the 0 after dist to x after making the function to test.
     if (RAYCAST_TEST("Ray and Cube.", Collisions::raycast(cube1, ray, dist), 1, dist, 0)) { return 1; }
 
     ray.origin.set(5);
 
+    // ! dist should be x, set the 0 after dist to x after making the function to test.
     if (RAYCAST_TEST("Ray starting in Cube.", Collisions::raycast(cube1, ray, dist), 1, dist, 0)) { return 1; }
 
+    // ! This one may have some sort of rounding errors associated with it so if you have continuous issues with this unit test
+    // ! don't be afraid to question the test itself (or if it's off by like a slight amount then dw about it and just say it's good enough)
     Primitives::Cube cube2(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45, 45);
-    ray.origin.set(1.4142f, -2.8284f, -1.4142f);
+    ray.origin.set(1.4142f, -1.4142f, -1.4142f);
+    ray.dir.set(ZMath::Vec3D(-0.70711f, 0, 0.70711f).normalize());
 
+    // ! dist should be x, set the 0 after dist to x after making the function to test.
     if (RAYCAST_TEST("Ray along edge of Cube.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
 
     ray.origin.set(0, 0, 4);
     ray.dir.set(0, 0, -1);
 
+    // ! dist should be x, set the 0 after dist to x after making the function to test.
     if (RAYCAST_TEST("Vertical Ray and Cube.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
 
     ray.dir.set(0, 0, 1);
 
+    // ! dist should be -1, set the 0 after dist to -1 after making the function to test.
+    // ! the 1 after the raycast function should also be a 0, change after making the function.
     if (RAYCAST_TEST("Cube behind Ray.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
 
     ray.origin.set(-7.5f);
     ray.dir.set(-1, 1, 1);
 
+    // ! dist should be -1, set the 0 after dist to -1 after making the function to test.
+    // ! the 1 after the raycast function should also be a 0, change after making the function.
     if (RAYCAST_TEST("Not Cube and Ray.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
 
     return 0;
