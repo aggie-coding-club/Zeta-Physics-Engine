@@ -352,7 +352,7 @@ namespace Collisions {
     // Determine if a ray intersects a cube.
     // dist will be modified to equal the distance from the ray it hits the cube.
     // dist is set to -1 if there is no intersection.
-    bool raycast(Primitives::Cube const &cube, Primitives::Ray3D const &ray, float &dist) {};
+    bool raycast(Primitives::Cube const &cube, Primitives::Ray3D const &ray, float &dist) { return 1; };
 
     // * ===================================
     // * Plane vs Primitives
