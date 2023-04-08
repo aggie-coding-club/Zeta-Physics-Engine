@@ -18,7 +18,7 @@ typedef struct fps_camera_t {
     gs_camera_t cam;
 } fps_camera_t;
 
-Primitives::Cube our_cube(ZMath::Vec3D(-2, -2, -2), ZMath::Vec3D(2, 2, 2), 45, 45);
+Primitives::Cube our_cube(ZMath::Vec3D(-5, -5, -5), ZMath::Vec3D(5, 5, 5), 0, 35);
 Primitives::Sphere our_sphere(0, ZMath::Vec3D(2, 2, 2));
 
 gs_command_buffer_t cb = {0};
@@ -32,10 +32,7 @@ void init() {
     cb = gs_command_buffer_new();
     gsi = gs_immediate_draw_new();
     fps.cam = gs_camera_perspective();
-    fps.cam.transform.position = gs_v3(4.f, 2.f, 4.f);
-
-    DrawRectPrism(&appState,  {1, 1, 2}, {4, 2, 4}, {1.0f, 0.0f, 0.0f, 1.0f});
-    DrawRectPrism(&appState,  {1, 4, 2}, {4, 2, 4}, {0.0f, 1.0f, 0.0f, 1.0f});
+    fps.cam.transform.position = gs_v3(4.f, 10.f, 20.f);
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
     SetupScene(fps.cam);
@@ -95,7 +92,7 @@ void update() {
 
     // Update the cube
     if (dt >= 0.0167f) {
-        our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
+        // our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
         our_cube.rb.phi -= (1.5f * (int)(dt/0.0167f));
         dt -= (float)(int)(dt/0.0167f) * 0.0167;
     }
@@ -151,6 +148,8 @@ void update() {
 
     
     // scene
+    DrawRectPrism(&appState, our_cube.getVertices(), {8, 1, 2}, {0.0f, 1.0f, 1.0f, 1.0f});
+    DrawRectPrism(&appState, our_cube.getVertices(), {1, 1, 2}, {1.0f, 1.0f, 1.0f, 1.0f});
     UpdateScene(&appState, fps.cam, our_cube.getVertices());
 
     dt += gs_platform_delta_time();

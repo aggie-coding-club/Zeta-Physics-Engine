@@ -71,7 +71,8 @@ static const char* v_src =
     "out vec2 tex_coord;\n"
     "out vec4 color;\n"
     "void main() {\n"
-    "   frag_pos = vec3(u_model * vec4(a_pos, 1.0));\n"
+    // "   frag_pos = vec3(u_model * vec4(a_pos, 1.0));\n"
+    "   frag_pos = vec3(vec4(a_pos, 1.0));\n"
     "   normal = mat3(transpose(inverse(u_model))) * a_normal;\n"
     "   tex_coord = a_texcoord;\n"
     "   color = a_color;\n"
@@ -136,15 +137,15 @@ static const char* f_src =
 
 struct RectPrism{
     gs_vec3 position;
-    gs_vec3 scale;
     gs_vec4 color;
+    ZMath::Vec3D* vertices;
 };
 
 struct AppState{
     std::vector<RectPrism> rectPrisms;
 };
 
-void DrawRectPrism(AppState *appState, gs_vec3 position, gs_vec3 scale, gs_vec4 color);
+void DrawRectPrism(AppState *appState, ZMath::Vec3D* vertices, gs_vec3 position, gs_vec4 color);
 void SetupScene(gs_camera_t cam);
 void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices);
 
@@ -153,50 +154,56 @@ void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices);
 
 #if 0
 
-  float v_data_2[] = {
-                // positions          // normals           // texture coords    // color    
-                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,     
-                 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+ float v_data_2[] = {
+            // positions                                    // normals           // texture coords    // color    
+            // left
+            vertices[0].x + pos.x, vertices[0].y + pos.y, vertices[0].z + pos.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,     
+            vertices[1].x + pos.x, vertices[1].y + pos.y, vertices[1].z + pos.z,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[5].x + pos.x, vertices[5].y + pos.y, vertices[5].z + pos.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[5].x + pos.x, vertices[5].y + pos.y, vertices[5].z + pos.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[1].x + pos.x, vertices[1].y + pos.y, vertices[1].z + pos.z,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[4].x + pos.x, vertices[4].y + pos.y, vertices[4].z + pos.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
 
-                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+            // right
+            vertices[3].x + pos.x, vertices[3].y + pos.y, vertices[3].z + pos.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[2].x + pos.x, vertices[2].y + pos.y, vertices[2].z + pos.z,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[6].x + pos.x, vertices[6].y + pos.y, vertices[6].z + pos.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[6].x + pos.x, vertices[6].y + pos.y, vertices[6].z + pos.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[7].x + pos.x, vertices[7].y + pos.y, vertices[7].z + pos.z,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[2].x + pos.x, vertices[2].y + pos.y, vertices[2].z + pos.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
 
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+            // top
+            vertices[5].x + pos.x, vertices[5].y + pos.y, vertices[5].z + pos.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[4].x + pos.x, vertices[4].y + pos.y, vertices[4].z + pos.z, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[7].x + pos.x, vertices[7].y + pos.y, vertices[7].z + pos.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[7].x + pos.x, vertices[7].y + pos.y, vertices[7].z + pos.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[6].x + pos.x, vertices[6].y + pos.y, vertices[6].z + pos.z, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[5].x + pos.x, vertices[5].y + pos.y, vertices[5].z + pos.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
 
-                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+            // bottom
+            vertices[0].x + pos.x, vertices[0].y + pos.y, vertices[0].z + pos.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[1].x + pos.x, vertices[1].y + pos.y, vertices[1].z + pos.z,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[2].x + pos.x, vertices[2].y + pos.y, vertices[2].z + pos.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[2].x + pos.x, vertices[2].y + pos.y, vertices[2].z + pos.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[0].x + pos.x, vertices[0].y + pos.y, vertices[0].z + pos.z,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[3].x + pos.x, vertices[3].y + pos.y, vertices[3].z + pos.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
 
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f
-            };  
+            // back
+            vertices[0].x + pos.x, vertices[0].y + pos.y, vertices[0].z + pos.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[5].x + pos.x, vertices[5].y + pos.y, vertices[5].z + pos.z,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[6].x + pos.x, vertices[6].y + pos.y, vertices[6].z + pos.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[6].x + pos.x, vertices[6].y + pos.y, vertices[6].z + pos.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[0].x + pos.x, vertices[0].y + pos.y, vertices[0].z + pos.z,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[3].x + pos.x, vertices[3].y + pos.y, vertices[3].z + pos.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            
+            // front
+            vertices[1].x + pos.x, vertices[1].y + pos.y, vertices[1].z + pos.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[4].x + pos.x, vertices[4].y + pos.y, vertices[4].z + pos.z,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[2].x + pos.x, vertices[2].y + pos.y, vertices[2].z + pos.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[2].x + pos.x, vertices[2].y + pos.y, vertices[2].z + pos.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[4].x + pos.x, vertices[4].y + pos.y, vertices[4].z + pos.z,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     color.x, color.y, color.z, 1.0f,
+            vertices[7].x + pos.x, vertices[7].y + pos.y, vertices[7].z + pos.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color.x, color.y, color.z, 1.0f
+        };  
 
 
 #endif

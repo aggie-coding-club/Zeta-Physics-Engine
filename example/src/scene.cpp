@@ -226,6 +226,7 @@ void SetupScene(gs_camera_t cam){
     pip = gs_graphics_pipeline_create (&graphics_description);
 }
 
+#define MAX_VBOS 10
 void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices){
     
 
@@ -257,8 +258,131 @@ void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices){
         .shininess = 100.f
     };
 
-    gs_graphics_bind_vertex_buffer_desc_t vbo_desc = {};
-    vbo_desc.buffer = vbo;
+    gs_graphics_bind_vertex_buffer_desc_t vbos[1] = {};
+
+    // create vbos
+    // for(int i = 0; i < appState->rectPrisms.size(); i++){
+    {
+
+        RectPrism prism_one = appState->rectPrisms.at(0);
+        gs_vec4 color_one = prism_one.color;
+        gs_vec3 pos_one = prism_one.position;
+
+        vertices = prism_one.vertices;
+
+        RectPrism prism_two = appState->rectPrisms.at(1);
+        gs_vec4 color_two = prism_two.color;
+        gs_vec3 pos_two = prism_two.position;
+        
+        // TODO: automate this
+        float v_data_2[] = {
+            // positions                                    // normals           // texture coords    // color    
+            // left
+            vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,     
+            vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+
+            // right
+            vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+
+            // top
+            vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+
+            // bottom
+            vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+
+            // back
+            vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            
+            // front
+            vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+            vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,
+        
+        
+            ////  second cube
+               // left
+            vertices[0].x + pos_two.x, vertices[0].y + pos_two.y, vertices[0].z + pos_two.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,     
+            vertices[1].x + pos_two.x, vertices[1].y + pos_two.y, vertices[1].z + pos_two.z,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[5].x + pos_two.x, vertices[5].y + pos_two.y, vertices[5].z + pos_two.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[5].x + pos_two.x, vertices[5].y + pos_two.y, vertices[5].z + pos_two.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[1].x + pos_two.x, vertices[1].y + pos_two.y, vertices[1].z + pos_two.z,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[4].x + pos_two.x, vertices[4].y + pos_two.y, vertices[4].z + pos_two.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+
+            // right
+            vertices[3].x + pos_two.x, vertices[3].y + pos_two.y, vertices[3].z + pos_two.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[2].x + pos_two.x, vertices[2].y + pos_two.y, vertices[2].z + pos_two.z,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[6].x + pos_two.x, vertices[6].y + pos_two.y, vertices[6].z + pos_two.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[6].x + pos_two.x, vertices[6].y + pos_two.y, vertices[6].z + pos_two.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[7].x + pos_two.x, vertices[7].y + pos_two.y, vertices[7].z + pos_two.z,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[2].x + pos_two.x, vertices[2].y + pos_two.y, vertices[2].z + pos_two.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+
+            // top
+            vertices[5].x + pos_two.x, vertices[5].y + pos_two.y, vertices[5].z + pos_two.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[4].x + pos_two.x, vertices[4].y + pos_two.y, vertices[4].z + pos_two.z, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[7].x + pos_two.x, vertices[7].y + pos_two.y, vertices[7].z + pos_two.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[7].x + pos_two.x, vertices[7].y + pos_two.y, vertices[7].z + pos_two.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[6].x + pos_two.x, vertices[6].y + pos_two.y, vertices[6].z + pos_two.z, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[5].x + pos_two.x, vertices[5].y + pos_two.y, vertices[5].z + pos_two.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+
+            // bottom
+            vertices[0].x + pos_two.x, vertices[0].y + pos_two.y, vertices[0].z + pos_two.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[1].x + pos_two.x, vertices[1].y + pos_two.y, vertices[1].z + pos_two.z,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[2].x + pos_two.x, vertices[2].y + pos_two.y, vertices[2].z + pos_two.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[2].x + pos_two.x, vertices[2].y + pos_two.y, vertices[2].z + pos_two.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[0].x + pos_two.x, vertices[0].y + pos_two.y, vertices[0].z + pos_two.z,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[3].x + pos_two.x, vertices[3].y + pos_two.y, vertices[3].z + pos_two.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+
+            // back
+            vertices[0].x + pos_two.x, vertices[0].y + pos_two.y, vertices[0].z + pos_two.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[5].x + pos_two.x, vertices[5].y + pos_two.y, vertices[5].z + pos_two.z,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[6].x + pos_two.x, vertices[6].y + pos_two.y, vertices[6].z + pos_two.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[6].x + pos_two.x, vertices[6].y + pos_two.y, vertices[6].z + pos_two.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[0].x + pos_two.x, vertices[0].y + pos_two.y, vertices[0].z + pos_two.z,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[3].x + pos_two.x, vertices[3].y + pos_two.y, vertices[3].z + pos_two.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            
+            // front
+            vertices[1].x + pos_two.x, vertices[1].y + pos_two.y, vertices[1].z + pos_two.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[4].x + pos_two.x, vertices[4].y + pos_two.y, vertices[4].z + pos_two.z,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[2].x + pos_two.x, vertices[2].y + pos_two.y, vertices[2].z + pos_two.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[2].x + pos_two.x, vertices[2].y + pos_two.y, vertices[2].z + pos_two.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[4].x + pos_two.x, vertices[4].y + pos_two.y, vertices[4].z + pos_two.z,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     color_two.x, color_two.y, color_two.z, 1.0f,
+            vertices[7].x + pos_two.x, vertices[7].y + pos_two.y, vertices[7].z + pos_two.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color_two.x, color_two.y, color_two.z, 1.0f
+        };  
+
+        gs_graphics_vertex_buffer_desc_t vb_desc  = {};
+
+        vb_desc.data = v_data_2;
+        vb_desc.size = sizeof(v_data_2);
+
+        vbos[0].buffer = gs_graphics_vertex_buffer_create(&vb_desc);  
+    }
 
     // Uniform bindings that don't change per object
     gs_graphics_bind_uniform_desc_t uniforms[5] = {};
@@ -269,7 +393,7 @@ void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices){
     uniforms[4] = {u_material, &mat, 0};
 
     binds = {
-        .vertex_buffers = {.desc = &vbo_desc},
+        .vertex_buffers = {.desc = vbos, .size = sizeof(vbos)},
         .uniforms = {.desc = uniforms, .size = sizeof(uniforms)}
     };
 
@@ -289,94 +413,44 @@ void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices){
         gs_graphics_set_viewport(&commandBuffer, 0, 0, (uint32_t)fs.x, (uint32_t)fs.y);
         gs_graphics_clear(&commandBuffer, &clear);
         gs_graphics_apply_bindings(&commandBuffer, &binds);
-
-        gs_vec3 test_cube_pos = {0.0f, 0.0f, 0.0f};
-
-        int cubesCount = 3;
-        for(int i = 0; i < appState->rectPrisms.size(); i++){
-
-            RectPrism prism = appState->rectPrisms.at(i);
-
+        
+        // for(int i = 0; i < 2; i++){
+        //     RectPrism prism = appState->rectPrisms.at(i);
             
-            float v_data_2[] = {
-                // positions                                    // normals           // texture coords    // color    
-                vertices[0].x, vertices[0].y, vertices[0].z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,     
-                 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-
-                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
-
-                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f
-            };  
-
-            // Construct vertex buffer
-            gs_graphics_vertex_buffer_desc_t vb_desc  = {};
-
-            vb_desc.data = v_data_2;
-            vb_desc.size = sizeof(v_data_2);
-
-            gs_graphics_vertex_buffer_update_impl(vbo, &vb_desc);
-
-            gs_mat4 model = gs_mat4_translate(prism.position.x, prism.position.y, prism.position.z);
+        //     // gs_mat4 model = gs_mat4_translate(prism.position.x, prism.position.y, prism.position.z);
             
-            model = gs_mat4_mul(model, gs_mat4_scale(prism.scale.x, prism.scale.y, prism.scale.z));
-
-            gs_graphics_bind_uniform_desc_t uniform_bind_desc = {};
-            uniform_bind_desc.uniform = u_model;
-            uniform_bind_desc.data = &model;
-
-            gs_graphics_bind_desc_t model_binds = {};
-            model_binds.uniforms.desc = &uniform_bind_desc;
+        //     // model = gs_mat4_mul(model, gs_mat4_scale(prism.scale.x, prism.scale.y, prism.scale.z));
             
-            gs_graphics_apply_bindings(&commandBuffer, &model_binds);
+        //     gs_mat4 model = gs_mat4_scale(prism.scale.x, prism.scale.y, prism.scale.z);
+
+        //     gs_graphics_bind_uniform_desc_t uniform_bind_desc = {};
+        //     uniform_bind_desc.uniform = u_model;
+        //     uniform_bind_desc.data = &model;
+
+        //     gs_graphics_bind_desc_t model_binds = {};
+        //     model_binds.uniforms.desc = &uniform_bind_desc;
+            
+        //     gs_graphics_apply_bindings(&commandBuffer, &model_binds);
+        // }
             gs_graphics_draw_desc_t draw_desc = {};
             draw_desc.start = 0;
-            draw_desc.count = 36;
+            draw_desc.count = 72;
             gs_graphics_draw(&commandBuffer, &draw_desc);
-        }
-    }
-
-    gs_graphics_renderpass_end(&commandBuffer);
+    } gs_graphics_renderpass_end(&commandBuffer);
 
     // Submit command buffer (syncs to GPU, MUST be done on main thread where you have your GPU context created)
     gs_graphics_command_buffer_submit(&commandBuffer);
+
+    // destroy vbos
+    for(int i = 0; i < appState->rectPrisms.size(); i++){
+        gs_graphics_vertex_buffer_destroy_impl(vbos[i].buffer);
+    }
+
+    
+    appState->rectPrisms.clear(); // Note (Lenny) : must clear
 }
 
 
-void DrawRectPrism(AppState *appState,  gs_vec3 position, gs_vec3 scale, gs_vec4 color){
-    appState->rectPrisms.push_back({position, scale, color});
+void DrawRectPrism(AppState *appState, ZMath::Vec3D* vertices, gs_vec3 position, gs_vec4 color){
+    appState->rectPrisms.push_back({position, color, vertices});
 }
