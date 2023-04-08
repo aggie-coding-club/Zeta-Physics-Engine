@@ -481,6 +481,38 @@ bool testRaycastingVSAABB() {
 };
 
 bool testRaycastingVSCube() {
+    // todo calculate the distances for the collisions for when utsawb finishes this function.
+
+    Primitives::Ray3D ray(ZMath::Vec3D(), ZMath::Vec3D(1).normalize());
+    Primitives::Cube cube1(ZMath::Vec3D(4), ZMath::Vec3D(6), 45, 45);
+
+    float dist = 0;
+
+    if (RAYCAST_TEST("Ray and Cube.", Collisions::raycast(cube1, ray, dist), 1, dist, 0)) { return 1; }
+
+    ray.origin.set(5);
+
+    if (RAYCAST_TEST("Ray starting in Cube.", Collisions::raycast(cube1, ray, dist), 1, dist, 0)) { return 1; }
+
+    Primitives::Cube cube2(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45, 45);
+    ray.origin.set(1.4142f, -2.8284f, -1.4142f);
+
+    if (RAYCAST_TEST("Ray along edge of Cube.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
+
+    ray.origin.set(0, 0, 4);
+    ray.dir.set(0, 0, -1);
+
+    if (RAYCAST_TEST("Vertical Ray and Cube.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
+
+    ray.dir.set(0, 0, 1);
+
+    if (RAYCAST_TEST("Cube behind Ray.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
+
+    ray.origin.set(-7.5f);
+    ray.dir.set(-1, 1, 1);
+
+    if (RAYCAST_TEST("Not Cube and Ray.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
+
     return 0;
 };
 
