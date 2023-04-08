@@ -10,6 +10,7 @@
 
 #include "primitives.h"
 #include "scene.h"
+#include "scene.cpp"
 
 typedef struct fps_camera_t {
     float pitch;
@@ -18,7 +19,7 @@ typedef struct fps_camera_t {
 } fps_camera_t;
 
 Primitives::Cube our_cube(ZMath::Vec3D(-2, -2, -2), ZMath::Vec3D(2, 2, 2), 45, 45);
-Primitives::Sphere our_sphere(0, ZMath::Vec3D(0,0,0));
+Primitives::Sphere our_sphere(0, ZMath::Vec3D(2, 2, 2));
 
 gs_command_buffer_t cb = {0};
 gs_immediate_draw_t gsi = {0};
@@ -35,11 +36,6 @@ void init() {
 
     DrawRectPrism(&appState,  {1, 1, 2}, {4, 2, 4}, {1.0f, 0.0f, 0.0f, 1.0f});
     DrawRectPrism(&appState,  {1, 4, 2}, {4, 2, 4}, {0.0f, 1.0f, 0.0f, 1.0f});
-
-
-    // our_cube = Primitives::Cube(ZMath::Vec3D(-2, -2, -2), ZMath::Vec3D(2, 2, 2), 45, 45);
-
-    // our_sphere = Primitives::Sphere();
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
     SetupScene(fps.cam);
@@ -155,7 +151,7 @@ void update() {
 
     
     // scene
-    // UpdateScene(&appState, fps.cam, our_cube.getVertices());
+    UpdateScene(&appState, fps.cam, our_cube.getVertices());
 
     dt += gs_platform_delta_time();
 }

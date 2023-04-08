@@ -214,19 +214,22 @@ void SetupScene(gs_camera_t cam){
 
     graphics_description.depth.func = GS_GRAPHICS_DEPTH_FUNC_LESS;
 
-    gs_graphics_vertex_attribute_desc_t vertex_attrs[3] = {};
+    gs_graphics_vertex_attribute_desc_t vertex_attrs[4] = {};
     vertex_attrs[0].format = GS_GRAPHICS_VERTEX_ATTRIBUTE_FLOAT3; // Position
     vertex_attrs[1].format = GS_GRAPHICS_VERTEX_ATTRIBUTE_FLOAT3; // Normal
     vertex_attrs[2].format = GS_GRAPHICS_VERTEX_ATTRIBUTE_FLOAT2; // TexCoord
+    vertex_attrs[3].format = GS_GRAPHICS_VERTEX_ATTRIBUTE_FLOAT4; // Color
     
     graphics_description.layout.attrs = vertex_attrs;
-    graphics_description.layout.size = 3 * sizeof(gs_graphics_vertex_attribute_desc_t);
+    graphics_description.layout.size = 4 * sizeof(gs_graphics_vertex_attribute_desc_t);
 
     pip = gs_graphics_pipeline_create (&graphics_description);
 }
 
-void UpdateScene(AppState *appState, gs_camera_t cam){
+void UpdateScene(AppState *appState, gs_camera_t cam, ZMath::Vec3D *vertices){
     
+
+
     gs_vec2 fs = gs_platform_framebuffer_sizev(gs_platform_main_window());
     gs_vec2 ws = gs_platform_window_sizev(gs_platform_main_window());
     const float t = gs_platform_elapsed_time() * 0.001f;
@@ -293,6 +296,60 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
         for(int i = 0; i < appState->rectPrisms.size(); i++){
 
             RectPrism prism = appState->rectPrisms.at(i);
+
+            
+            float v_data_2[] = {
+                // positions                                    // normals           // texture coords    // color    
+                vertices[0].x, vertices[0].y, vertices[0].z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,     
+                 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 0.0f, 0.0f, 1.0f,
+
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     rad, 1.0f, 0.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     rad, 1.0f, 0.0f, 1.0f
+            };  
+
+            // Construct vertex buffer
+            gs_graphics_vertex_buffer_desc_t vb_desc  = {};
+
+            vb_desc.data = v_data_2;
+            vb_desc.size = sizeof(v_data_2);
+
+            gs_graphics_vertex_buffer_update_impl(vbo, &vb_desc);
 
             gs_mat4 model = gs_mat4_translate(prism.position.x, prism.position.y, prism.position.z);
             
