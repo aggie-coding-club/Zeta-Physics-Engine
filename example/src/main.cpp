@@ -32,7 +32,7 @@ void init() {
     cb = gs_command_buffer_new();
     gsi = gs_immediate_draw_new();
     fps.cam = gs_camera_perspective();
-    fps.cam.transform.position = gs_v3(4.f, 10.f, 20.f);
+    fps.cam.transform.position = gs_v3(4.f, 30.f, 20.f);
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
     SetupScene(fps.cam);
@@ -62,7 +62,7 @@ void fps_camera_update(fps_camera_t* fps)
     // For a non-flying first person camera, need to lock the y movement velocity
     vel.y = 0.f;
 
-    fps->cam.transform.position = gs_vec3_add(fps->cam.transform.position, gs_vec3_scale(gs_vec3_norm(vel), dt * 5 * mod));
+    fps->cam.transform.position = gs_vec3_add(fps->cam.transform.position, gs_vec3_scale(gs_vec3_norm(vel), dt * 40 * mod));
 
     // // If moved, then we'll "bob" the camera some
     // if (gs_vec3_len(vel) != 0.f) {
@@ -147,10 +147,24 @@ void update() {
     #endif
 
     
+    DrawRectPrism(&appState, our_cube.getVertices(), {0, 10, 0}, {0, 0, 0, 1.0f});
+
     // scene
-    DrawRectPrism(&appState, our_cube.getVertices(), {8, 1, 2}, {0.0f, 1.0f, 1.0f, 1.0f});
-    DrawRectPrism(&appState, our_cube.getVertices(), {1, 1, 2}, {1.0f, 1.0f, 1.0f, 1.0f});
-    UpdateScene(&appState, fps.cam, our_cube.getVertices());
+    float space = 15;
+    int index = 0;
+    gs_vec3 position = { space * 5 , 0, -5 * space};
+    for(int i = 0; i < 100; i++){
+        for(int j = 0; j < 100; j++){
+            position.x -= space;
+
+            DrawRectPrism(&appState, our_cube.getVertices(), position, {rand_colors[index].x / 255.0f, rand_colors[index].y / 255.0f,rand_colors[index].z / 255.0f, 1.0f});
+            index++;
+        }
+        position.z += space;
+        position.x = space * 5;
+    }
+    // DrawRectPrism(&appState, our_cube.getVertices(), {1, 1, 2}, {1.0f, 1.0f, 1.0f, 1.0f});
+    UpdateScene(&appState, fps.cam);
 
     dt += gs_platform_delta_time();
 }
