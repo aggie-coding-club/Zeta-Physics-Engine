@@ -1,4 +1,4 @@
-#include "scene.h"
+#include "graphics_layer.h"
 
 gs_command_buffer_t commandBuffer = {};
 gs_graphics_bind_desc_t binds = {};
@@ -227,8 +227,6 @@ void SetupScene(gs_camera_t cam){
 #define MAX_VBOS 10
 void UpdateScene(AppState *appState, gs_camera_t cam){
     
-
-
     gs_vec2 fs = gs_platform_framebuffer_sizev(gs_platform_main_window());
     gs_vec2 ws = gs_platform_window_sizev(gs_platform_main_window());
     const float t = gs_platform_elapsed_time() * 0.001f;
@@ -240,10 +238,10 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
 
     // Construct light data to submit
     light_params_t light = {
-        // .position = gs_v3(sin(t) * rad, 1.f, cos(t) * rad),
-        .position = gs_v3(0,50,0),
-        .ambient = gs_v3(100.0f, 100.0f, 100.0f),
-        .diffuse = gs_v3(1.0f, 0.5f, 0.5f),
+        .position = gs_v3(30,50, 30),
+        .ambient = gs_v3(55.0f, 55.0f, 55.0f),
+        .diffuse = gs_v3(50.0f, 50.5f, 50.5f),
+        
         .specular = gs_v3(1.f, 1.f, 1.f),
         .constant = 1.f,
         .linear = 0.09f,
@@ -254,75 +252,68 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
     material_params_t mat = {
         .diffuse = t_diffuse,
         .specular = t_specular,
-        .shininess = 100.f
+        .shininess = 10.f
     };
 
-    // gs_graphics_bind_vertex_buffer_desc_t vbos[1] = {};
-
     std::vector<RectPrismData> rectPrisms;
-
     // create vbos
     for(int i = 0; i < appState->rectPrisms.size(); i++){
 
-        RectPrism prism_one = appState->rectPrisms.at(i);
-        gs_vec4 color_one = prism_one.color;
-        gs_vec3 pos_one = prism_one.position;
+        RectPrism prism = appState->rectPrisms.at(i);
+        gs_vec4 color_one = prism.color;
+        gs_vec3 pos_one = prism.position;
 
-        ZMath::Vec3D *vertices = prism_one.vertices;
-
-        // RectPrism prism_two = appState->rectPrisms.at(1);
-        // gs_vec4 color_two = prism_two.color;
-        // gs_vec3 pos_two = prism_two.position;
+        ZMath::Vec3D *vertices = prism.vertices;
 
         rectPrisms.push_back({});
 
-        // left
-        rectPrisms[i].leftVertices[0] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};     
-        rectPrisms[i].leftVertices[1] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
-        rectPrisms[i].leftVertices[2] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
-        rectPrisms[i].leftVertices[3] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
-        rectPrisms[i].leftVertices[4] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
-        rectPrisms[i].leftVertices[5] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
+        // left                          // position                                                                        normal               texure coord
+        rectPrisms[i].leftVertices[0] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  -1.0f,  0.0f, -1.0f,     0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};     
+        rectPrisms[i].leftVertices[1] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  -1.0f,  0.0f, -1.0f,     1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
+        rectPrisms[i].leftVertices[2] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  -1.0f,  0.0f, -1.0f,     1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
+        rectPrisms[i].leftVertices[3] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  -1.0f,  0.0f, -1.0f,     1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
+        rectPrisms[i].leftVertices[4] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  -1.0f,  0.0f, -1.0f,     0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
+        rectPrisms[i].leftVertices[5] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  -1.0f,  0.0f, -1.0f,     0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f,};
 
         // right
-        rectPrisms[i].rightVertices[0] = {vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].rightVertices[1] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].rightVertices[2] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].rightVertices[3] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].rightVertices[4] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].rightVertices[5] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].rightVertices[0] = {vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  1.0f,  0.0f,  0.0f,     0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].rightVertices[1] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  1.0f,  0.0f,  0.0f,     1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].rightVertices[2] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  1.0f,  0.0f,  0.0f,     1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].rightVertices[3] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  1.0f,  0.0f,  0.0f,     1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].rightVertices[4] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z,  1.0f,  0.0f,  0.0f,     0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].rightVertices[5] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  1.0f,  0.0f,  0.0f,     0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
 
         // top
-        rectPrisms[i].topVertices[0] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].topVertices[1] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].topVertices[2] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].topVertices[3] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].topVertices[4] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].topVertices[5] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].topVertices[0] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z, 0.0f,  1.0f,  0.0f,       1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].topVertices[1] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z, 0.0f,  1.0f,  0.0f,       1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].topVertices[2] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z, 0.0f,  1.0f,  0.0f,       0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].topVertices[3] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z, 0.0f,  1.0f,  0.0f,       0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].topVertices[4] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z, 0.0f,  1.0f,  0.0f,       0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].topVertices[5] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z, 0.0f,  1.0f,  0.0f,       1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
 
         // bottom
-        rectPrisms[i].bottomVertices[0] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].bottomVertices[1] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].bottomVertices[2] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].bottomVertices[3] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].bottomVertices[4] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].bottomVertices[5] = {vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].bottomVertices[0] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f,  -1.0f,  0.0f,    1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].bottomVertices[1] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  -1.0f,  0.0f,    1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].bottomVertices[2] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  -1.0f,  0.0f,    0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].bottomVertices[3] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  -1.0f,  0.0f,    0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].bottomVertices[4] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f,  -1.0f,  0.0f,    0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].bottomVertices[5] = {vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  0.0f,  -1.0f,  0.0f,    1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
 
         // back
-        rectPrisms[i].backVertices[0] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].backVertices[1] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].backVertices[2] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].backVertices[3] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].backVertices[4] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].backVertices[5] = {vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].backVertices[0] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f, 0.0f,  -1.0f,      0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].backVertices[1] = {vertices[5].x + pos_one.x, vertices[5].y + pos_one.y, vertices[5].z + pos_one.z,  0.0f, 0.0f,  -1.0f,      1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].backVertices[2] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f, 0.0f,  -1.0f,      1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].backVertices[3] = {vertices[6].x + pos_one.x, vertices[6].y + pos_one.y, vertices[6].z + pos_one.z,  0.0f, 0.0f,  -1.0f,      1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].backVertices[4] = {vertices[0].x + pos_one.x, vertices[0].y + pos_one.y, vertices[0].z + pos_one.z,  0.0f, 0.0f,  -1.0f,      0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].backVertices[5] = {vertices[3].x + pos_one.x, vertices[3].y + pos_one.y, vertices[3].z + pos_one.z,  0.0f, 0.0f,  -1.0f,      0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
         
         // front
-        rectPrisms[i].frontVertices[0] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].frontVertices[1] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].frontVertices[2] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].frontVertices[3] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].frontVertices[4] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
-        rectPrisms[i].frontVertices[5] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].frontVertices[0] = {vertices[1].x + pos_one.x, vertices[1].y + pos_one.y, vertices[1].z + pos_one.z,  0.0f,  0.0f,  1.0f,     0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].frontVertices[1] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  0.0f,  1.0f,     1.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].frontVertices[2] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  0.0f,  1.0f,     1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].frontVertices[3] = {vertices[2].x + pos_one.x, vertices[2].y + pos_one.y, vertices[2].z + pos_one.z,  0.0f,  0.0f,  1.0f,     1.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].frontVertices[4] = {vertices[4].x + pos_one.x, vertices[4].y + pos_one.y, vertices[4].z + pos_one.z,  0.0f,  0.0f,  1.0f,     0.0f,  0.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
+        rectPrisms[i].frontVertices[5] = {vertices[7].x + pos_one.x, vertices[7].y + pos_one.y, vertices[7].z + pos_one.z,  0.0f,  0.0f,  1.0f,     0.0f,  1.0f,     color_one.x, color_one.y, color_one.z, 1.0f};
 
     }
     gs_graphics_vertex_buffer_desc_t vb_desc  = {};
@@ -331,8 +322,7 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
 
     vb_desc.data = &rectPrisms[0];
     vb_desc.size = rectPrisms.size()  * sizeof(RectPrismData);
-    gs_graphics_vertex_buffer_update_impl(vbo, &vb_desc);
-    // vbos[0].buffer = gs_graphics_vertex_buffer_create(&vb_desc);  
+    gs_graphics_vertex_buffer_update_impl(vbo, &vb_desc);;  
 
     gs_graphics_bind_vertex_buffer_desc_t vbo_desc = {};
     vbo_desc.buffer = vbo;
@@ -375,12 +365,6 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
     // Submit command buffer (syncs to GPU, MUST be done on main thread where you have your GPU context created)
     gs_graphics_command_buffer_submit(&commandBuffer);
 
-    // destroy vbos
-    // for(int i = 0; i < appState->rectPrisms.size(); i++){
-    //     gs_graphics_vertex_buffer_destroy_impl(vbos[i].buffer);
-    // }
-
-    
     appState->rectPrisms.clear(); // Note (Lenny) : must clear
 }
 
