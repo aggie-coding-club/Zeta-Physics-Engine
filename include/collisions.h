@@ -136,7 +136,9 @@ namespace Collisions {
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube);
 
-        CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2);
+        CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
+            
+        };
     }
 
     // Find the collision features and resolve the impulse between two arbitrary primitives.

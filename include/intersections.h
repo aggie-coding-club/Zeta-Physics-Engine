@@ -376,7 +376,6 @@ namespace Collisions {
 
         ZMath::Vec3D closest(sphere.rb.pos);
         ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
-        // todo probably need to rotate the min and max, too
 
         ZMath::rotateXZ(closest, plane.sb.pos, 360 - plane.sb.phi);
         ZMath::rotateXY(closest, plane.sb.pos, 360 - plane.sb.theta);

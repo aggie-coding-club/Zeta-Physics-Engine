@@ -235,6 +235,19 @@ namespace ZMath {
     // * Utility Functions
     // * ============================================
 
+    // * Get the absolute value of all components in a 2D vector.
+    Vec2D abs(Vec2D &vec) {
+        vec.x = std::fabs(vec.x);
+        vec.y = std::fabs(vec.y);
+    };
+
+    // * Get the absolute value of all components in a 3D vector.
+    Vec3D abs(Vec3D &vec) {
+        vec.x = std::fabs(vec.x);
+        vec.y = std::fabs(vec.y);
+        vec.z = std::fabs(vec.z);
+    };
+
     // * Get the max value of two floats.
     float max(float a, float b) { return a > b ? a : b; };
 
@@ -243,6 +256,8 @@ namespace ZMath {
 
     // * Convert an angle in degrees to radians.
     float toRadians(float degrees) { return (degrees/180) * PI; };
+
+    // todo probably switch these rotations to a matrix style as then the cosine and sine calculations can be stored.
 
     // * @brief Rotate a point in 3D space with respect to the XY-plane about an origin.
     // * 
