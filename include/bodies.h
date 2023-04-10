@@ -3,7 +3,7 @@
 #ifndef BODIES_H
 #define BODIES_H
 
-#include "zmath.h"
+#include <zmath.h>
 
 namespace Primitives {
     struct RigidBody3D {

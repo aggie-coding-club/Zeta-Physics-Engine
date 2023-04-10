@@ -1,7 +1,7 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
-#include "intersections.h"
+#include <intersections.h>
 
 // todo move all of the collision related stuff (intersections and manifolds) into here
 // todo move the intersection detection check into the findCollisionFeatures stuff
