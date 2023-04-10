@@ -9,7 +9,8 @@
 #include "gunslinger/util/gs_idraw.h"
 
 #include "primitives.h"
-#include "zmath.h"
+#include "graphics_layer.h"
+#include "graphics_layer.cpp"
 
 typedef struct fps_camera_t {
     float pitch;
@@ -17,7 +18,11 @@ typedef struct fps_camera_t {
     gs_camera_t cam;
 } fps_camera_t;
 
-Primitives::Cube our_cube(ZMath::Vec3D(-2, -2, -2), ZMath::Vec3D(2, 2, 2), 45, 45);
+Primitives::Cube our_cube(ZMath::Vec3D(-5, -5, -5), ZMath::Vec3D(5, 5, 5), 0, 0);
+Primitives::Cube cube_two(ZMath::Vec3D(-5, -5, -5), ZMath::Vec3D(5, 5, 5), 0, 0);
+Primitives::Cube cube_three(ZMath::Vec3D(-5, -5, -5), ZMath::Vec3D(5, 5, 5), 0, 0);
+Primitives::Cube ground(ZMath::Vec3D(-40, -2, -40), ZMath::Vec3D(40, 2, 40), 0, 0);
+
 Primitives::Sphere our_sphere(0, ZMath::Vec3D(2, 2, 2));
 
 gs_command_buffer_t cb = {0};
@@ -25,17 +30,16 @@ gs_immediate_draw_t gsi = {0};
 fps_camera_t fps = {0};
 
 float dt; // dt loop
+AppState appState = {};
 
 void init() {
     cb = gs_command_buffer_new();
     gsi = gs_immediate_draw_new();
     fps.cam = gs_camera_perspective();
-    fps.cam.transform.position = gs_v3(4.f, 2.f, 4.f);
-
-    // our_cube = Primitives::Cube();
-    // our_sphere = Primitives::Sphere();
+    fps.cam.transform.position = gs_v3(4.f, 30.f, 20.f);
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
+    SetupScene(fps.cam);
 }
 
 void fps_camera_update(fps_camera_t* fps)
@@ -62,7 +66,7 @@ void fps_camera_update(fps_camera_t* fps)
     // For a non-flying first person camera, need to lock the y movement velocity
     vel.y = 0.f;
 
-    fps->cam.transform.position = gs_vec3_add(fps->cam.transform.position, gs_vec3_scale(gs_vec3_norm(vel), dt * 5 * mod));
+    fps->cam.transform.position = gs_vec3_add(fps->cam.transform.position, gs_vec3_scale(gs_vec3_norm(vel), dt * 40 * mod));
 
     // // If moved, then we'll "bob" the camera some
     // if (gs_vec3_len(vel) != 0.f) {
@@ -92,56 +96,41 @@ void update() {
 
     // Update the cube
     if (dt >= 0.0167f) {
-        our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
-        our_cube.rb.phi -= (1.5f * (int)(dt/0.0167f));
+        // our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
+        // our_cube.rb.phi -= (1.5f * (int)(dt/0.0167f));
         dt -= (float)(int)(dt/0.0167f) * 0.0167;
     }
+  
 
-    gsi_depth_enabled(&gsi, true);
-    gsi_face_cull_enabled(&gsi, true);
-    gsi_camera(&gsi, &fps.cam, (uint32_t)fbs.x, (uint32_t)fbs.y);
-    // gsi_push_matrix(&gsi, GSI_MATRIX_MODELVIEW);
+    // scene
+    #if 0
+    // testing VBO load by rendering 10,000 cubes
+    float space = 15;
+    int index = 0;
+    gs_vec3 position = { space * 5 , 0, -5 * space};
+    for(int i = 0; i < 100; i++){
+        for(int j = 0; j < 100; j++){
+            position.x -= space;
 
-    {
-        ZMath::Vec3D* v = our_cube.getVertices();
+            DrawRectPrism(&appState, our_cube.getVertices(), position, {rand_colors[index].x / 255.0f, rand_colors[index].y / 255.0f,rand_colors[index].z / 255.0f, 1.0f});
+            index++;
 
-        gsi_translatef(&gsi, 0.f, 0.f, -10.f);
-        
-        gsi_line3D(&gsi, v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[2].x, v[2].y, v[2].z, v[3].x, v[3].y, v[3].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[3].x, v[3].y, v[3].z, v[0].x, v[0].y, v[0].z, 225, 1, 1, 255);
-
-        gsi_line3D(&gsi, v[1].x, v[1].y, v[1].z, v[4].x, v[4].y, v[4].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[0].x, v[0].y, v[0].z, v[5].x, v[5].y, v[5].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[3].x, v[3].y, v[3].z, v[6].x, v[6].y, v[6].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[2].x, v[2].y, v[2].z, v[7].x, v[7].y, v[7].z, 225, 1, 1, 255);
-
-        gsi_line3D(&gsi, v[4].x, v[4].y, v[4].z, v[7].x, v[7].y, v[7].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[7].x, v[7].y, v[7].z, v[6].x, v[6].y, v[6].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[6].x, v[6].y, v[6].z, v[5].x, v[5].y, v[5].z, 225, 1, 1, 255);
-        gsi_line3D(&gsi, v[5].x, v[5].y, v[5].z, v[4].x, v[4].y, v[4].z, 225, 1, 1, 255);
-        
-        delete[] v;
+            if(index >= 400){
+                index = 0;
+            }
+        }
+        position.z += space;
+        position.x = space * 5;
     }
+    #endif
 
-    {
-        gsi_sphere(&gsi, our_sphere.rb.pos.x, our_sphere.rb.pos.y, our_sphere.rb.pos.z, our_sphere.r, 255, 200, 100, 255, GS_GRAPHICS_PRIMITIVE_LINES);
-    }
 
-    // Draw text
-    gsi_defaults(&gsi);
-    gsi_camera2D(&gsi, fbs.x, fbs.y);
-    gsi_rectvd(&gsi, gs_v2(10.f, 10.f), gs_v2(220.f, 70.f), gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), gs_color(10, 50, 150, 128), GS_GRAPHICS_PRIMITIVE_TRIANGLES);
-    gsi_rectvd(&gsi, gs_v2(10.f, 10.f), gs_v2(220.f, 70.f), gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), gs_color(10, 50, 220, 255), GS_GRAPHICS_PRIMITIVE_LINES);
-    gsi_text(&gsi, 20.f, 25.f, "FPS Camera Controls:", NULL, false, 0, 0, 0, 255);
-    gsi_text(&gsi, 40.f, 40.f, "- Move: W, A, S, D", NULL, false, 20, 20, 20, 255);
-    gsi_text(&gsi, 40.f, 55.f, "- Mouse to look", NULL, false, 20, 20, 20, 255);
-    gsi_text(&gsi, 40.f, 70.f, "- Shift to run", NULL, false, 20, 20, 20, 255);
-
-    // gsi_pop_matrix(&gsi);
-    gsi_renderpass_submit(&gsi, &cb, gs_v4(0.f, 0.f, fbs.x, fbs.y), gs_color(10, 10, 10, 255));
-    gs_graphics_command_buffer_submit(&cb);
+    // drawing the cubes
+    DrawRectPrism(&appState, our_cube.getVertices(), {-20, 0, -20}, {0.7, 0, 0, 1.0f});
+    DrawRectPrism(&appState, cube_two.getVertices(), {20, 0, 20}, {1.0f, 1.0f, 1.0f, 1.0f});
+    DrawRectPrism(&appState, cube_three.getVertices(), {-10, 0, 15}, {1.0f, 0.9f, 0.0f, 1.0f});
+    DrawRectPrism(&appState, ground.getVertices(), {0, -10, 0}, {1.0f, 1.0f, 1.0f, 1.0f});
+    UpdateScene(&appState, fps.cam);
 
     dt += gs_platform_delta_time();
 }
