@@ -70,23 +70,54 @@ namespace ZMath {
                 y = j;
             };
 
-            const Vec2D operator + (Vec2D const &vec) const { return Vec2D(x + vec.x, y + vec.y); };
-            const Vec2D operator - (Vec2D const &vec) const { return Vec2D(x - vec.x, y - vec.y); };
-            const Vec2D operator * (float c) const { return Vec2D(c*x, c*y); };
+            Vec2D operator + (Vec2D const &vec) const { return Vec2D(x + vec.x, y + vec.y); };
+            Vec2D operator - (Vec2D const &vec) const { return Vec2D(x - vec.x, y - vec.y); };
+            Vec2D operator * (float c) const { return Vec2D(c*x, c*y); };
             float operator * (Vec2D const &vec) const { return x * vec.x + y * vec.y; };
 
             // * Add a constant to each vector component.
-            const Vec2D operator + (float c) const { return Vec2D(x + c, y + c); };
+            Vec2D operator + (float c) const { return Vec2D(x + c, y + c); };
 
             bool operator != (Vec2D const &vec) const { return x != vec.x || y != vec.y; };
             bool operator == (Vec2D const &vec) const { return x == vec.x && y == vec.y; };
 
-            const Vec2D operator += (Vec2D const &vec) const { return Vec2D(x + vec.x, y + vec.y); };
-            const Vec2D operator -= (Vec2D const &vec) const { return Vec2D(x - vec.x, y - vec.y); };
-            const Vec2D operator *= (float c) const { return Vec2D(x*c, y*c); };
+            Vec2D& operator += (Vec2D const &vec) {
+                x += vec.x;
+                y += vec.y;
+
+                return (*this);
+            };
+
+            Vec2D& operator += (float c) {
+                x += c;
+                y += c;
+
+                return (*this);
+            };
+
+            Vec2D& operator -= (Vec2D const &vec) {
+                x -= vec.x;
+                y -= vec.y;
+
+                return (*this);
+            };
+
+            Vec2D& operator -= (float c) {
+                x -= c;
+                y -= c;
+
+                return (*this);
+            };
+
+            Vec2D& operator *= (float c) {
+                x *= c;
+                y *= c;
+
+                return (*this);
+            };
 
             // * Get the cross product of this and another vector.
-            const Vec2D cross (Vec2D const &vec) const { return x*vec.y - y*vec.x; };
+            Vec2D cross (Vec2D const &vec) const { return x*vec.y - y*vec.x; };
 
             // * Get the magnitude.
             float mag() const { return sqrtf(x*x + y*y); };
@@ -96,7 +127,7 @@ namespace ZMath {
             float magSq() const { return x*x + y*y; };
 
             // * Get the vector projection of another vector onto this vector (Parameter onto this).
-            const Vec2D proj (Vec2D const &vec) const { return (*this) * ((x*vec.x + y*vec.y)/(x*x + y*y)); };
+            Vec2D proj (Vec2D const &vec) const { return (*this) * ((x*vec.x + y*vec.y)/(x*x + y*y)); };
 
             // * Get the distance between this and another vector.
             float dist (Vec2D const &vec) const { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
@@ -106,7 +137,7 @@ namespace ZMath {
             float distSq (Vec2D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            const Vec2D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y)); };
+            Vec2D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y)); };
 
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
