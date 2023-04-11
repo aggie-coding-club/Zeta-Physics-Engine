@@ -799,6 +799,22 @@ namespace ZMath {
                 return Mat3D(c, -s, 0, s, c, 0, 0, 0, 1);
             };
     };
+
+    // * ===================================
+    // * Additional Utility Functions
+    // * ===================================
+
+    // * Take the absolute value of each element of a 2x2 matrix.
+    Mat2D abs(Mat2D const &mat) { return Mat2D(std::fabs(mat.c1.x), std::fabs(mat.c2.x), std::fabs(mat.c1.y), std::fabs(mat.c2.y)); };
+
+    // * Take the absolute value of each element of a 3x3 matrix.
+    Mat3D abs(Mat3D const &mat) {
+        return Mat3D(
+            std::fabs(mat.c1.x), std::fabs(mat.c2.x), std::fabs(mat.c3.x),
+            std::fabs(mat.c1.y), std::fabs(mat.c2.y), std::fabs(mat.c3.y),
+            std::fabs(mat.c1.z), std::fabs(mat.c2.z), std::fabs(mat.c3.z)
+        );
+    };
 }
 
 #endif // ! ZMATH_H
