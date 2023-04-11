@@ -192,9 +192,45 @@ namespace ZMath {
             bool operator != (Vec3D const &vec) const { return x != vec.x || y != vec.y || z != vec.z; };
             bool operator == (Vec3D const &vec) const { return x == vec.x && y == vec.y && z == vec.z; };
 
-            Vec3D operator += (Vec3D const &vec) const { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
-            Vec3D operator -= (Vec3D const &vec) const { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
-            Vec3D operator *= (float c) const { return Vec3D(x*c, y*c, z*c); };
+            Vec3D& operator += (Vec3D const &vec) {
+                x += vec.x;
+                y += vec.y;
+                z += vec.z;
+
+                return (*this);
+            };
+
+            Vec3D& operator += (float c) {
+                x += c;
+                y += c;
+                z += c;
+
+                return (*this);
+            };
+
+            Vec3D& operator -= (Vec3D const &vec) {
+                x -= vec.x;
+                y -= vec.y;
+                z -= vec.z;
+
+                return (*this);
+            };
+
+            Vec3D& operator -= (float c) {
+                x -= c;
+                y -= c;
+                z -= c;
+
+                return (*this);
+            };
+
+            Vec3D& operator *= (float c) {
+                x *= c;
+                y *= c;
+                z *= c;
+
+                return (*this);
+            };
 
             // * Get the cross product of this and another vector.
             Vec3D cross (Vec3D const &vec) const { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
