@@ -428,6 +428,9 @@ namespace ZMath {
                 return (*this);
             };
 
+            bool operator == (const Mat2D &mat) const { return c1.x == mat.c1.x && c1.y == mat.c1.y && c2.x == mat.c2.x && c2.y == mat.c2.y; };
+            bool operator != (const Mat2D &mat) const { return c1.x != mat.c1.x || c1.y != mat.c1.y || c2.x != mat.c2.x || c2.y != mat.c2.y; };
+
             // Return the inverse of this matrix.
             // Note this may experience issues for matrices with determinants nearly equal to 0.
             Mat2D inverse() const {
@@ -649,6 +652,18 @@ namespace ZMath {
                 c3.z *= c;
 
                 return (*this);
+            };
+
+            bool operator == (const Mat3D &mat) const {
+                return c1.x == mat.c1.x && c1.y == mat.c1.y && c1.z == mat.c1.z &&
+                        c2.x == mat.c2.x && c2.y == mat.c2.y && c2.z == mat.c2.z &&
+                        c3.x == mat.c3.x && c3.y == mat.c3.y && c3.z == mat.c3.z;
+            };
+
+            bool operator != (const Mat3D &mat) const {
+                return c1.x != mat.c1.x || c1.y != mat.c1.y || c1.z != mat.c1.z ||
+                        c2.x != mat.c2.x || c2.y != mat.c2.y || c2.z != mat.c2.z ||
+                        c3.x != mat.c3.x || c3.y != mat.c3.y || c3.z != mat.c3.z;
             };
 
             // Return the transpose of this Matrix.
