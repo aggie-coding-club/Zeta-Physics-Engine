@@ -3,9 +3,6 @@
 
 #include <intersections.h>
 
-// todo move all of the collision related stuff (intersections and manifolds) into here
-// todo move the intersection detection check into the findCollisionFeatures stuff
-
 // We can use the normals for each as possible separation axes
 // We have to account for certain edge cases when moving this to 3D
 
@@ -28,8 +25,6 @@ namespace Collisions {
         // * ===================================
         // * Collision Manifold Calculators
         // * ===================================
-
-        // todo test these functions
 
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
             CollisionManifold result;
@@ -132,12 +127,54 @@ namespace Collisions {
             return result;
         };
 
+        // * ====================================================
+        // * Helper Functions for 3D Box Collision Manifolds
+        // * ====================================================
+
+        void computeIncidentEdge();
+
+        int clipSegmentToLine();
+
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2);
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube);
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
+            // half size of cube a and b respectively
+            ZMath::Vec3D hA = cube1.getHalfSize(), hB = cube2.getHalfSize();
+
+            // * determine the rotation matrices of A and B
+
+            // rotate anything in A's local space to global space
+            ZMath::Mat3D rotAXY = ZMath::Mat3D::rotationMatZ(cube1.rb.theta), rotAXZ = ZMath::Mat3D::rotationMatY(cube1.rb.phi);
+            ZMath::Mat3D rotA = rotAXY * rotAXZ;
+
+            // rotate anything in B's local space to global space
+            ZMath::Mat3D rotBXY = ZMath::Mat3D::rotationMatZ(cube2.rb.theta), rotBXZ = ZMath::Mat3D::rotationMatY(cube2.rb.phi);
+            ZMath::Mat3D rotB = rotBXY * rotBXZ;
+
+            // todo do the math to see if we can just transpose A and B directly
+
+            // rotate anything from global space to A's local space
+            ZMath::Mat3D rotAT = rotAXZ.transpose() * rotAXY.transpose();
+
+            // rotate anything from gobal space to B's local space
+            ZMath::Mat3D rotBT = rotBXZ.transpose() * rotBXY.transpose();
+
+            // determine the difference between the positions
+            ZMath::Vec3D dP = cube2.rb.pos - cube1.rb.pos;
+            ZMath::Vec3D dA = rotAT * dP;
+            ZMath::Vec3D dB = rotBT * dP;
+
+            // * rotation matrices for switching between local spaces
             
+            // Rotate anything from B's local space into A's
+            ZMath::Mat3D C = rotAT * rotB;
+
+            // Rotate anything from A's local space into B's
+            ZMath::Mat3D CT = C.transpose();
+
+            // * Check for intersections with the separating axis theorem
         };
     }
 

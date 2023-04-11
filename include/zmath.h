@@ -304,17 +304,10 @@ namespace ZMath {
     // * ============================================
 
     // * Get the absolute value of all components in a 2D vector.
-    Vec2D abs(Vec2D &vec) {
-        vec.x = std::fabs(vec.x);
-        vec.y = std::fabs(vec.y);
-    };
+    Vec2D abs(const Vec2D &vec) { return Vec2D(std::fabs(vec.x), std::fabs(vec.y)); };
 
     // * Get the absolute value of all components in a 3D vector.
-    Vec3D abs(Vec3D &vec) {
-        vec.x = std::fabs(vec.x);
-        vec.y = std::fabs(vec.y);
-        vec.z = std::fabs(vec.z);
-    };
+    Vec3D abs(const Vec3D &vec) { return Vec3D(std::fabs(vec.x), std::fabs(vec.y), std::fabs(vec.z)); };
 
     // * Get the max value of two floats.
     float max(float a, float b) { return a > b ? a : b; };
