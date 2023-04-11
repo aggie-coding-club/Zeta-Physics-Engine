@@ -382,44 +382,58 @@ namespace ZMath {
 
             // Create a 2D matrix from another 2D matrix.
             Mat2D (const Mat2D &mat) {
-                c1.set(mat.c1);
-                c2.set(mat.c2);
+                c1.x = mat.c1.x;
+                c1.y = mat.c1.y;
+                c2.x = mat.c2.x;
+                c2.y = mat.c2.y;
             };
 
             // Create a 2D matrix from 2 column vectors.
             Mat2D (const Vec2D &col1, const Vec2D &col2) {
-                c1.set(col1);
-                c2.set(col2);
+                c1.x = col1.x;
+                c1.y = col1.y;
+                c2.x = col2.x;
+                c2.y = col2.y;
             };
 
             // Create a 2D matrix from 4 scalars.
             Mat2D (float a11, float a12, float a21, float a22) {
-                c1.set(a11, a21);
-                c2.set(a12, a22);
+                c1.x = a11;
+                c1.y = a21;
+                c2.x = a12;
+                c2.y = a22;
             };
 
             // Set this matrix's components equal to that of another.
             void set (const Mat2D &mat) {
-                c1.set(mat.c1);
-                c2.set(mat.c2);
+                c1.x = mat.c1.x;
+                c1.y = mat.c1.y;
+                c2.x = mat.c2.x;
+                c2.y = mat.c2.y;
             };
 
             // Set this matrix's columns equal to those passed in.
             void set (const Vec2D &col1, const Vec2D &col2) {
-                c1.set(col1);
-                c2.set(col2);
+                c1.x = col1.x;
+                c1.y = col1.y;
+                c2.x = col2.x;
+                c2.y = col2.y;
             };
 
             // Set this matrix's elements equal to those passed in.
             void set(float a11, float a12, float a21, float a22) {
-                c1.set(a11, a21);
-                c2.set(a12, a22);
+                c1.x = a11;
+                c1.y = a21;
+                c2.x = a12;
+                c2.y = a22;
             };
 
             // Set all elements equal to 0.
             void zero() {
-                c1.zero();
-                c2.zero();
+                c1.x = 0;
+                c1.y = 0;
+                c2.x = 0;
+                c2.y = 0;
             };
 
             Mat2D operator + (const Mat2D &mat) const { return Mat2D(c1 + mat.c1, c2 + mat.c2); };
