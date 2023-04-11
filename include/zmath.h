@@ -266,8 +266,8 @@ namespace ZMath {
     void rotateXY(Vec3D &point, const Vec3D &origin, float angle) {
         float x = point.x - origin.x, y = point.y - origin.y;
 
-        float cosine = cos(toRadians(angle));
-        float sine = sin(toRadians(angle));
+        float cosine = cosf(toRadians(angle));
+        float sine = sinf(toRadians(angle));
 
         // compute the new point -- z component is unchanged
         point.x = x*cosine - y*sine + origin.x;
@@ -282,8 +282,8 @@ namespace ZMath {
     void rotateXZ(Vec3D &point, const Vec3D &origin, float angle) {
         float x = point.x - origin.x, z = point.z - origin.z;
 
-        float cosine = cos(toRadians(angle));
-        float sine = sin(toRadians(angle));
+        float cosine = cosf(toRadians(angle));
+        float sine = sinf(toRadians(angle));
 
         // compute the new point -- y component is unchanged
         point.x = x*cosine - z*sine + origin.x;
@@ -451,13 +451,13 @@ namespace ZMath {
             // * ===============================
 
             // * Get the 2x2 identity matrix.
-            Mat2D identity() { return Mat2D(1, 0, 0, 1); };
+            static Mat2D identity() { return Mat2D(1, 0, 0, 1); };
 
             // * Generate the 2D rotation matrix given a specified angle.
             // * The angle should be in degrees.
-            Mat2D rotationMat(float theta) {
-                float s = sin(toRadians(theta));
-                float c = cos(toRadians(theta));
+            static Mat2D rotationMat(float theta) {
+                float s = sinf(toRadians(theta));
+                float c = cosf(toRadians(theta));
 
                 return Mat2D(c, -s, s, c);
             };
@@ -688,17 +688,38 @@ namespace ZMath {
             // * Utility Matrix Functions
             // * ===============================
 
-            // * Get the 2x2 identity matrix.
-            Mat3D identity() { return Mat3D(1, 0, 0, 0, 1, 0, 0, 0, 1); };
+            // * Get the 3x3 identity matrix.
+            static Mat3D identity() { return Mat3D(1, 0, 0, 0, 1, 0, 0, 0, 1); };
 
-            /*// * Generate the 2D rotation matrix given a specified angle.
-            // * The angle should be in degrees.
-            Mat2D rotationMat(float theta) {
-                float s = sin(toRadians(theta));
-                float c = cos(toRadians(theta));
+            // * Generate the 3D rotation matrix about the x-axis for an angle, theta.
+            // * Theta should be in degrees.
+            // * Note: this rotates counter-clockwise about the axis.
+            static Mat3D rotationMatX(float theta) {
+                float c = cosf(toRadians(theta));
+                float s = sinf(toRadians(theta));
 
-                return Mat2D(c, -s, s, c);
-            };*/
+                return Mat3D(1, 0, 0, 0, c, -s, 0, s, c);
+            };
+
+            // * Generate the 3D rotation matrix about the y-axis for an angle, theta.
+            // * Theta should be in degrees.
+            // * Note: this rotates counter-clockwise about the axis.
+            static Mat3D rotationMatY(float theta) {
+                float c = cosf(toRadians(theta));
+                float s = sinf(toRadians(theta));
+
+                return Mat3D(c, 0, s, 0, 1, 0, -s, 0, c);
+            };
+
+            // * Generate the 3D rotation matrix about the z-axis for an angle, theta.
+            // * Theta should be in degrees.
+            // * Note: this rotates counter-clockwise about the axis.
+            static Mat3D rotationMatZ(float theta) {
+                float c = cosf(toRadians(theta));
+                float s = sinf(toRadians(theta));
+
+                return Mat3D(c, -s, 0, s, c, 0, 0, 0, 1);
+            };
     };
 }
 
