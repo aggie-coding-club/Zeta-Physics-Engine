@@ -358,8 +358,10 @@ namespace ZMath {
             Mat2D operator + (const Mat2D &mat) const { return Mat2D(c1 + mat.c1, c2 + mat.c2); };
             Mat2D operator - (const Mat2D &mat) const { return Mat2D(c1 - mat.c1, c2 - mat.c2); };
             Mat2D operator * (const Mat2D &mat) const {
-                return Mat2D(c1.x*mat.c1.x + c1.x*mat.c1.y, c1.x*mat.c2.x + c2.x*mat.c2.y,
-                        c1.y*mat.c1.x + c2.y*mat.c1.y, c1.y*mat.c2.x + c2.y*mat.c2.y);
+                return Mat2D(
+                    c1.x*mat.c1.x + c1.x*mat.c1.y, c1.x*mat.c2.x + c2.x*mat.c2.y,
+                    c1.y*mat.c1.x + c2.y*mat.c1.y, c1.y*mat.c2.x + c2.y*mat.c2.y
+                );
             };
 
             Mat2D operator * (float c) const { return Mat2D(c1*c, c2*c); };
@@ -521,12 +523,36 @@ namespace ZMath {
 
             Mat3D operator + (const Mat3D &mat) const { return Mat3D(c1 + mat.c1, c2 + mat.c2, c3 + mat.c3); };
             Mat3D operator - (const Mat3D &mat) const { return Mat3D(c1 - mat.c1, c2 - mat.c2, c3 - mat.c3); };
-            /*Mat3D operator * (const Mat3D &mat) const {
-                return (*this);
-            };*/
+
+            Mat3D operator * (const Mat3D &mat) const {
+                return Mat3D(
+                    // row 1
+                    c1.x*mat.c1.x + c2.x*mat.c1.y + c3.x*mat.c1.z,
+                    c1.x*mat.c2.x + c2.x*mat.c2.y + c3.x*mat.c2.z,
+                    c1.x*mat.c3.x + c2.x*mat.c3.y + c3.x*mat.c3.z,
+
+                    // row 2
+                    c1.y*mat.c1.x + c2.y*mat.c1.y + c3.y*mat.c1.z,
+                    c1.y*mat.c2.x + c2.y*mat.c2.y + c3.y*mat.c2.z,
+                    c1.y*mat.c3.x + c2.y*mat.c3.y + c3.y*mat.c3.z,
+
+                    // row 3
+                    c1.z*mat.c1.x + c2.z*mat.c1.y + c3.z*mat.c1.z,
+                    c1.z*mat.c2.x + c2.z*mat.c2.y + c3.z*mat.c2.z,
+                    c1.z*mat.c3.x + c2.z*mat.c3.y + c3.z*mat.c3.z
+                );
+            };
 
             Mat3D operator * (float c) const { return Mat3D(c1*c, c2*c, c3*c); };
-            //Vec3D operator * (const Vec3D &vec) const { return Vec3D(c1.x*vec.x + c2.x*vec.y, c1.y*vec.x + c2.y*vec.y); };
+
+            Vec3D operator * (const Vec3D &vec) const {
+                return Vec3D(
+                    c1.x*vec.x + c2.x*vec.y + c3.x*vec.z,
+                    c1.y*vec.x + c2.y*vec.y + c3.y*vec.z,
+                    c1.z*vec.x + c2.z*vec.y + c3.z*vec.z
+                );
+            };
+
             Mat3D operator + (float c) const { return Mat3D(c1 + c, c2 + c, c3 + c); };
             Mat3D operator - (float c) const { return Mat3D(c1 - c, c2 - c, c3 - c); };
 
@@ -592,14 +618,24 @@ namespace ZMath {
                 return (*this);
             };
 
-            /*Mat3D& operator *= (const Mat3D &mat) {
-                c1.x = c1.x * mat.c1.x + c2.x * mat.c1.y;
-                c1.y = c1.x * mat.c2.x + c2.x * mat.c2.y;
-                c2.x = c1.y * mat.c1.x + c2.y * mat.c1.y;
-                c2.y = c1.y * mat.c2.x + c2.y * mat.c2.y;
+            Mat3D& operator *= (const Mat3D &mat) {
+                // row 1
+                c1.x = c1.x*mat.c1.x + c2.x*mat.c1.y + c3.x*mat.c1.z;
+                c2.x = c1.x*mat.c2.x + c2.x*mat.c2.y + c3.x*mat.c2.z;
+                c3.x = c1.x*mat.c3.x + c2.x*mat.c3.y + c3.x*mat.c3.z;
+
+                // row 2
+                c1.y = c1.y*mat.c1.x + c2.y*mat.c1.y + c3.y*mat.c1.z;
+                c2.y = c1.y*mat.c2.x + c2.y*mat.c2.y + c3.y*mat.c2.z;
+                c3.y = c1.y*mat.c3.x + c2.y*mat.c3.y + c3.y*mat.c3.z;
+
+                // row 3
+                c1.z = c1.z*mat.c1.x + c2.z*mat.c1.y + c3.z*mat.c1.z;
+                c2.z = c1.z*mat.c2.x + c2.z*mat.c2.y + c3.z*mat.c2.z;
+                c3.z = c1.z*mat.c3.x + c2.z*mat.c3.y + c3.z*mat.c3.z;
 
                 return (*this);
-            };*/
+            };
 
             Mat3D& operator *= (float c) {
                 c1.x *= c;
