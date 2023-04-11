@@ -390,7 +390,7 @@ namespace Collisions {
 
     // Determine if a plane intersects an unrotated cube.
     bool PlaneAndAABB(Primitives::Plane const &plane, Primitives::AABB const &aabb) {
-        float r = abs(plane.normal.x * aabb.rb.pos.x) + abs(plane.normal.y * aabb.rb.pos.y) + abs(plane.normal.z * aabb.rb.pos.z);
+        float r = std::fabs(plane.normal.x * aabb.rb.pos.x) + std::fabs(plane.normal.y * aabb.rb.pos.y) + std::fabs(plane.normal.z * aabb.rb.pos.z);
         return PlaneAndSphere(plane, Primitives::Sphere(r, aabb.rb.pos));
     };
 
