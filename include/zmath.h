@@ -301,6 +301,161 @@ namespace ZMath {
 
     // * Clamp a float between a min and max.
     float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
+
+
+    // * Class modeling a 2x2 Matrix stored in column major order.
+    class Mat2D {
+        public:
+            // Matrix columns.
+            Vec2D c1, c2;
+
+            // Does nothing (for performance).
+            Mat2D() = default;
+
+            // Create a 2D matrix from another 2D matrix.
+            Mat2D (const Mat2D &mat) {
+                c1.set(mat.c1);
+                c2.set(mat.c2);
+            };
+
+            // Create a 2D matrix from 2 column vectors.
+            Mat2D (const Vec2D &col1, const Vec2D &col2) {
+                c1.set(col1);
+                c2.set(col2);
+            };
+
+            // Create a 2D matrix from 4 scalars.
+            Mat2D (float a11, float a12, float a21, float a22) {
+                c1.set(a11, a21);
+                c2.set(a12, a22);
+            };
+
+            // Set this matrix's components equal to that of another.
+            void set (const Mat2D &mat) {
+                c1.set(mat.c1);
+                c2.set(mat.c2);
+            };
+
+            // Set this matrix's columns equal to those passed in.
+            void set (const Vec2D &col1, const Vec2D &col2) {
+                c1.set(col1);
+                c2.set(col2);
+            };
+
+            // Set this matrix's elements equal to those passed in.
+            void set(float a11, float a12, float a21, float a22) {
+                c1.set(a11, a21);
+                c2.set(a12, a22);
+            };
+
+            // Set all elements equal to 0.
+            void zero() {
+                c1.zero();
+                c2.zero();
+            };
+
+            Mat2D operator + (const Mat2D &mat) const { return Mat2D(c1 + mat.c1, c2 + mat.c2); };
+            Mat2D operator - (const Mat2D &mat) const { return Mat2D(c1 - mat.c1, c2 - mat.c2); };
+            Mat2D operator * (const Mat2D &mat) const {
+                return Mat2D(c1.x*mat.c1.x + c1.x*mat.c1.y, c1.x*mat.c2.x + c2.x*mat.c2.y,
+                        c1.y*mat.c1.x + c2.y*mat.c1.y, c1.y*mat.c2.x + c2.y*mat.c2.y);
+            };
+
+            Mat2D operator * (float c) const { return Mat2D(c1*c, c2*c); };
+            Vec2D operator * (const Vec2D &vec) const { return Vec2D(c1.x*vec.x + c2.x*vec.y, c1.y*vec.x + c2.y*vec.y); };
+            Mat2D operator + (float c) const { return Mat2D(c1 + c, c2 + c); };
+            Mat2D operator - (float c) const { return Mat2D(c1 - c, c2 - c); };
+
+            Mat2D& operator = (const Mat2D &mat) {
+                c1.set(mat.c1);
+                c2.set(mat.c2);
+            };
+
+            Mat2D& operator += (const Mat2D &mat) {
+                c1.x += mat.c1.x;
+                c1.y += mat.c1.y;
+                c2.x += mat.c2.x;
+                c2.y += mat.c2.y;
+
+                return (*this);
+            };
+
+            Mat2D& operator += (float c) {
+                c1.x += c;
+                c1.y += c;
+                c2.x += c;
+                c2.y += c;
+
+                return (*this);
+            };
+
+            Mat2D& operator -= (const Mat2D &mat) {
+                c1.x -= mat.c1.x;
+                c1.y -= mat.c1.y;
+                c2.x -= mat.c2.x;
+                c2.y -= mat.c2.y;
+
+                return (*this);
+            };
+
+            Mat2D& operator -= (float c) {
+                c1.x -= c;
+                c1.y -= c;
+                c2.x -= c;
+                c2.y -= c;
+
+                return (*this);
+            };
+
+            Mat2D& operator *= (const Mat2D &mat) {
+                c1.x = c1.x * mat.c1.x + c2.x * mat.c1.y;
+                c1.y = c1.x * mat.c2.x + c2.x * mat.c2.y;
+                c2.x = c1.y * mat.c1.x + c2.y * mat.c1.y;
+                c2.y = c1.y * mat.c2.x + c2.y * mat.c2.y;
+
+                return (*this);
+            };
+
+            Mat2D& operator *= (float c) {
+                c1.x *= c;
+                c1.y *= c;
+                c2.x *= c;
+                c2.y *= c;
+
+                return (*this);
+            };
+
+            Mat2D inverse() const {
+                float det = c1.x * c2.y - c2.x * c1.y;
+                Mat2D mat(*this);
+
+                if (det == 0) { return mat; }; // singular matrix -- doesn't have an inverse.
+
+                det = 1.0f/det;
+
+                mat.set(c2.y * det, c2.x * -det, c1.x * -det, c1.x * det);
+                return mat;
+            };
+
+            Mat2D transpose() const { return Mat2D(c1.x, c1.y, c2.x, c2.y); };
+
+
+            // * ===============================
+            // * Utility Matrix Functions
+            // * ===============================
+
+            // * Get the 2x2 identity matrix.
+            Mat2D identity() { return Mat2D(1, 0, 0, 1); };
+
+            // * Generate the 2D rotation matrix given a specified angle.
+            // * The angle should be in degrees.
+            Mat2D rotationMat(float theta) {
+                float s = sin(toRadians(theta));
+                float c = cos(toRadians(theta));
+
+                return Mat2D(c, -s, s, c);
+            };
+    };
 }
 
 #endif // ! ZMATH_H
