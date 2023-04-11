@@ -140,6 +140,8 @@ namespace Collisions {
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube);
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
+            CollisionManifold result;
+
             // half size of cube a and b respectively
             ZMath::Vec3D hA = cube1.getHalfSize(), hB = cube2.getHalfSize();
 
@@ -170,11 +172,31 @@ namespace Collisions {
             
             // Rotate anything from B's local space into A's
             ZMath::Mat3D C = rotAT * rotB;
+            C = ZMath::abs(C); // todo check if we should set all of C to this
 
             // Rotate anything from A's local space into B's
             ZMath::Mat3D CT = C.transpose();
 
             // * Check for intersections with the separating axis theorem
+
+            // amount of penetration along A's axes
+            ZMath::Vec3D faceA = ZMath::abs(dA) - hA - C * hB;
+            if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) {
+                result.hit = 0;
+                return result;
+            }
+
+            // amount of penetration along B's axes
+            ZMath::Vec3D faceB = ZMath::abs(dB) - hB - C * hA;
+            if (faceB.x > 0 || faceB.y > 0 || faceB.z > 0) {
+                result.hit = 0;
+                return result;
+            }
+
+            // * Find the best axis (i.e. the axis with the least amount of penetration)
+
+            // todo set up an enum with the different faces as fields
+            // ! may have to store this face in the CollisionManifold but unsure
         };
     }
 
