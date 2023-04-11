@@ -405,11 +405,6 @@ namespace ZMath {
             Mat2D operator + (float c) const { return Mat2D(c1 + c, c2 + c); };
             Mat2D operator - (float c) const { return Mat2D(c1 - c, c2 - c); };
 
-            Mat2D& operator = (const Mat2D &mat) {
-                c1.set(mat.c1);
-                c2.set(mat.c2);
-            };
-
             Mat2D& operator += (const Mat2D &mat) {
                 c1.x += mat.c1.x;
                 c1.y += mat.c1.y;
@@ -594,12 +589,6 @@ namespace ZMath {
 
             Mat3D operator + (float c) const { return Mat3D(c1 + c, c2 + c, c3 + c); };
             Mat3D operator - (float c) const { return Mat3D(c1 - c, c2 - c, c3 - c); };
-
-            Mat3D& operator = (const Mat3D &mat) {
-                c1.set(mat.c1);
-                c2.set(mat.c2);
-                c3.set(mat.c3);
-            };
 
             Mat3D& operator += (const Mat3D &mat) {
                 c1.x += mat.c1.x;
