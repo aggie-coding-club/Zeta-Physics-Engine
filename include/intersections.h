@@ -352,7 +352,20 @@ namespace Collisions {
     // Determine if a ray intersects a cube.
     // dist will be modified to equal the distance from the ray it hits the cube.
     // dist is set to -1 if there is no intersection.
-    bool raycast(Primitives::Cube const &cube, Primitives::Ray3D const &ray, float &dist) { return 1; };
+    bool raycast(Primitives::Cube const &cube, Primitives::Ray3D const &ray, float &dist) {
+        // http://groups.csail.mit.edu/graphics/classes/6.837/F02/lectures/6.837-10_rayCast.pdf
+        // Slide 47, basically they recommend to convert ray to object space and check aabb, dunno
+        // if its faster but MIT slides says its a good start
+        // * If this works ill copy the code over from AABB to make sure we dont lose pref
+        ZMath::Vec3D min = cube.getLocalMax(), max = cube.getLocalMax();
+        ZMath::Vec3D p = ray.dir;
+
+        ZMath::rotateXZ(p, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(p, cube.rb.pos, 360 - cube.rb.theta);
+
+        Primitives::AABB loc(min, max);
+        return raycast(loc, Primitives::Ray3D(ray.origin, p), dist);
+    };
 
     // * ===================================
     // * Plane vs Primitives
