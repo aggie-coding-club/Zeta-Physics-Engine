@@ -357,14 +357,20 @@ namespace Collisions {
         // Slide 47, basically they recommend to convert ray to object space and check aabb, dunno
         // if its faster but MIT slides says its a good start
         // * If this works ill copy the code over from AABB to make sure we dont lose pref
-        ZMath::Vec3D min = cube.getLocalMax(), max = cube.getLocalMax();
-        ZMath::Vec3D p = ray.dir;
 
-        ZMath::rotateXZ(p, cube.rb.pos, 360 - cube.rb.phi);
-        ZMath::rotateXY(p, cube.rb.pos, 360 - cube.rb.theta);
+        ZMath::Vec3D cubeMin = cube.getLocalMin();
+        ZMath::Vec3D cubeMax = cube.getLocalMax();
+        ZMath::Vec3D rayOrigin = ray.origin;
+        ZMath::Vec3D rayDir = ray.dir;
 
-        Primitives::AABB loc(min, max);
-        return raycast(loc, Primitives::Ray3D(ray.origin, p), dist);
+        ZMath::rotateXZ(cubeMin, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(cubeMin, cube.rb.pos, 360 - cube.rb.theta);
+        ZMath::rotateXZ(cubeMax, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(cubeMax, cube.rb.pos, 360 - cube.rb.theta);
+        ZMath::rotateXZ(rayOrigin, cube.rb.pos, 360 - cube.rb.phi);
+        ZMath::rotateXY(rayDir, cube.rb.pos, 360 - cube.rb.theta);
+
+        return raycast(Primitives::AABB(cubeMin, cubeMax), Primitives::Ray3D(rayOrigin, rayDir), dist);
     };
 
     // * ===================================
