@@ -116,6 +116,13 @@ namespace ZMath {
                 return (*this);
             };
 
+            Vec2D& operator - () {
+                x = -x;
+                y = -y;
+
+                return (*this);
+            };
+
             // * Get the cross product of this and another vector.
             Vec2D cross (Vec2D const &vec) const { return x*vec.y - y*vec.x; };
 
@@ -259,6 +266,14 @@ namespace ZMath {
                 x *= c;
                 y *= c;
                 z *= c;
+
+                return (*this);
+            };
+
+            Vec3D& operator - () {
+                x = -x;
+                y = -y;
+                z = -z;
 
                 return (*this);
             };
@@ -497,6 +512,15 @@ namespace ZMath {
                 return (*this);
             };
 
+            Mat2D& operator - () {
+                c1.x = -c1.x;
+                c1.y = -c1.y;
+                c2.x = -c2.x;
+                c2.y = -c2.y;
+
+                return (*this);
+            };
+
             bool operator == (const Mat2D &mat) const { return c1.x == mat.c1.x && c1.y == mat.c1.y && c2.x == mat.c2.x && c2.y == mat.c2.y; };
             bool operator != (const Mat2D &mat) const { return c1.x != mat.c1.x || c1.y != mat.c1.y || c2.x != mat.c2.x || c2.y != mat.c2.y; };
 
@@ -717,6 +741,20 @@ namespace ZMath {
                 return (*this);
             };
 
+            Mat3D& operator - () {
+                c1.x = -c1.x;
+                c1.y = -c1.y;
+                c1.z = -c1.z;
+                c2.x = -c2.x;
+                c2.y = -c2.y;
+                c2.z = -c2.z;
+                c3.x = -c3.x;
+                c3.y = -c3.y;
+                c3.z = -c3.z;
+
+                return (*this);
+            };
+
             bool operator == (const Mat3D &mat) const {
                 return c1.x == mat.c1.x && c1.y == mat.c1.y && c1.z == mat.c1.z &&
                         c2.x == mat.c2.x && c2.y == mat.c2.y && c2.z == mat.c2.z &&
@@ -797,6 +835,20 @@ namespace ZMath {
                 float s = sinf(toRadians(theta));
 
                 return Mat3D(c, -s, 0, s, c, 0, 0, 0, 1);
+            };
+
+            /**
+             * @brief Generate a 3D rotation matrix for an object given its rotation with respect to the XY plane and the XZ plane.
+             * 
+             * @param theta (float) Angle in degrees the object is rotated with respect to the XY plane.
+             * @param phi (float) Angle in degrees the object is rotated with respect to the XZ plane.
+             * @return (Mat3D) 3D rotation matrix that will rotate anything from the object's local space into global coordinates.
+             */
+            static Mat3D generateRotationMatrix(float theta, float phi) {
+                float cT = cosf(toRadians(theta)), sT = sinf(toRadians(theta));
+                float cP = cosf(toRadians(phi)), sP = sinf(toRadians(phi));
+
+                return Mat3D(cT, -sT, 0, sT, cT, 0, 0, 0, 1) * Mat3D(cP, 0, sP, 0, 1, 0, -sP, 0, cP);
             };
     };
 
