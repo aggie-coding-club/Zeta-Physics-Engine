@@ -131,6 +131,16 @@ namespace Collisions {
         // * Helper Functions for 3D Box Collision Manifolds
         // * ====================================================
 
+        // * Enums used for denotating the edges of the cubes
+        enum Axis {
+            FACE_A_X,
+            FACE_A_Y,
+            FACE_A_Z,
+            FACE_B_X,
+            FACE_B_Y,
+            FACE_B_Z
+        };
+
         void computeIncidentEdge();
 
         int clipSegmentToLine();
@@ -148,20 +158,16 @@ namespace Collisions {
             // * determine the rotation matrices of A and B
 
             // rotate anything in A's local space to global space
-            ZMath::Mat3D rotAXY = ZMath::Mat3D::rotationMatZ(cube1.rb.theta), rotAXZ = ZMath::Mat3D::rotationMatY(cube1.rb.phi);
-            ZMath::Mat3D rotA = rotAXY * rotAXZ;
+            ZMath::Mat3D rotA = ZMath::Mat3D::rotationMatZ(cube1.rb.theta) * ZMath::Mat3D::rotationMatY(cube1.rb.phi);
 
             // rotate anything in B's local space to global space
-            ZMath::Mat3D rotBXY = ZMath::Mat3D::rotationMatZ(cube2.rb.theta), rotBXZ = ZMath::Mat3D::rotationMatY(cube2.rb.phi);
-            ZMath::Mat3D rotB = rotBXY * rotBXZ;
-
-            // todo do the math to see if we can just transpose A and B directly
+            ZMath::Mat3D rotB = ZMath::Mat3D::rotationMatZ(cube2.rb.theta) * ZMath::Mat3D::rotationMatY(cube2.rb.phi);
 
             // rotate anything from global space to A's local space
-            ZMath::Mat3D rotAT = rotAXZ.transpose() * rotAXY.transpose();
+            ZMath::Mat3D rotAT = rotA.transpose();
 
             // rotate anything from gobal space to B's local space
-            ZMath::Mat3D rotBT = rotBXZ.transpose() * rotBXY.transpose();
+            ZMath::Mat3D rotBT = rotB.transpose();
 
             // determine the difference between the positions
             ZMath::Vec3D dP = cube2.rb.pos - cube1.rb.pos;
@@ -195,8 +201,51 @@ namespace Collisions {
 
             // * Find the best axis (i.e. the axis with the least amount of penetration)
 
-            // todo set up an enum with the different faces as fields
-            // ! may have to store this face in the CollisionManifold but unsure
+            // Assume A's x-axis is the best axis first
+            Axis axis = FACE_A_X;
+            float separation = faceA.x;
+            ZMath::Vec3D normal = dA.x > 0.0f ? rotA.c1 * -1 : rotA.c1;
+
+            // tolerance values
+            float relativeTol = 0.95f;
+            float absoluteTol = 0.01f;
+
+            // check if there is another axis better than A's x axis
+            if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
+                axis = FACE_A_Y;
+                separation = faceA.y;
+                normal = dA.y > 0.0f ? rotA.c2 * -1 : rotA.c2;
+            }
+
+            if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
+                axis = FACE_A_Z;
+                separation = faceA.z;
+                normal = dA.z > 0.0f ? rotA.c3 * -1 : rotA.c3;
+            }
+
+            // B's axes
+            if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
+                axis = FACE_B_X;
+                separation = faceB.x;
+                normal = dB.x > 0.0f ? rotB.c1 * -1 : rotB.c1;
+            }
+
+            if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
+                axis = FACE_B_Y;
+                separation = faceB.y;
+                normal = dB.y > 0.0f ? rotB.c2 * -1 : rotB.c2;
+            }
+
+            if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
+                axis = FACE_B_Z;
+                separation = faceB.z;
+                normal = dB.z > 0.0f ? rotB.c3 * -1 : rotB.c3;
+            }
+
+            // * Setup clipping plane data based on the separating axis
+
+
+            // * Compute the clipping lines and line segment to be clipped
         };
     }
 
