@@ -225,8 +225,21 @@ namespace Collisions {
             v[3] = pos + rot * v[3];
         };
 
-        // ! determine what exactly this does to write documentation and implement
-        int clipSegmentToLine();
+        /**
+         * @brief // ! Write more when I fully know what it's doing
+         * 
+         * @param vOut 
+         * @param vIn The vertices for the incident face.
+         * @param normal 
+         * @param offset 
+         * @return (int) Number of vertices 
+         */
+        int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &normal, float offset) {
+            // begin with 0 output vertices
+            int np = 0;
+
+            return np;
+        };
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
             return {};
@@ -457,6 +470,56 @@ namespace Collisions {
                     break;
                 }
             }
+
+            // * Clip the incident edge with box planes.
+
+            // We need 4 sets of clip points for 3D as we have 2 negative and 2 positive sides to check.
+            // todo we could probably make this just two sets that we alternate
+            // todo do some math and make diagrams to ensure 
+            ZMath::Vec3D clipPoints1[4];
+            ZMath::Vec3D clipPoints2[4];
+            ZMath::Vec3D clipPoints3[4];
+            ZMath::Vec3D clipPoints4[4];
+
+            // todo check to make sure the normals passed in are actually correct
+            // ! ensure I do this in the proper order, too.
+            // todo add in better comments when I understand this better to make sure I understand it well
+
+            // ! unsure if I should do it with the incident face for both axes separately or chain together the axes
+
+            // Clip with the incident face
+            int np = clipSegmentToLine(clipPoints1, incidentFace, -sideNormal1, negSide1);
+
+            if (np < 4) {
+                result.hit = 0;
+                return result;
+            }
+
+            // Clip with negSide1
+            np = clipSegmentToLine(clipPoints2, clipPoints1, sideNormal1, posSide1);
+
+            if (np < 4) {
+                result.hit = 0;
+                return result;
+            }
+
+            // Clip with the incident face
+            np = clipSegmentToLine(clipPoints3, incidentFace, -sideNormal2, negSide2);
+
+            if (np < 4) {
+                result.hit = 0;
+                return result;
+            }
+
+            // Clip with negSide2
+            np = clipSegmentToLine(clipPoints4, clipPoints3, sideNormal2, posSide2);
+
+            if (np < 4) {
+                result.hit = 0;
+                return result;
+            }
+
+            // ! unsure what to do from here
 
             result.hit = 1;
             return result;
