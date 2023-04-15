@@ -141,8 +141,25 @@ namespace Collisions {
             FACE_B_Z
         };
 
-        void computeIncidentEdge();
+        struct ClipVertex {
+            ZMath::Vec3D vec;
 
+            char inEdge1;
+            char outEdge1;
+            char inEdge2;
+            char outEdge2;
+            char inEdge3;
+            char outEdge3;
+            // ! unsure how many we will actually need so we'll revisit this when I have a better understanding
+        };
+
+        // ! determine what exactly this does to write documentation and implement
+        static void computeIncidentEdge(ClipVertex c[2], const ZMath::Vec3D& halfsize, const ZMath::Vec3D& pos, 
+                                        const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
+
+        };
+
+        // ! determine what exactly this does to write documentation and implement
         int clipSegmentToLine();
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2);
@@ -158,10 +175,10 @@ namespace Collisions {
             // * determine the rotation matrices of A and B
 
             // rotate anything in A's local space to global space
-            ZMath::Mat3D rotA = ZMath::Mat3D::rotationMatZ(cube1.rb.theta) * ZMath::Mat3D::rotationMatY(cube1.rb.phi);
+            ZMath::Mat3D rotA = ZMath::Mat3D::generateRotationMatrix(cube1.rb.theta, cube1.rb.phi);
 
             // rotate anything in B's local space to global space
-            ZMath::Mat3D rotB = ZMath::Mat3D::rotationMatZ(cube2.rb.theta) * ZMath::Mat3D::rotationMatY(cube2.rb.phi);
+            ZMath::Mat3D rotB = ZMath::Mat3D::generateRotationMatrix(cube2.rb.theta, cube2.rb.phi);
 
             // rotate anything from global space to A's local space
             ZMath::Mat3D rotAT = rotA.transpose();
@@ -177,8 +194,7 @@ namespace Collisions {
             // * rotation matrices for switching between local spaces
             
             // Rotate anything from B's local space into A's
-            ZMath::Mat3D C = rotAT * rotB;
-            C = ZMath::abs(C); // todo check if we should set all of C to this
+            ZMath::Mat3D C = ZMath::abs(rotAT * rotB);
 
             // Rotate anything from A's local space into B's
             ZMath::Mat3D CT = C.transpose();
@@ -204,7 +220,7 @@ namespace Collisions {
             // Assume A's x-axis is the best axis first
             Axis axis = FACE_A_X;
             float separation = faceA.x;
-            ZMath::Vec3D normal = dA.x > 0.0f ? rotA.c1 * -1 : rotA.c1;
+            ZMath::Vec3D normal = dA.x > 0.0f ? -rotA.c1 : rotA.c1;
 
             // tolerance values
             float relativeTol = 0.95f;
@@ -214,38 +230,81 @@ namespace Collisions {
             if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
                 axis = FACE_A_Y;
                 separation = faceA.y;
-                normal = dA.y > 0.0f ? rotA.c2 * -1 : rotA.c2;
+                normal = dA.y > 0.0f ? -rotA.c2 : rotA.c2;
             }
 
             if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
                 axis = FACE_A_Z;
                 separation = faceA.z;
-                normal = dA.z > 0.0f ? rotA.c3 * -1 : rotA.c3;
+                normal = dA.z > 0.0f ? -rotA.c3 : rotA.c3;
             }
 
             // B's axes
             if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
                 axis = FACE_B_X;
                 separation = faceB.x;
-                normal = dB.x > 0.0f ? rotB.c1 * -1 : rotB.c1;
+                normal = dB.x > 0.0f ? -rotB.c1 : rotB.c1;
             }
 
             if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
                 axis = FACE_B_Y;
                 separation = faceB.y;
-                normal = dB.y > 0.0f ? rotB.c2 * -1 : rotB.c2;
+                normal = dB.y > 0.0f ? -rotB.c2 : rotB.c2;
             }
 
             if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
                 axis = FACE_B_Z;
                 separation = faceB.z;
-                normal = dB.z > 0.0f ? rotB.c3 * -1 : rotB.c3;
+                normal = dB.z > 0.0f ? -rotB.c3 : rotB.c3;
             }
 
-            // * Setup clipping plane data based on the separating axis
+            // * Setup clipping plane data based on the best axis
 
+            ZMath::Vec3D frontNormal, sideNormal;
+            ClipVertex incidentEdge[2];
+            float front, negSide, posSide;
 
             // * Compute the clipping lines and line segment to be clipped
+
+            switch(axis) {
+                case FACE_A_X:
+                    // * Project onto the best axis (so in this case A's x-axis)
+                    // * We now know the min and max values for the remaining face must be contained in the vertices; therefore, we can cosntruct our min and max vectors for the face
+                    // * We can then use this to solve the problem further
+
+                    // ? Current roadblock: Need to find a way to determine distance to the side but there are two sides to do so with
+                    // ? This doesn't allow for the same simple check as in 2D
+                    // ? Therefore, we can either solve this new problem as a 2D one or find a more elegant solution
+                    // ? I will try to find the latter but will resort to the former if needed
+
+                    // ! go through this and math and draw it out to fully understand it and correct any errors
+                    frontNormal = normal;
+                    front = cube1.rb.pos * frontNormal + hA.x;
+                    sideNormal = rotA.c2;
+                    float side = cube1.rb.pos * sideNormal;
+                    /*negSide = -side + hA.y;
+                    posSide = side + hA.y;*/
+
+                    // todo compute the pos and neg sides for y and z
+
+                    computeIncidentEdge(incidentEdge, hB, cube2.rb.pos, rotB, frontNormal);
+                    break;
+                
+                case FACE_A_Y:
+                    break;
+
+                case FACE_A_Z:
+                    break;
+
+                case FACE_B_X:
+                    break;
+                
+                case FACE_B_Y:
+                    break;
+
+                case FACE_B_Z:
+                    break;
+            }
         };
     }
 
@@ -260,7 +319,7 @@ namespace Collisions {
             case Primitives::AABB_COLLIDER:
                 if (c2.type == Primitives::SPHERE_COLLIDER) {
                     CollisionManifold manifold = findCollisionFeatures(c2.sphere, c1.aabb);
-                    manifold.normal *= -1; // flip the direction as the original order passed in was reversed
+                    manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
@@ -270,13 +329,13 @@ namespace Collisions {
             case Primitives::CUBE_COLLIDER:
                 if (c2.type == Primitives::CUBE_COLLIDER) {
                     CollisionManifold manifold = findCollisionFeatures(c2.sphere, c1.cube);
-                    manifold.normal *= -1; // flip the direction as the original order passed in was reversed
+                    manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
                 if (c2.type == Primitives::AABB_COLLIDER) {
                     CollisionManifold manifold = findCollisionFeatures(c2.aabb, c1.cube);
-                    manifold.normal *= -1; // flip the direction as the original order passed in was reversed
+                    manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
