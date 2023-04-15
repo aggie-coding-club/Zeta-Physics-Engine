@@ -176,18 +176,18 @@ namespace Collisions {
             // Determine the vertices in terms of halfsize.
             // Vertex array starts in bottom left corner when considering the face as a 2D box and goes around counterclockwise.
             if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
-                    if (n.x > 0.0f) { // incident cube is intersecting on its -x side
-                        v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-                        v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
-                        v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
-                        v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+                if (n.x > 0.0f) { // incident cube is intersecting on its -x side
+                    v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                    v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                    v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
+                    v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
 
-                    } else { // incident cube is intersecting on its +x side
-                        v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
-                        v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
-                        v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-                        v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
-                    }
+                } else { // incident cube is intersecting on its +x side
+                    v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
+                    v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+                    v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                    v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+                }
 
             } else if (nAbs.y > nAbs.z) { // y >= x && y > z
                 if (n.y > 0.0f) { // incident cube is intersecting on its -y side
@@ -235,8 +235,40 @@ namespace Collisions {
          * @return (int) Number of vertices 
          */
         int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &normal, float offset) {
-            // begin with 0 output vertices
+            // begin with 0 output points
             int np = 0;
+
+            // todo fs need to test this function extensively
+
+            // calculate the distance
+            // ! it doesn't work quite like this for 3D probs
+            float dist0 = normal * vIn[0] - offset;
+            float dist1 = normal * vIn[1] - offset;
+            float dist2 = normal * vIn[2] - offset;
+            float dist3 = normal * vIn[3] - offset;
+
+            // if the points are behind the plane (i.e. inside the cube)
+            if (dist0 <= 0.0f) { vOut[np++] = vIn[0]; }
+            if (dist1 <= 0.0f) { vOut[np++] = vIn[1]; }
+            if (dist2 <= 0.0f) { vOut[np++] = vIn[2]; }
+            if (dist3 <= 0.0f) { vOut[np++] = vIn[3]; }
+
+            // todo this next check doesn't translate the same way to 3D as the above step does
+            // todo probably evaluate both separately in terms of the y's and z's
+
+            // check if the vertices are separated by the edge on the 1st axis
+            if (dist0 * dist2 < 0.0f) {
+                float interp = dist0/(dist0 - dist2);
+                vOut[np] = vIn[0] + (vIn[2] - vIn[0]) * interp;
+                ++np;
+            }
+
+            // check if the vertices are separated by the edge on the 2nd axis
+            if (dist1 * dist3 < 0.0f) {
+                float interp = dist1/(dist1 - dist3);
+                vOut[np] = vIn[1] + (vIn[3] - vIn[1]) * interp;
+                ++np;
+            }
 
             return np;
         };
@@ -302,6 +334,7 @@ namespace Collisions {
 
             // * Find the best axis (i.e. the axis with the least amount of penetration)
             // ! not 100% sure this part works properly
+            // ! issue may be we can't use projection in the same way for 3D for solving this
 
             // Assume A's x-axis is the best axis first
             Axis axis = FACE_A_X;
