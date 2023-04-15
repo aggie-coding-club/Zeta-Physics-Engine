@@ -1,7 +1,7 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
-#include <intersections.h>
+#include "intersections.h"
 
 // We can use the normals for each as possible separation axes
 // We have to account for certain edge cases when moving this to 3D
@@ -154,7 +154,7 @@ namespace Collisions {
         };
 
         // ! determine what exactly this does to write documentation and implement
-        static void computeIncidentEdge(ClipVertex c[2], const ZMath::Vec3D& halfsize, const ZMath::Vec3D& pos, 
+        static void computeIncidentFace(ClipVertex c[4], const ZMath::Vec3D& halfsize, const ZMath::Vec3D& pos, 
                                         const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
 
         };
@@ -260,9 +260,9 @@ namespace Collisions {
 
             // * Setup clipping plane data based on the best axis
 
-            ZMath::Vec3D frontNormal, sideNormal;
-            ClipVertex incidentEdge[2];
-            float front, negSide, posSide;
+            ZMath::Vec3D frontNormal, sideNormal1, sideNormal2;
+            ClipVertex incidentFace[4]; // 4 vertices for the collision in 3D
+            float front, negSide1, negSide2, posSide1, posSide2;
 
             // * Compute the clipping lines and line segment to be clipped
 
@@ -277,17 +277,24 @@ namespace Collisions {
                     // ? Therefore, we can either solve this new problem as a 2D one or find a more elegant solution
                     // ? I will try to find the latter but will resort to the former if needed
 
-                    // ! go through this and math and draw it out to fully understand it and correct any errors
+                    // Determine the side normals for y and z, which we'll call yNormal and zNormal.
+                    // This should just be the second and third column in the rotation matrix for A (rotA).
+
+                    // I believe this should now work. I should test individual portions of function
+
                     frontNormal = normal;
                     front = cube1.rb.pos * frontNormal + hA.x;
-                    sideNormal = rotA.c2;
-                    float side = cube1.rb.pos * sideNormal;
-                    /*negSide = -side + hA.y;
-                    posSide = side + hA.y;*/
+                    sideNormal1 = rotA.c2; // yNormal
+                    sideNormal2 = rotA.c3; // zNormal
+                    float ySide = cube1.rb.pos * sideNormal1;
+                    float zSide = cube1.rb.pos * sideNormal2;
 
-                    // todo compute the pos and neg sides for y and z
+                    negSide1 = -ySide + hA.y; // negSideY
+                    posSide1 = ySide + hA.y; // posSideY
+                    negSide2 = -zSide + hA.z; // negSideZ
+                    posSide2 = zSide + hA.z; // posSideZ
 
-                    computeIncidentEdge(incidentEdge, hB, cube2.rb.pos, rotB, frontNormal);
+                    computeIncidentFace(incidentFace, hB, cube2.rb.pos, rotB, frontNormal);
                     break;
                 
                 case FACE_A_Y:

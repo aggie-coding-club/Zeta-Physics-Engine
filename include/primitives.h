@@ -1,7 +1,7 @@
 #ifndef PRIMITIVES_H
 #define PRIMITIVES_H
 
-#include <bodies.h>
+#include "bodies.h"
 
 // todo add masses for each of the primitives for their rigidbodies
 
