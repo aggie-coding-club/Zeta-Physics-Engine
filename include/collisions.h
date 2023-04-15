@@ -138,26 +138,91 @@ namespace Collisions {
             FACE_A_Z,
             FACE_B_X,
             FACE_B_Y,
-            FACE_B_Z,
-            NONE // just for testing
+            FACE_B_Z
         };
 
-        struct ClipVertex {
-            ZMath::Vec3D vec;
+        // ! don't think we need this
+        // struct ClipVertex {
+        //     ZMath::Vec3D vec;
 
-            char inEdge1;
-            char outEdge1;
-            char inEdge2;
-            char outEdge2;
-            char inEdge3;
-            char outEdge3;
-            // ! unsure how many we will actually need so we'll revisit this when I have a better understanding
-        };
+        //     char inEdge1;
+        //     char outEdge1;
+        //     char inEdge2;
+        //     char outEdge2;
+        //     char inEdge3;
+        //     char outEdge3;
+        //     // ! unsure how many we will actually need so we'll revisit this when I have a better understanding
+        // };
 
-        // ! determine what exactly this does to write documentation and implement
-        static void computeIncidentFace(ClipVertex c[4], const ZMath::Vec3D& halfsize, const ZMath::Vec3D& pos, 
+        /**
+         * @brief Determine the 4 vertices making up the incident face.
+         * 
+         * @param v Array which gets filled with the 4 vertices comprising the incident face.
+         * @param h halfsize of the incident cube.
+         * @param pos The position of the incident cube.
+         * @param rot The rotation matrix of the incident cube.
+         * @param normal The normal vector of the collision.
+         */
+        static void computeIncidentFace(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, 
                                         const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
 
+            // todo will fs need to test this function
+            // todo do some more math to make sure all the signs are correct
+
+            // Rotate the normal to the incident cube's local space and flip the sign.
+            ZMath::Vec3D n = -(rot.transpose() * normal); // ! may not need to flip the sign since our normal points towards A from B
+            ZMath::Vec3D nAbs = ZMath::abs(n);
+
+            // Determine the vertices in terms of halfsize.
+            // Vertex array starts in bottom left corner when considering the face as a 2D box and goes around counterclockwise.
+            if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
+                    if (n.x > 0.0f) { // incident cube is intersecting on its -x side
+                        v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                        v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                        v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
+                        v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+
+                    } else { // incident cube is intersecting on its +x side
+                        v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
+                        v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+                        v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                        v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+                    }
+
+            } else if (nAbs.y > nAbs.z) { // y >= x && y > z
+                if (n.y > 0.0f) { // incident cube is intersecting on its -y side
+                    v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                    v[1] = ZMath::Vec3D(h.x, -h.y, -h.z);
+                    v[2] = ZMath::Vec3D(h.x, -h.y, h.z);
+                    v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+
+                } else { // incident cube is intersecting on its +y side
+                    v[0] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                    v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+                    v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                    v[3] = ZMath::Vec3D(-h.x, h.y, h.z);
+                }
+
+            } else { // z >= y && z >= x
+                if (n.z > 0.0f) { // incident cube is intersecting on its -z side
+                    v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                    v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                    v[2] = ZMath::Vec3D(h.x, h.y, -h.z);
+                    v[3] = ZMath::Vec3D(h.x, -h.y, -h.z);
+
+                } else { // incdient cube is intersecting on its +z side
+                    v[0] = ZMath::Vec3D(-h.x, -h.y, h.z);
+                    v[1] = ZMath::Vec3D(-h.x, h.y, h.z);
+                    v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                    v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+                }
+            }
+
+            // rotate vertices back into global coordinates and translate them to their proper positions
+            v[0] = pos + rot * v[0];
+            v[1] = pos + rot * v[1];
+            v[2] = pos + rot * v[2];
+            v[3] = pos + rot * v[3];
         };
 
         // ! determine what exactly this does to write documentation and implement
@@ -172,6 +237,8 @@ namespace Collisions {
         };
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
+            // todo make sure the sign for the normal is correct
+
             CollisionManifold result;
 
             // half size of cube a and b respectively
@@ -221,6 +288,7 @@ namespace Collisions {
             }
 
             // * Find the best axis (i.e. the axis with the least amount of penetration)
+            // ! not 100% sure this part works properly
 
             // Assume A's x-axis is the best axis first
             Axis axis = FACE_A_X;
@@ -266,7 +334,7 @@ namespace Collisions {
             // * Setup clipping plane data based on the best axis
 
             ZMath::Vec3D frontNormal, sideNormal1, sideNormal2;
-            ClipVertex incidentFace[4]; // 4 vertices for the collision in 3D
+            ZMath::Vec3D incidentFace[4]; // 4 vertices for the collision in 3D
             float front, negSide1, negSide2, posSide1, posSide2;
 
             // * Compute the clipping lines and line segment to be clipped
