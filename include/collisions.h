@@ -138,7 +138,8 @@ namespace Collisions {
             FACE_A_Z,
             FACE_B_X,
             FACE_B_Y,
-            FACE_B_Z
+            FACE_B_Z,
+            NONE // just for testing
         };
 
         struct ClipVertex {
@@ -162,9 +163,13 @@ namespace Collisions {
         // ! determine what exactly this does to write documentation and implement
         int clipSegmentToLine();
 
-        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2);
+        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
+            return {};
+        };
 
-        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube);
+        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
+            return {};
+        };
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
             CollisionManifold result;
@@ -220,7 +225,7 @@ namespace Collisions {
             // Assume A's x-axis is the best axis first
             Axis axis = FACE_A_X;
             float separation = faceA.x;
-            ZMath::Vec3D normal = dA.x > 0.0f ? -rotA.c1 : rotA.c1;
+            result.normal = dA.x > 0.0f ? -rotA.c1 : rotA.c1;
 
             // tolerance values
             float relativeTol = 0.95f;
@@ -230,32 +235,32 @@ namespace Collisions {
             if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
                 axis = FACE_A_Y;
                 separation = faceA.y;
-                normal = dA.y > 0.0f ? -rotA.c2 : rotA.c2;
+                result.normal = dA.y > 0.0f ? -rotA.c2 : rotA.c2;
             }
 
             if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
                 axis = FACE_A_Z;
                 separation = faceA.z;
-                normal = dA.z > 0.0f ? -rotA.c3 : rotA.c3;
+                result.normal = dA.z > 0.0f ? -rotA.c3 : rotA.c3;
             }
 
             // B's axes
             if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
                 axis = FACE_B_X;
                 separation = faceB.x;
-                normal = dB.x > 0.0f ? -rotB.c1 : rotB.c1;
+                result.normal = dB.x > 0.0f ? -rotB.c1 : rotB.c1;
             }
 
             if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
                 axis = FACE_B_Y;
                 separation = faceB.y;
-                normal = dB.y > 0.0f ? -rotB.c2 : rotB.c2;
+                result.normal = dB.y > 0.0f ? -rotB.c2 : rotB.c2;
             }
 
             if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
                 axis = FACE_B_Z;
                 separation = faceB.z;
-                normal = dB.z > 0.0f ? -rotB.c3 : rotB.c3;
+                result.normal = dB.z > 0.0f ? -rotB.c3 : rotB.c3;
             }
 
             // * Setup clipping plane data based on the best axis
@@ -267,7 +272,7 @@ namespace Collisions {
             // * Compute the clipping lines and line segment to be clipped
 
             switch(axis) {
-                case FACE_A_X:
+                case FACE_A_X: {
                     // * Project onto the best axis (so in this case A's x-axis)
                     // * We now know the min and max values for the remaining face must be contained in the vertices; therefore, we can cosntruct our min and max vectors for the face
                     // * We can then use this to solve the problem further
@@ -281,8 +286,9 @@ namespace Collisions {
                     // This should just be the second and third column in the rotation matrix for A (rotA).
 
                     // I believe this should now work. I should test individual portions of function
+                    // I'll have to test more stuff later
 
-                    frontNormal = normal;
+                    frontNormal = result.normal;
                     front = cube1.rb.pos * frontNormal + hA.x;
                     sideNormal1 = rotA.c2; // yNormal
                     sideNormal2 = rotA.c3; // zNormal
@@ -296,22 +302,96 @@ namespace Collisions {
 
                     computeIncidentFace(incidentFace, hB, cube2.rb.pos, rotB, frontNormal);
                     break;
-                
-                case FACE_A_Y:
-                    break;
+                }
 
-                case FACE_A_Z:
-                    break;
+                case FACE_A_Y: {
+                    frontNormal = result.normal;
+                    front = cube1.rb.pos * frontNormal + hA.y;
+                    sideNormal1 = rotA.c1; // xNormal
+                    sideNormal2 = rotA.c3; // zNormal
+                    float xSide = cube1.rb.pos * sideNormal1;
+                    float zSide = cube1.rb.pos * sideNormal2;
 
-                case FACE_B_X:
-                    break;
-                
-                case FACE_B_Y:
-                    break;
+                    negSide1 = -xSide + hA.x; // negSideX
+                    posSide1 = xSide + hA.x; // posSideX
+                    negSide2 = -zSide + hA.z; // negSideZ
+                    posSide2 = zSide + hA.z; // posSideZ
 
-                case FACE_B_Z:
+                    computeIncidentFace(incidentFace, hB, cube2.rb.pos, rotB, frontNormal);
                     break;
+                }
+
+                case FACE_A_Z: {
+                    frontNormal = result.normal;
+                    front = cube1.rb.pos * frontNormal + hA.z;
+                    sideNormal1 = rotA.c1; // xNormal
+                    sideNormal2 = rotA.c2; // yNormal
+                    float xSide = cube1.rb.pos * sideNormal1;
+                    float ySide = cube1.rb.pos * sideNormal2;
+
+                    negSide1 = -xSide + hA.x; // negSideX
+                    posSide1 = xSide + hA.x; // posSideX
+                    negSide2 = -ySide + hA.y; // negSideY
+                    posSide2 = ySide + hA.y; // posSideY
+
+                    computeIncidentFace(incidentFace, hB, cube2.rb.pos, rotB, frontNormal);
+                    break;
+                }
+
+                case FACE_B_X:{
+                    frontNormal = result.normal;
+                    front = cube2.rb.pos * frontNormal + hB.x;
+                    sideNormal1 = rotB.c2; // yNormal
+                    sideNormal2 = rotB.c3; // zNormal
+                    float ySide = cube2.rb.pos * sideNormal1;
+                    float zSide = cube2.rb.pos * sideNormal2;
+
+                    negSide1 = -ySide + hB.y; // negSideY
+                    posSide1 = ySide + hB.y; // posSideY
+                    negSide2 = -zSide + hB.z; // negSideZ
+                    posSide2 = zSide + hB.z; // posSideZ
+
+                    computeIncidentFace(incidentFace, hA, cube1.rb.pos, rotA, frontNormal);
+                    break;
+                }
+
+                case FACE_B_Y: {
+                    frontNormal = result.normal;
+                    front = cube2.rb.pos * frontNormal + hB.y;
+                    sideNormal1 = rotB.c1; // xNormal
+                    sideNormal2 = rotB.c3; // zNormal
+                    float xSide = cube2.rb.pos * sideNormal1;
+                    float zSide = cube2.rb.pos * sideNormal2;
+
+                    negSide1 = -xSide + hB.x; // negSideX
+                    posSide1 = xSide + hB.x; // posSideX
+                    negSide2 = -zSide + hB.z; // negSideZ
+                    posSide2 = zSide + hB.z; // posSideZ
+
+                    computeIncidentFace(incidentFace, hA, cube1.rb.pos, rotA, frontNormal);
+                    break;
+                }
+
+                case FACE_B_Z: {
+                    frontNormal = result.normal;
+                    front = cube2.rb.pos * frontNormal + hB.z;
+                    sideNormal1 = rotB.c1; // xNormal
+                    sideNormal2 = rotB.c2; // yNormal
+                    float xSide = cube2.rb.pos * sideNormal1;
+                    float ySide = cube2.rb.pos * sideNormal2;
+
+                    negSide1 = -xSide + hB.x; // negSideX
+                    posSide1 = xSide + hB.x; // posSideX
+                    negSide2 = -ySide + hB.y; // negSideY
+                    posSide2 = ySide + hB.y; // posSideY
+
+                    computeIncidentFace(incidentFace, hA, cube1.rb.pos, rotA, frontNormal);
+                    break;
+                }
             }
+
+            result.hit = 1;
+            return result;
         };
     }
 
