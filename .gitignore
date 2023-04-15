@@ -3,3 +3,4 @@ unitTesting/unitTests
 unitTesting/unitTests.exe
 example/bin/*
 .DS_Store
+test.cpp
