@@ -40,6 +40,8 @@ void init() {
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
     SetupScene(fps.cam);
+
+    loadObjModel("sphere.obj");
 }
 
 void fps_camera_update(fps_camera_t* fps)

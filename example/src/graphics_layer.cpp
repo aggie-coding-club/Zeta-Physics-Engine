@@ -1,4 +1,7 @@
 #include "graphics_layer.h"
+#include "string"
+#include "fstream"
+#include "helpers.cpp"
 
 gs_command_buffer_t commandBuffer = {};
 gs_graphics_bind_desc_t binds = {};
@@ -38,6 +41,119 @@ struct material_params_t {
 
 const char *temp_src = "hello world";
 gs_platform_t* platform = 0;
+
+void PrintString(std::string s){
+    for(int i = 0; i < s.length(); i++){
+        printf("%c", s[i]);
+    }
+}
+
+// makes sure all the normals and vertex data are lined up together
+void ProcessVertex(std::vector<std::string> vertexData, std::vector<int> *indices, std::vector<gs_vec2> textures,
+    std::vector<gs_vec3> normals, float *texturesArray, float *normalsArray){
+    
+    int currentVertexPointer = (int)std::stof(vertexData[0]) - 1;
+    indices->push_back(currentVertexPointer);
+
+    gs_vec2 currentTex = textures[(int)std::stof(vertexData[1])];
+    currentTex.x  -= 1;
+    currentTex.y  -= 1;
+    texturesArray[currentVertexPointer * 2] = currentTex.x;
+    texturesArray[currentVertexPointer * 2 + 1] = 1 - currentTex.y; // opengl starts from the top left for textures
+
+    gs_vec3 currentNormal = normals[(int)std::stof(vertexData[2])];
+    currentNormal.x -= 1;
+    currentNormal.y -= 1;
+    currentNormal.z -= 1;
+
+    normalsArray[currentVertexPointer * 3] = currentNormal.x;
+    normalsArray[currentVertexPointer * 3 + 1] = currentNormal.y;
+    normalsArray[currentVertexPointer * 3 + 2] = currentNormal.z;
+}
+ 
+// Read Data from OBJ Files and Convert to arrays of Data
+RawModel loadObjModel(std::string fileName){
+    // NOTE (Lenny) : Check for invalid files
+    std::ifstream objFile(fileName);
+    std::string objData;
+
+    std::string objLine;
+
+    std::vector<gs_vec3> vertices;
+    std::vector<gs_vec2> textures; // tex coords
+    std::vector<gs_vec3> normals;
+    std::vector<int> indices;
+
+    int *indicesArray = 0;
+    float *verticesArray = 0;
+    float *normalsArray = 0;
+    float *texturesArray = 0;
+
+
+    // Use a while loop together with the getline() function to read the file line by  line
+    while (std::getline (objFile, objLine)) {
+        std::vector<std::string> s = SplitString(objLine, ' ');
+            
+        if(s[0] == "v"){ // vertex position
+            gs_vec3 vertex = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            vertices.push_back(vertex);
+
+        } else if (s[0] == "vt"){ // texture coord
+            gs_vec2 textureCoord = {std::stof(s[1]), std::stof(s[2])};
+            textures.push_back(textureCoord);
+            
+        } else if(s[0] == "vn"){ // vertex normal
+            gs_vec3 normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            normals.push_back(normal);
+            // printf("x : %f, y : %f, z : %f", normal.x, normal.y, normal.z);
+        
+        } else if(s[0] == "f"){ // indicies
+            texturesArray = new float[vertices.size() * 2];
+            normalsArray = new float[vertices.size() * 3];
+            // printf("F -->> ");
+
+            // for(int i = 0; i < s.size(); i++){
+            //     PrintString(s[i]);
+            // }
+            // printf("\n"); 
+            break;
+        }
+    };
+
+    while (std::getline (objFile, objLine)) {
+        std::vector<std::string> s = SplitString(objLine, ' ');
+
+        if(s[0] == "f"){ // indicies
+         
+            std::vector<std::string> vertex1 = SplitString(s[1], '/');
+            std::vector<std::string> vertex2 = SplitString(s[2], '/');
+            std::vector<std::string> vertex3 = SplitString(s[3], '/');
+
+            ProcessVertex(vertex1, &indices, textures, normals, texturesArray, normalsArray);
+            ProcessVertex(vertex2, &indices, textures, normals, texturesArray, normalsArray);
+            ProcessVertex(vertex3, &indices, textures, normals, texturesArray, normalsArray);
+        }
+    }    
+
+    // Close the file
+    objFile.close();
+    
+    verticesArray = new float[vertices.size() * 3];
+    indicesArray = new int[indices.size()];
+
+    int vertexPointer = 0;
+    for(gs_vec3 vertex:vertices){
+        verticesArray[vertexPointer++] = vertex.x;
+        verticesArray[vertexPointer++] = vertex.y;
+        verticesArray[vertexPointer++] = vertex.z;
+    }
+
+    for(int i = 0; i < indices.size(); i++){
+        indicesArray[i] = indices[i];
+    }
+
+    // load model
+}
 
 void SetupScene(gs_camera_t cam){
 
@@ -224,7 +340,6 @@ void SetupScene(gs_camera_t cam){
     pip = gs_graphics_pipeline_create (&graphics_description);
 }
 
-#define MAX_VBOS 10
 void UpdateScene(AppState *appState, gs_camera_t cam){
     
     gs_vec2 fs = gs_platform_framebuffer_sizev(gs_platform_main_window());
