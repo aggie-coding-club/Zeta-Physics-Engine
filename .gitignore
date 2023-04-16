@@ -4,3 +4,4 @@ unitTesting/unitTests.exe
 example/bin/*
 .DS_Store
 local_testing/
+test.cpp
