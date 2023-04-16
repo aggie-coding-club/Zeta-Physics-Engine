@@ -363,20 +363,37 @@ namespace Collisions {
         ZMath::Vec3D rayOrigin = ray.origin;
         ZMath::Vec3D rayDir = ray.dir;
 
-        ZMath::rotateXZ(rayOrigin, 0, 360 - cube.rb.phi);
-        ZMath::rotateXY(rayOrigin, 0, 360 - cube.rb.theta);
-        ZMath::rotateXZ(rayDir, 0, 360 - cube.rb.phi);
-        ZMath::rotateXY(rayDir, 0, 360 - cube.rb.theta);
-        ZMath::rotateXZ(cubeMin, 0, 360 - cube.rb.phi);
-        ZMath::rotateXY(cubeMin, 0, 360 - cube.rb.theta);
-        ZMath::rotateXZ(cubeMax, 0, 360 - cube.rb.phi);
-        ZMath::rotateXY(cubeMax, 0, 360 - cube.rb.theta);
+        ZMath::rotateXZ(rayOrigin, 0, cube.rb.phi);
+        ZMath::rotateXY(rayOrigin, 0, cube.rb.theta);
+        ZMath::rotateXZ(rayDir, 0, cube.rb.phi);
+        ZMath::rotateXY(rayDir, 0, cube.rb.theta);
+        ZMath::rotateXZ(cubeMin, 0, cube.rb.phi);
+        ZMath::rotateXY(cubeMin, 0, cube.rb.theta);
+        ZMath::rotateXZ(cubeMax, 0, cube.rb.phi);
+        ZMath::rotateXY(cubeMax, 0, cube.rb.theta);
         rayDir.normalize();
 
         Primitives::AABB newCube(cubeMin, cubeMax);
+        Primitives::Ray3D newRay(rayOrigin, rayDir);
 
         float d2 = 0;
-        return raycast(Primitives::AABB(cubeMin, cubeMax), Primitives::Ray3D(rayOrigin, rayDir), d2);
+        bool ret = raycast(newCube, newRay, d2);
+        
+        if (!ret)
+        {
+            std::printf("Before----------------------------------------------------------------------------------------\n");
+            std::printf("Ray: (%f, %f. %f) : <%f, %f, %f>\n", ray.origin.x, ray.origin.y, ray.origin.z, ray.dir.x, ray.dir.y, ray.dir.z);
+            std::printf("Cube min: (%f, %f, %f)\n", cube.getLocalMin().x, cube.getLocalMin().y, cube.getLocalMin().z);
+            std::printf("Cube max: (%f, %f, %f)\n", cube.getLocalMax().x, cube.getLocalMax().y, cube.getLocalMax().z);
+            std::printf("Cube pos: (%f, %f, %f) : theta (%f) : phi (%f)\n", cube.rb.pos.x, cube.rb.pos.y, cube.rb.pos.z, cube.rb.theta, cube.rb.phi);
+            std::printf("After----------------------------------------------------------------------------------------\n");
+            std::printf("Ray: (%f, %f. %f) : <%f, %f, %f>\n", newRay.origin.x, newRay.origin.y, newRay.origin.z, newRay.dir.x, newRay.dir.y, newRay.dir.z);
+            std::printf("Cube min: (%f, %f, %f)\n", newCube.getMin().x, newCube.getMin().y, newCube.getMin().z);
+            std::printf("Cube max: (%f, %f, %f)\n", newCube.getMax().x, newCube.getMax().y, newCube.getMax().z);
+            std::printf("Cube pos: (%f, %f, %f)\n", newCube.rb.pos.x, newCube.rb.pos.y, newCube.rb.pos.z);
+        }
+
+        return ret;
     };
 
     // * ===================================
