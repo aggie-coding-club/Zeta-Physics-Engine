@@ -200,6 +200,7 @@ namespace Primitives {
                 ZMath::Vec3D* v = new ZMath::Vec3D[8];
 
                 // todo maybe reorder
+                // ! p sure this is a bad order for them. Will fix sometime after our presentation
                 v[0] = rb.pos - halfSize;
                 v[1] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z +  halfSize.z);
                 v[2] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z);
