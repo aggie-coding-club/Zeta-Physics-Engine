@@ -13,6 +13,9 @@ namespace Collisions {
 
     // ? Note: if we have objects A and B colliding, the collison normal will point towards A and away from B.
 
+    // todo maybe make the contactPoints list an array of 4 as that's the max number
+    // this would allow for more efficiency in cube v cube manifolds
+
     struct CollisionManifold {
         ZMath::Vec3D normal; // collision normal
         ZMath::Vec3D* contactPoints; // contact points of the collision
@@ -226,13 +229,15 @@ namespace Collisions {
         };
 
         /**
-         * @brief Compute the clipped vertices.
+         * @brief Compute the clipping points given input points.
          * 
-         * @param vOut This array gets filled with the clipped vertices.
-         * @param vIn The vertices for the incident face.
-         * @param normal The normal for the axis being clipped.
-         * @param offset The distance to the best axis from the axis being clipped.
-         * @return (int) Number of clipped vertices.
+         * @param vOut Array which gets filled with the clipping points.
+         * @param vIn Array containing the input points.
+         * @param n1 Side normal 1.
+         * @param n2 Side normal 2.
+         * @param offset1 Distance to the side corresponding with side normal 1.
+         * @param offset2 Distance to the side corresponding with side normal 2.
+         * @return (int) The number of clipping points. If this does not return 4, there is not an intersection on this axis.
          */
         int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
             // begin with 0 output points
@@ -240,6 +245,7 @@ namespace Collisions {
 
             // todo fs need to test this function extensively
             // todo may only need to compute the dist for [0] and [2] and use that for all the data
+            // todo make sure the signs are correct
 
             // calculate the distance
             // first set of distances
@@ -558,22 +564,10 @@ namespace Collisions {
 
             // * Clip the incident edge with box planes.
 
-            // We need 4 sets of clip points for 3D as we have 2 negative and 2 positive sides to check.
-            // todo we could probably make this just two sets that we alternate
-            // todo do some math and make diagrams to ensure 
             ZMath::Vec3D clipPoints1[4];
             ZMath::Vec3D clipPoints2[4];
-            ZMath::Vec3D clipPoints3[4];
-            ZMath::Vec3D clipPoints4[4];
 
-            // todo check to make sure the normals passed in are actually correct
-            // ! ensure I do this in the proper order, too.
-            // todo add in better comments when I understand this better to make sure I understand it well
-
-            // ! unsure if I should do it with the incident face for both axes separately or chain together the axes
-            // ! This part is likely wrong but we will go with it for now and test it out and math it out later.
-
-            // Clip with the incident face
+            // Clip to side 1
             int np = clipSegmentToLine(clipPoints1, incidentFace, -sideNormal1, -sideNormal2, negSide1, negSide2);
 
             if (np < 4) {
@@ -581,7 +575,7 @@ namespace Collisions {
                 return result;
             }
 
-            // Clip with negSide1
+            // Clip to the negative side 1
             np = clipSegmentToLine(clipPoints2, clipPoints1, sideNormal1, sideNormal2, posSide1, posSide2);
 
             if (np < 4) {
@@ -589,21 +583,42 @@ namespace Collisions {
                 return result;
             }
 
-            // ! unsure what to do from here
-            // ? Idk which of these contain the final clipping points
-            // ? We will have to do some diagrams and math to figure it out
-
+            // * ClipPoints2 now contains the clipping points.
+            // * Compute the contact points.
+            
+            // store the conatct points in here and add them to the dynamic array after they are determined
+            ZMath::Vec3D contactPoints[4];
             np = 0;
-            for (int i = 0; i < 4; i++) {
+            result.pDist = 0.0f;
+
+            // todo check my work for this one. I'm not certain on it.
+
+            for (int i = 0; i < 4; ++i) {
                 separation = frontNormal * clipPoints2[i] - front;
 
                 if (separation <= 0) {
-                    result.pDist = separation;
-                    ++np; 
+                    contactPoints[np++] = clipPoints2[i] - frontNormal * separation;
+                    float pDist = std::fabs(separation);
+                    if (result.pDist < pDist) { result.pDist = pDist; }
                 }
             }
 
+            // Ensure there are contact points.
+            // ! This check is probs unnecessary
+            // ! Can do the math to check later
+            if (!np) {
+                result.hit = 0;
+                return result;
+            }
+
+            // * update the manifold to contain the results.
+
             result.hit = 1;
+            result.numPoints = np;
+            result.contactPoints = new ZMath::Vec3D[np];
+
+            for (int i = 0; i < np; ++i) { result.contactPoints[i] = contactPoints[i]; }
+            
             return result;
         };
     }
