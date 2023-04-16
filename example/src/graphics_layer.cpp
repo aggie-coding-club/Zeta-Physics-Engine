@@ -9,6 +9,7 @@ gs_graphics_bind_desc_t binds = {};
 gs_handle(gs_graphics_pipeline_t) pip = {};
 gs_handle(gs_graphics_shader_t) shader = {};
 gs_handle(gs_graphics_vertex_buffer_t) vbo = {};
+gs_handle(gs_graphics_index_buffer_t) ibo = {};
 gs_handle(gs_graphics_uniform_t) u_model = {};
 
 gs_handle(gs_graphics_texture_t)         t_diffuse  = {0};
@@ -153,18 +154,24 @@ RawModel loadObjModel(std::string fileName){
     }
 
     // load model
+
 }
 
 void SetupScene(gs_camera_t cam){
 
     commandBuffer = gs_command_buffer_new();
-
       
     // Construct vertex buffer
     gs_graphics_vertex_buffer_desc_t vb_desc  = {};
 
     vbo = gs_graphics_vertex_buffer_create(&vb_desc);
     
+    gs_graphics_index_buffer_desc_t ib_desc = {};
+    // ib_desc.data = 
+    // ib_desc.size = 
+
+    ibo = gs_graphics_index_buffer_create(&ib_desc);
+
     // Generate procedural texture data (checkered texture)
     gs_color_t c0 = GS_COLOR_WHITE;
     gs_color_t c1 = gs_color(20, 50, 150, 255);
@@ -377,6 +384,7 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
         RectPrism prism = appState->rectPrisms.at(i);
         gs_vec4 color_one = prism.color;
         gs_vec3 pos_one = prism.position;
+        pos_one = {};
 
         ZMath::Vec3D *vertices = prism.vertices;
 
