@@ -516,14 +516,14 @@ bool testRaycastingVSCube() {
 
     // ! dist should be -1, set the 0 after dist to -1 after making the function to test.
     // ! the 1 after the raycast function should also be a 0, change after making the function.
-    if (RAYCAST_TEST("Cube behind Ray.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
+    if (RAYCAST_TEST("Cube behind Ray.", Collisions::raycast(cube2, ray, dist), 0, dist, 0)) { return 1; }
 
     ray.origin.set(-7.5f);
     ray.dir.set(-1, 1, 1);
 
     // ! dist should be -1, set the 0 after dist to -1 after making the function to test.
     // ! the 1 after the raycast function should also be a 0, change after making the function.
-    if (RAYCAST_TEST("Not Cube and Ray.", Collisions::raycast(cube2, ray, dist), 1, dist, 0)) { return 1; }
+    if (RAYCAST_TEST("Not Cube and Ray.", Collisions::raycast(cube2, ray, dist), 0, dist, 0)) { return 1; }
 
     return 0;
 };
