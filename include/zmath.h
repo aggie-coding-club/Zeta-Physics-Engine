@@ -81,37 +81,34 @@ namespace ZMath {
             bool operator != (Vec2D const &vec) const { return x != vec.x || y != vec.y; };
             bool operator == (Vec2D const &vec) const { return x == vec.x && y == vec.y; };
 
-            Vec2D& operator += (Vec2D const &vec) {
+            void operator += (Vec2D const &vec) {
                 x += vec.x;
                 y += vec.y;
-
-                return (*this);
             };
 
-            Vec2D& operator += (float c) {
+            void operator += (float c) {
                 x += c;
                 y += c;
-
-                return (*this);
             };
 
-            Vec2D& operator -= (Vec2D const &vec) {
+            void operator -= (Vec2D const &vec) {
                 x -= vec.x;
                 y -= vec.y;
-
-                return (*this);
             };
 
-            Vec2D& operator -= (float c) {
+            void operator -= (float c) {
                 x -= c;
                 y -= c;
-
-                return (*this);
             };
 
-            Vec2D& operator *= (float c) {
+            void operator *= (float c) {
                 x *= c;
                 y *= c;
+            };
+
+            Vec2D& operator - () {
+                x = -x;
+                y = -y;
 
                 return (*this);
             };
@@ -223,42 +220,40 @@ namespace ZMath {
             bool operator != (Vec3D const &vec) const { return x != vec.x || y != vec.y || z != vec.z; };
             bool operator == (Vec3D const &vec) const { return x == vec.x && y == vec.y && z == vec.z; };
 
-            Vec3D& operator += (Vec3D const &vec) {
+            void operator += (Vec3D const &vec) {
                 x += vec.x;
                 y += vec.y;
                 z += vec.z;
-
-                return (*this);
             };
 
-            Vec3D& operator += (float c) {
+            void operator += (float c) {
                 x += c;
                 y += c;
                 z += c;
-
-                return (*this);
             };
 
-            Vec3D& operator -= (Vec3D const &vec) {
+            void operator -= (Vec3D const &vec) {
                 x -= vec.x;
                 y -= vec.y;
                 z -= vec.z;
-
-                return (*this);
             };
 
-            Vec3D& operator -= (float c) {
+            void operator -= (float c) {
                 x -= c;
                 y -= c;
                 z -= c;
-
-                return (*this);
             };
 
-            Vec3D& operator *= (float c) {
+            void operator *= (float c) {
                 x *= c;
                 y *= c;
                 z *= c;
+            };
+
+            Vec3D& operator - () {
+                x = -x;
+                y = -y;
+                z = -z;
 
                 return (*this);
             };
@@ -362,8 +357,6 @@ namespace ZMath {
     float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
 
 
-    // todo remove the unnecessary function calls in the matrix class wrappers
-
     // * Class modeling a 2x2 Matrix stored in column major order.
     class Mat2D {
         public:
@@ -443,56 +436,53 @@ namespace ZMath {
             Mat2D operator + (float c) const { return Mat2D(c1 + c, c2 + c); };
             Mat2D operator - (float c) const { return Mat2D(c1 - c, c2 - c); };
 
-            Mat2D& operator += (const Mat2D &mat) {
+            void operator += (const Mat2D &mat) {
                 c1.x += mat.c1.x;
                 c1.y += mat.c1.y;
                 c2.x += mat.c2.x;
                 c2.y += mat.c2.y;
-
-                return (*this);
             };
 
-            Mat2D& operator += (float c) {
+            void operator += (float c) {
                 c1.x += c;
                 c1.y += c;
                 c2.x += c;
                 c2.y += c;
-
-                return (*this);
             };
 
-            Mat2D& operator -= (const Mat2D &mat) {
+            void operator -= (const Mat2D &mat) {
                 c1.x -= mat.c1.x;
                 c1.y -= mat.c1.y;
                 c2.x -= mat.c2.x;
                 c2.y -= mat.c2.y;
-
-                return (*this);
             };
 
-            Mat2D& operator -= (float c) {
+            void operator -= (float c) {
                 c1.x -= c;
                 c1.y -= c;
                 c2.x -= c;
                 c2.y -= c;
-
-                return (*this);
             };
 
-            Mat2D& operator *= (const Mat2D &mat) {
+            void operator *= (const Mat2D &mat) {
                 c1.x = c1.x * mat.c1.x + c2.x * mat.c1.y;
                 c1.y = c1.x * mat.c2.x + c2.x * mat.c2.y;
                 c2.x = c1.y * mat.c1.x + c2.y * mat.c1.y;
                 c2.y = c1.y * mat.c2.x + c2.y * mat.c2.y;
-
-                return (*this);
             };
 
-            Mat2D& operator *= (float c) {
+            void operator *= (float c) {
                 c1.x *= c;
                 c1.y *= c;
                 c2.x *= c;
                 c2.y *= c;
+            };
+
+            Mat2D& operator - () {
+                c1.x = -c1.x;
+                c1.y = -c1.y;
+                c2.x = -c2.x;
+                c2.y = -c2.y;
 
                 return (*this);
             };
@@ -628,7 +618,7 @@ namespace ZMath {
             Mat3D operator + (float c) const { return Mat3D(c1 + c, c2 + c, c3 + c); };
             Mat3D operator - (float c) const { return Mat3D(c1 - c, c2 - c, c3 - c); };
 
-            Mat3D& operator += (const Mat3D &mat) {
+            void operator += (const Mat3D &mat) {
                 c1.x += mat.c1.x;
                 c1.y += mat.c1.y;
                 c1.z += mat.c1.z;
@@ -638,11 +628,9 @@ namespace ZMath {
                 c3.x += mat.c3.x;
                 c3.y += mat.c3.y;
                 c3.z += mat.c3.z;
-
-                return (*this);
             };
 
-            Mat3D& operator += (float c) {
+            void operator += (float c) {
                 c1.x += c;
                 c1.y += c;
                 c1.z += c;
@@ -652,11 +640,9 @@ namespace ZMath {
                 c3.x += c;
                 c3.y += c;
                 c3.z += c;
-
-                return (*this);
             };
 
-            Mat3D& operator -= (const Mat3D &mat) {
+            void operator -= (const Mat3D &mat) {
                 c1.x -= mat.c1.x;
                 c1.y -= mat.c1.y;
                 c1.z -= mat.c1.z;
@@ -666,11 +652,9 @@ namespace ZMath {
                 c3.x -= mat.c3.x;
                 c3.y -= mat.c3.y;
                 c3.z -= mat.c3.z;
-
-                return (*this);
             };
 
-            Mat3D& operator -= (float c) {
+            void operator -= (float c) {
                 c1.x -= c;
                 c1.y -= c;
                 c1.z -= c;
@@ -680,11 +664,9 @@ namespace ZMath {
                 c3.x -= c;
                 c3.y -= c;
                 c3.z -= c;
-
-                return (*this);
             };
 
-            Mat3D& operator *= (const Mat3D &mat) {
+            void operator *= (const Mat3D &mat) {
                 // row 1
                 c1.x = c1.x*mat.c1.x + c2.x*mat.c1.y + c3.x*mat.c1.z;
                 c2.x = c1.x*mat.c2.x + c2.x*mat.c2.y + c3.x*mat.c2.z;
@@ -699,11 +681,9 @@ namespace ZMath {
                 c1.z = c1.z*mat.c1.x + c2.z*mat.c1.y + c3.z*mat.c1.z;
                 c2.z = c1.z*mat.c2.x + c2.z*mat.c2.y + c3.z*mat.c2.z;
                 c3.z = c1.z*mat.c3.x + c2.z*mat.c3.y + c3.z*mat.c3.z;
-
-                return (*this);
             };
 
-            Mat3D& operator *= (float c) {
+            void operator *= (float c) {
                 c1.x *= c;
                 c1.y *= c;
                 c1.z *= c;
@@ -713,6 +693,18 @@ namespace ZMath {
                 c3.x *= c;
                 c3.y *= c;
                 c3.z *= c;
+            };
+
+            Mat3D& operator - () {
+                c1.x = -c1.x;
+                c1.y = -c1.y;
+                c1.z = -c1.z;
+                c2.x = -c2.x;
+                c2.y = -c2.y;
+                c2.z = -c2.z;
+                c3.x = -c3.x;
+                c3.y = -c3.y;
+                c3.z = -c3.z;
 
                 return (*this);
             };
@@ -797,6 +789,21 @@ namespace ZMath {
                 float s = sinf(toRadians(theta));
 
                 return Mat3D(c, -s, 0, s, c, 0, 0, 0, 1);
+            };
+
+            /**
+             * @brief Generate a 3D rotation matrix for an object given its rotation with respect to the XY plane and the XZ plane.
+             * 
+             * @param theta (float) Angle in degrees the object is rotated with respect to the XY plane.
+             * @param phi (float) Angle in degrees the object is rotated with respect to the XZ plane.
+             * @return (Mat3D) 3D rotation matrix that will rotate anything from the object's local space into global coordinates.
+             * Note: the transpose of this will rotate anything from global space into the object's local space.
+             */
+            static Mat3D generateRotationMatrix(float theta, float phi) {
+                float cT = cosf(toRadians(theta)), sT = sinf(toRadians(theta));
+                float cP = cosf(toRadians(phi)), sP = sinf(toRadians(phi));
+
+                return Mat3D(cT, -sT, 0, sT, cT, 0, 0, 0, 1) * Mat3D(cP, 0, sP, 0, 1, 0, -sP, 0, cP);
             };
     };
 

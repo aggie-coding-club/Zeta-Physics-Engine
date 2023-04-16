@@ -576,6 +576,8 @@ namespace Collisions {
         // ? We can make an AABB object from the first cube and create a new cube object by subtracting the angles
         // ?  the first cube was rotated by from the second cube and perform an AABB vs Cube check.
 
+        // todo add the separating axis one liner solution
+
         Primitives::AABB aabb(cube1.getLocalMin(), cube2.getLocalMax());
         Primitives::Cube cube(cube2.getLocalMin(), cube2.getLocalMax(), cube2.rb.theta - cube1.rb.theta, cube2.rb.phi - cube1.rb.phi);
 
