@@ -226,48 +226,112 @@ namespace Collisions {
         };
 
         /**
-         * @brief // ! Write more when I fully know what it's doing
+         * @brief Compute the clipped vertices.
          * 
-         * @param vOut 
+         * @param vOut This array gets filled with the clipped vertices.
          * @param vIn The vertices for the incident face.
-         * @param normal 
-         * @param offset 
-         * @return (int) Number of vertices 
+         * @param normal The normal for the axis being clipped.
+         * @param offset The distance to the best axis from the axis being clipped.
+         * @return (int) Number of clipped vertices.
          */
-        int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &normal, float offset) {
+        int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
             // begin with 0 output points
             int np = 0;
 
             // todo fs need to test this function extensively
+            // todo consult my pictures
+
+            // todo may only need to compute the dist for [0] and [2] and use that for all the data
 
             // calculate the distance
-            // ! it doesn't work quite like this for 3D probs
-            float dist0 = normal * vIn[0] - offset;
-            float dist1 = normal * vIn[1] - offset;
-            float dist2 = normal * vIn[2] - offset;
-            float dist3 = normal * vIn[3] - offset;
+            // first set of distances
+            float d0 = n1 * vIn[0] - offset1;
+            float d1 = n1 * vIn[1] - offset1;
+            float d2 = n1 * vIn[2] - offset1;
+            float d3 = n1 * vIn[3] - offset1;
 
-            // if the points are behind the plane (i.e. inside the cube)
-            if (dist0 <= 0.0f) { vOut[np++] = vIn[0]; }
-            if (dist1 <= 0.0f) { vOut[np++] = vIn[1]; }
-            if (dist2 <= 0.0f) { vOut[np++] = vIn[2]; }
-            if (dist3 <= 0.0f) { vOut[np++] = vIn[3]; }
+            // second set of distances
+            float d4 = n2 * vIn[0] - offset2;
+            float d5 = n2 * vIn[1] - offset2;
+            float d6 = n2 * vIn[2] - offset2;
+            float d7 = n2 * vIn[3] - offset2;
 
-            // todo this next check doesn't translate the same way to 3D as the above step does
-            // todo probably evaluate both separately in terms of the y's and z's
+            // * Compute the clipping points.
 
-            // check if the vertices are separated by the edge on the 1st axis
-            if (dist0 * dist2 < 0.0f) {
-                float interp = dist0/(dist0 - dist2);
-                vOut[np] = vIn[0] + (vIn[2] - vIn[0]) * interp;
-                ++np;
+            // first input point
+            // if the points are inside the reference cube, add them as clipping points
+            if (d0 <= 0.0f && d4 <= 0.0f) { 
+                vOut[np++] = vIn[0];
+
+            // check if the vertices are separated by the edge of the reference cube
+            } else if (d0 <= 0.0f && d4 * d6 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * interp;
+
+            } else if (d4 <= 0.0f && d0 * d2 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * interp;
+
+            } else if (d0 * d2 < 0.0f && d4 * d6 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * interp;
             }
 
-            // check if the vertices are separated by the edge on the 2nd axis
-            if (dist1 * dist3 < 0.0f) {
-                float interp = dist1/(dist1 - dist3);
-                vOut[np] = vIn[1] + (vIn[3] - vIn[1]) * interp;
-                ++np;
+            // second input point
+            // if the points are inside the reference cube, add them as clipping points
+            if (d1 <= 0.0f && d5 <= 0.0f) {
+                vOut[np++] = vIn[1];
+            
+            // check if the vertices are separated by the edge of the reference cube
+            } else if (d1 <= 0.0f && d5 * d7 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * interp;
+
+            } else if (d5 <= 0.0f && d1 * d3 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * interp;
+
+            } else if (d1 * d3 < 0.0f && d5 * d7 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * interp;
+            }
+
+            // third input point
+            // if the points are inside the reference cube, add them as clipping points
+            if (d2 <= 0.0f && d6 <= 0.0f) {
+                vOut[np++] = vIn[2];
+            
+            // check if the vertices are separated by the edge of the reference cube
+            } else if (d2 <= 0.0f && d6 * d4 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[2] + (vIn[0] - vIn[2]) * interp;
+
+            } else if (d6 <= 0.0f && d2 * d0 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[2] + (vIn[0] - vIn[2]) * interp;
+
+            } else if (d2 * d0 < 0.0f && d6 * d4 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[2] + (vIn[0] - vIn[2]) * interp;
+            }
+
+            // fourth input point
+            // if the points are inside the reference cube, add them as clipping points
+            if (d3 <= 0.0f && d7 <= 0.0f) {
+                vOut[np++] = vIn[3];
+            
+            // check if the vertices are separated by the edge of the reference cube
+            } else if (d3 <= 0.0f && d7 * d5 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[3] + (vIn[1] - vIn[3]) * interp;
+
+            } else if (d7 <= 0.0f && d3 * d1 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[3] + (vIn[1] - vIn[3]) * interp;
+
+            } else if (d3 * d1 < 0.0f && d7 * d5 < 0.0f) {
+                float interp = 1.0f;
+                vOut[np++] = vIn[3] + (vIn[1] - vIn[3]) * interp;
             }
 
             return np;
@@ -519,9 +583,10 @@ namespace Collisions {
             // todo add in better comments when I understand this better to make sure I understand it well
 
             // ! unsure if I should do it with the incident face for both axes separately or chain together the axes
+            // ! This part is likely wrong but we will go with it for now and test it out and math it out later.
 
             // Clip with the incident face
-            int np = clipSegmentToLine(clipPoints1, incidentFace, -sideNormal1, negSide1);
+            int np = clipSegmentToLine(clipPoints1, incidentFace, -sideNormal1, -sideNormal2, negSide1, negSide2);
 
             if (np < 4) {
                 result.hit = 0;
@@ -529,23 +594,7 @@ namespace Collisions {
             }
 
             // Clip with negSide1
-            np = clipSegmentToLine(clipPoints2, clipPoints1, sideNormal1, posSide1);
-
-            if (np < 4) {
-                result.hit = 0;
-                return result;
-            }
-
-            // Clip with the incident face
-            np = clipSegmentToLine(clipPoints3, incidentFace, -sideNormal2, negSide2);
-
-            if (np < 4) {
-                result.hit = 0;
-                return result;
-            }
-
-            // Clip with negSide2
-            np = clipSegmentToLine(clipPoints4, clipPoints3, sideNormal2, posSide2);
+            np = clipSegmentToLine(clipPoints2, clipPoints1, sideNormal1, sideNormal2, posSide1, posSide2);
 
             if (np < 4) {
                 result.hit = 0;
@@ -553,6 +602,18 @@ namespace Collisions {
             }
 
             // ! unsure what to do from here
+            // ? Idk which of these contain the final clipping points
+            // ? We will have to do some diagrams and math to figure it out
+
+            np = 0;
+            for (int i = 0; i < 4; i++) {
+                separation = frontNormal * clipPoints2[i] - front;
+
+                if (separation <= 0) {
+                    result.pDist = separation;
+                    ++np; 
+                }
+            }
 
             result.hit = 1;
             return result;
