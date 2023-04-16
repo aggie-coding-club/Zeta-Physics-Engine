@@ -360,10 +360,10 @@ namespace Collisions {
 
         ZMath::Vec3D cubeMin = cube.getLocalMin();
         ZMath::Vec3D cubeMax = cube.getLocalMax();
-        ZMath::rotateXZ(cubeMin, cube.rb.pos, cube.rb.phi);
         ZMath::rotateXY(cubeMin, cube.rb.pos, cube.rb.theta);
-        ZMath::rotateXZ(cubeMax, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXZ(cubeMin, cube.rb.pos, cube.rb.phi);
         ZMath::rotateXY(cubeMax, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(cubeMax, cube.rb.pos, cube.rb.phi);
 
         ZMath::Vec3D rayOrigin = ray.origin;
         ZMath::Vec3D rayDir = ray.dir;
