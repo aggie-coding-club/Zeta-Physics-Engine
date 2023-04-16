@@ -239,8 +239,6 @@ namespace Collisions {
             int np = 0;
 
             // todo fs need to test this function extensively
-            // todo consult my pictures
-
             // todo may only need to compute the dist for [0] and [2] and use that for all the data
 
             // calculate the distance
@@ -256,6 +254,8 @@ namespace Collisions {
             float d6 = n2 * vIn[2] - offset2;
             float d7 = n2 * vIn[3] - offset2;
 
+            // todo print out all the distances to check them as many should be equivalent
+
             // * Compute the clipping points.
 
             // first input point
@@ -265,16 +265,13 @@ namespace Collisions {
 
             // check if the vertices are separated by the edge of the reference cube
             } else if (d0 <= 0.0f && d4 * d6 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * interp;
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d4/(d4 - d6));
 
             } else if (d4 <= 0.0f && d0 * d2 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * interp;
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d0/(d0 - d2));
 
             } else if (d0 * d2 < 0.0f && d4 * d6 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * interp;
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * ((d0/(d0 - d2)) + (d4/(d4 - d6)));
             }
 
             // second input point
@@ -284,16 +281,13 @@ namespace Collisions {
             
             // check if the vertices are separated by the edge of the reference cube
             } else if (d1 <= 0.0f && d5 * d7 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * interp;
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d5/(d5 - d7));
 
             } else if (d5 <= 0.0f && d1 * d3 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * interp;
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d1/(d1 - d3));
 
             } else if (d1 * d3 < 0.0f && d5 * d7 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * interp;
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * ((d1/(d1 - d3)) + (d5/(d5 - d7)));
             }
 
             // third input point
@@ -302,17 +296,14 @@ namespace Collisions {
                 vOut[np++] = vIn[2];
             
             // check if the vertices are separated by the edge of the reference cube
-            } else if (d2 <= 0.0f && d6 * d4 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[2] + (vIn[0] - vIn[2]) * interp;
+            } else if (d2 <= 0.0f && d4 * d6 < 0.0f) {
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d4/(d4 - d6));
 
-            } else if (d6 <= 0.0f && d2 * d0 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[2] + (vIn[0] - vIn[2]) * interp;
+            } else if (d6 <= 0.0f && d0 * d2 < 0.0f) {
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d0/(d0 - d2));
 
-            } else if (d2 * d0 < 0.0f && d6 * d4 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[2] + (vIn[0] - vIn[2]) * interp;
+            } else if (d0 * d2 < 0.0f && d4 * d6 < 0.0f) {
+                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * ((d0/(d0 - d2)) + (d4/(d4 - d6)));
             }
 
             // fourth input point
@@ -321,17 +312,14 @@ namespace Collisions {
                 vOut[np++] = vIn[3];
             
             // check if the vertices are separated by the edge of the reference cube
-            } else if (d3 <= 0.0f && d7 * d5 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[3] + (vIn[1] - vIn[3]) * interp;
+            } else if (d3 <= 0.0f && d5 * d7 < 0.0f) {
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d5/(d5 - d7));
 
-            } else if (d7 <= 0.0f && d3 * d1 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[3] + (vIn[1] - vIn[3]) * interp;
+            } else if (d7 <= 0.0f && d1 * d3 < 0.0f) {
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d1/(d1 - d3));
 
-            } else if (d3 * d1 < 0.0f && d7 * d5 < 0.0f) {
-                float interp = 1.0f;
-                vOut[np++] = vIn[3] + (vIn[1] - vIn[3]) * interp;
+            } else if (d1 * d3 < 0.0f && d5 * d7 < 0.0f) {
+                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * ((d1/(d1 - d3)) + (d5/(d5 - d7)));
             }
 
             return np;
