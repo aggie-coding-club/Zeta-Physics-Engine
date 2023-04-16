@@ -360,6 +360,11 @@ namespace Collisions {
 
         ZMath::Vec3D cubeMin = cube.getLocalMin();
         ZMath::Vec3D cubeMax = cube.getLocalMax();
+        ZMath::rotateXZ(cubeMin, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXY(cubeMin, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(cubeMax, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXY(cubeMax, cube.rb.pos, cube.rb.theta);
+
         ZMath::Vec3D rayOrigin = ray.origin;
         ZMath::Vec3D rayDir = ray.dir;
 
@@ -371,6 +376,13 @@ namespace Collisions {
         ZMath::rotateXY(cubeMin, 0, cube.rb.theta);
         ZMath::rotateXZ(cubeMax, 0, cube.rb.phi);
         ZMath::rotateXY(cubeMax, 0, cube.rb.theta);
+        
+        // todo : figure out why tf this isnt working
+        // ZMath::rotateXZ(rayOrigin, cube.rb.pos, cube.rb.phi);
+        // ZMath::rotateXY(rayOrigin, cube.rb.pos, cube.rb.theta);
+        // ZMath::rotateXZ(rayDir, cube.rb.pos, cube.rb.phi);
+        // ZMath::rotateXY(rayDir, cube.rb.pos, cube.rb.theta);
+
         rayDir.normalize();
 
         Primitives::AABB newCube(cubeMin, cubeMax);
