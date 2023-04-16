@@ -500,7 +500,7 @@ bool testRaycastingVSCube() {
     // ! This one may have some sort of rounding errors associated with it so if you have continuous issues with this unit test
     // ! don't be afraid to question the test itself (or if it's off by like a slight amount then dw about it and just say it's good enough)
     Primitives::Cube cube2(ZMath::Vec3D(-1), ZMath::Vec3D(1), 45, 45);
-    ray.origin.set(1.4142f, -1.4142f, -1.4142f);
+    ray.origin.set(1.39, -1.39, -1.39);
     ray.dir.set(ZMath::Vec3D(-0.70711f, 0, 0.70711f).normalize());
 
     // ! dist should be x, set the 0 after dist to x after making the function to test.

@@ -363,20 +363,19 @@ namespace Collisions {
         ZMath::Vec3D rayOrigin = ray.origin;
         ZMath::Vec3D rayDir = ray.dir;
 
-        // std::cout << "Ray Origin: " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
-        // std::cout << "Ray Dir: " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
-
-        ZMath::rotateXZ(rayOrigin, cube.rb.pos, 360 - cube.rb.phi);
-        ZMath::rotateXY(rayOrigin, cube.rb.pos, 360 - cube.rb.theta);
-        ZMath::rotateXZ(rayDir, cube.rb.pos, 360 - cube.rb.phi);
-        ZMath::rotateXY(rayDir, cube.rb.pos, 360 - cube.rb.theta);
+        ZMath::rotateXZ(rayOrigin, 0, 360 - cube.rb.phi);
+        ZMath::rotateXY(rayOrigin, 0, 360 - cube.rb.theta);
+        ZMath::rotateXZ(rayDir, 0, 360 - cube.rb.phi);
+        ZMath::rotateXY(rayDir, 0, 360 - cube.rb.theta);
+        ZMath::rotateXZ(cubeMin, 0, 360 - cube.rb.phi);
+        ZMath::rotateXY(cubeMin, 0, 360 - cube.rb.theta);
+        ZMath::rotateXZ(cubeMax, 0, 360 - cube.rb.phi);
+        ZMath::rotateXY(cubeMax, 0, 360 - cube.rb.theta);
         rayDir.normalize();
 
-        // std::cout << "Ray Origin: " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
-        // std::cout << "Ray Dir: " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
+        Primitives::AABB newCube(cubeMin, cubeMax);
 
         float d2 = 0;
-
         return raycast(Primitives::AABB(cubeMin, cubeMax), Primitives::Ray3D(rayOrigin, rayDir), d2);
     };
 
