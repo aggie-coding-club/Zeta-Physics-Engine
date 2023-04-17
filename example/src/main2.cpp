@@ -104,12 +104,16 @@ void update() {
     if (dt >= 0.0167f) {
         // our_cube.rb.theta += (3.0f * (int)(dt/0.0167f));
         // our_cube.rb.phi -= (1.5f * (int)(dt/0.0167f));
-        dt -= (float)(int)(dt/0.0167f) * 0.0167;
         handler.update(dt);
+        dt -= (float)(int)(dt/0.0167f) * 0.0167;
     }
 
-    cube1 = o1.collider.cube;
-    cube2 = o2.collider.cube;
+    //std::cout << "It's time: " << o1.collider.type << " Second iteration: " << o2.collider.type << "\n";
+
+    PhysicsHandler::Object* objs = handler.getObject();
+
+    cube1 = objs[0].collider.cube;
+    cube2 = objs[1].collider.cube;
     DrawRectPrism(&appState, cube1.getVertices(), {cube1.rb.pos.x, cube1.rb.pos.x, cube1.rb.pos.z}, {225.0 / 255.0, 1.0 / 255.0, 1.0, 1.0});
     DrawRectPrism(&appState, cube2.getVertices(), {cube2.rb.pos.x, cube2.rb.pos.x, cube2.rb.pos.z}, {225.0 / 255.0, 1.0 / 255.0, 1.0, 1.0});
 

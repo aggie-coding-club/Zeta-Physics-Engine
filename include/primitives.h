@@ -185,6 +185,8 @@ namespace Primitives {
                 rb.pos = min + halfSize;
                 rb.theta = angXY;
                 rb.phi = angXZ;
+                rb.mass = 20.0f;
+                rb.invMass = 0.05f;
             };
 
             // Get the min vertex in the cube's UVW coordinates.
