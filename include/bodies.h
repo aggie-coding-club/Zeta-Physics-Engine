@@ -27,7 +27,7 @@ namespace Primitives {
             // ? assuming g is gravity, and it is already negative
             netForce = netForce + g * mass;
             vel = vel + (netForce * invMass) * dt;
-            pos = pos + vel * dt;
+            pos = pos + vel * (float)(int)(dt/0.0167f) * 0.0167f;
         };
     };
 

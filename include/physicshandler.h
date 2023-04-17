@@ -345,7 +345,7 @@ namespace PhysicsHandler {
             // * ===========================
 
             // Add an object to the list of objects to be updated by the physics handler.
-            void addObject(Object const &obj) {
+            void addObject(Object &obj) {
                 if (objs.count == objs.capacity) {
                     objs.capacity *= 2;
                     Object* temp = new Object[objs.capacity];

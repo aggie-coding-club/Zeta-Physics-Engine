@@ -11,7 +11,7 @@ namespace Collisions {
     // * Collision Manifolds
     // * =========================
 
-    // ? Note: if we have objects A and B colliding, the collison normal will point towards A and away from B.
+    // ? Note: if we have objects A and B colliding, the collison normal will point towards B and away from A.
 
     // todo maybe make the contactPoints list an array of 4 as that's the max number
     // this would allow for more efficiency in cube v cube manifolds
@@ -39,7 +39,7 @@ namespace Collisions {
                 return result;
             }
 
-            ZMath::Vec3D sphereDiff = sphere1.rb.pos - sphere2.rb.pos;
+            ZMath::Vec3D sphereDiff = sphere2.rb.pos - sphere1.rb.pos;
             float d = sphereDiff.mag(); // allows us to only take the sqrt once
 
             result.pDist = (sphere1.r + sphere2.r - d) * 0.5f;
@@ -49,7 +49,7 @@ namespace Collisions {
             // determine the contact point
             result.numPoints = 1;
             result.contactPoints = new ZMath::Vec3D[result.numPoints];
-            result.contactPoints[0] = sphere2.rb.pos + (result.normal * (sphere2.r - result.pDist));
+            result.contactPoints[0] = sphere1.rb.pos + (result.normal * (sphere1.r - result.pDist));
 
             return result;
         };
@@ -82,7 +82,7 @@ namespace Collisions {
 
             // determine the penetration distance and collision normal
 
-            ZMath::Vec3D diff = sphere.rb.pos - closest;
+            ZMath::Vec3D diff = closest - sphere.rb.pos;
             float d = diff.mag(); // allows us to only take the sqrt once
             result.pDist = sphere.r - d;
             result.normal = diff * (1.0f/d);
@@ -111,7 +111,7 @@ namespace Collisions {
 
             if (!result.hit) { return result; }
 
-            // the closest point to the sphere's center will be our contact point rotated back into UVW coordinates
+            // the closest point to the sphere's center will be our contact point rotated back into global coordinates coordinates
 
             ZMath::rotateXY(closest, cube.rb.pos, cube.rb.theta);
             ZMath::rotateXZ(closest, cube.rb.pos, cube.rb.phi);
@@ -122,7 +122,7 @@ namespace Collisions {
 
             // determine the penetration distance and the collision normal
 
-            ZMath::Vec3D diff = sphere.rb.pos - closest;
+            ZMath::Vec3D diff = closest - sphere.rb.pos;
             float d = diff.mag(); // allows us to only take the sqrt once
             result.pDist = sphere.r - d;
             result.normal = diff * (1.0f/d);
@@ -143,19 +143,6 @@ namespace Collisions {
             FACE_B_Y,
             FACE_B_Z
         };
-
-        // ! don't think we need this
-        // struct ClipVertex {
-        //     ZMath::Vec3D vec;
-
-        //     char inEdge1;
-        //     char outEdge1;
-        //     char inEdge2;
-        //     char outEdge2;
-        //     char inEdge3;
-        //     char outEdge3;
-        //     // ! unsure how many we will actually need so we'll revisit this when I have a better understanding
-        // };
 
         /**
          * @brief Determine the 4 vertices making up the incident face.
@@ -339,6 +326,8 @@ namespace Collisions {
             return {};
         };
 
+        // ? Normal points towards B and away from A
+
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
             // todo make sure the sign for the normal is correct
 
@@ -369,6 +358,7 @@ namespace Collisions {
             // * rotation matrices for switching between local spaces
             
             // todo do the math to figure out if we actually need to do the abs
+            // todo not sure what math to do for this though
 
             // Rotate anything from B's local space into A's
             ZMath::Mat3D C = ZMath::abs(rotAT * rotB);
@@ -392,49 +382,51 @@ namespace Collisions {
                 return result;
             }
 
-            // * Find the best axis (i.e. the axis with the least amount of penetration)
-            // ! not 100% sure this part works properly
-            // ! issue may be we can't use projection in the same way for 3D for solving this
+            // * Find the best axis (i.e. the axis with the least amount of penetration).
 
             // Assume A's x-axis is the best axis first
             Axis axis = FACE_A_X;
             float separation = faceA.x;
-            result.normal = dA.x > 0.0f ? -rotA.c1 : rotA.c1;
+            result.normal = dA.x > 0.0f ? rotA.c1 : -rotA.c1;
 
             // tolerance values
             float relativeTol = 0.95f;
             float absoluteTol = 0.01f;
 
-            // check if there is another axis better than A's x axis
+            // ? check if there is another axis better than A's x axis by checking if the penetration along
+            // ?  the current axis being checked is greater than that of the current penetration
+            // ?  (as greater value = less negative = less penetration).
+
+            // A's remaining axes
             if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
                 axis = FACE_A_Y;
                 separation = faceA.y;
-                result.normal = dA.y > 0.0f ? -rotA.c2 : rotA.c2;
+                result.normal = dA.y > 0.0f ? rotA.c2 : -rotA.c2;
             }
 
             if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
                 axis = FACE_A_Z;
                 separation = faceA.z;
-                result.normal = dA.z > 0.0f ? -rotA.c3 : rotA.c3;
+                result.normal = dA.z > 0.0f ? rotA.c3 : -rotA.c3;
             }
 
             // B's axes
             if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
                 axis = FACE_B_X;
                 separation = faceB.x;
-                result.normal = dB.x > 0.0f ? -rotB.c1 : rotB.c1;
+                result.normal = dB.x > 0.0f ? rotB.c1 : -rotB.c1;
             }
 
             if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
                 axis = FACE_B_Y;
                 separation = faceB.y;
-                result.normal = dB.y > 0.0f ? -rotB.c2 : rotB.c2;
+                result.normal = dB.y > 0.0f ? rotB.c2 : -rotB.c2;
             }
 
             if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
                 axis = FACE_B_Z;
                 separation = faceB.z;
-                result.normal = dB.z > 0.0f ? -rotB.c3 : rotB.c3;
+                result.normal = dB.z > 0.0f ? rotB.c3 : -rotB.c3;
             }
 
             // * Setup clipping plane data based on the best axis

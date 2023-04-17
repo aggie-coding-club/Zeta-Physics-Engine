@@ -228,7 +228,7 @@ namespace Primitives {
     // ! Current design for this is bad; refactor later.
     // ! This is just used to have some form of easy system to begin connecting everything together
 
-    enum {
+    enum Collider {
         SPHERE_COLLIDER,
         AABB_COLLIDER,
         CUBE_COLLIDER,
@@ -241,7 +241,7 @@ namespace Primitives {
 
         Collider3D() {}; // default constructor to make the compiler happy
 
-        int type = NONE;
+        Collider type = NONE;
         union {
             Sphere sphere;
             AABB aabb;
