@@ -4,6 +4,7 @@
 #include "collisions.h"
 
 // todo test the physics handler
+// todo go through and add checks to make sure the pointers aren't null before freeing the memory pointed to by them
 
 namespace PhysicsHandler {
     // * =========================
@@ -408,6 +409,7 @@ namespace PhysicsHandler {
                 }
 
                 // todo update to not be through iterative deepening -- look into this in the future
+                // todo use spacial partitioning
                 // Narrow phase: Impulse resolution
                 for (int k = 0; k < IMPULSE_ITERATIONS; k++) {
                     for (int i = 0; i < colWrapper.count; i++) {

@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "gunslinger/gs.h"
+#include "../example/gunslinger/gs.h"
 #include <vector>
 #include "bodies.h"
 

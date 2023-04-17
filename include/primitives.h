@@ -171,6 +171,8 @@ namespace Primitives {
             ZMath::Vec3D halfSize;
 
         public:
+            // todo cache a rotation matrix for the cube instead of storing its angles.
+
             RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
 
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.

@@ -24,6 +24,10 @@ namespace Primitives {
 
         void update(ZMath::Vec3D const &g, float dt) {
             // * Add code to update a rigidbody here.
+            // ? assuming g is gravity, and it is already negative
+            netForce = netForce + g * mass;
+            vel = vel + (netForce * invMass) * dt;
+            pos = pos + vel * dt;
         };
     };
 

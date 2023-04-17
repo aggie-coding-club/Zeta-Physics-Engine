@@ -352,7 +352,61 @@ namespace Collisions {
     // Determine if a ray intersects a cube.
     // dist will be modified to equal the distance from the ray it hits the cube.
     // dist is set to -1 if there is no intersection.
-    bool raycast(Primitives::Cube const &cube, Primitives::Ray3D const &ray, float &dist) { return 1; };
+    bool raycast(Primitives::Cube const &cube, Primitives::Ray3D const &ray, float &dist) {
+        // http://groups.csail.mit.edu/graphics/classes/6.837/F02/lectures/6.837-10_rayCast.pdf
+        // Slide 47, basically they recommend to convert ray to object space and check aabb, dunno
+        // if its faster but MIT slides says its a good start
+        // * If this works ill copy the code over from AABB to make sure we dont lose pref
+
+        ZMath::Vec3D cubeMin = cube.getLocalMin();
+        ZMath::Vec3D cubeMax = cube.getLocalMax();
+        ZMath::rotateXY(cubeMin, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(cubeMin, cube.rb.pos, cube.rb.phi);
+        ZMath::rotateXY(cubeMax, cube.rb.pos, cube.rb.theta);
+        ZMath::rotateXZ(cubeMax, cube.rb.pos, cube.rb.phi);
+
+        ZMath::Vec3D rayOrigin = ray.origin;
+        ZMath::Vec3D rayDir = ray.dir;
+
+        ZMath::rotateXZ(rayOrigin, 0, cube.rb.phi);
+        ZMath::rotateXY(rayOrigin, 0, cube.rb.theta);
+        ZMath::rotateXZ(rayDir, 0, cube.rb.phi);
+        ZMath::rotateXY(rayDir, 0, cube.rb.theta);
+        ZMath::rotateXZ(cubeMin, 0, cube.rb.phi);
+        ZMath::rotateXY(cubeMin, 0, cube.rb.theta);
+        ZMath::rotateXZ(cubeMax, 0, cube.rb.phi);
+        ZMath::rotateXY(cubeMax, 0, cube.rb.theta);
+        
+        // todo : figure out why tf this isnt working
+        // ZMath::rotateXZ(rayOrigin, cube.rb.pos, cube.rb.phi);
+        // ZMath::rotateXY(rayOrigin, cube.rb.pos, cube.rb.theta);
+        // ZMath::rotateXZ(rayDir, cube.rb.pos, cube.rb.phi);
+        // ZMath::rotateXY(rayDir, cube.rb.pos, cube.rb.theta);
+
+        rayDir.normalize();
+
+        Primitives::AABB newCube(cubeMin, cubeMax);
+        Primitives::Ray3D newRay(rayOrigin, rayDir);
+
+        float d2 = 0;
+        bool ret = raycast(newCube, newRay, d2);
+        
+        if (!ret)
+        {
+            std::printf("Before----------------------------------------------------------------------------------------\n");
+            std::printf("Ray: (%f, %f. %f) : <%f, %f, %f>\n", ray.origin.x, ray.origin.y, ray.origin.z, ray.dir.x, ray.dir.y, ray.dir.z);
+            std::printf("Cube min: (%f, %f, %f)\n", cube.getLocalMin().x, cube.getLocalMin().y, cube.getLocalMin().z);
+            std::printf("Cube max: (%f, %f, %f)\n", cube.getLocalMax().x, cube.getLocalMax().y, cube.getLocalMax().z);
+            std::printf("Cube pos: (%f, %f, %f) : theta (%f) : phi (%f)\n", cube.rb.pos.x, cube.rb.pos.y, cube.rb.pos.z, cube.rb.theta, cube.rb.phi);
+            std::printf("After----------------------------------------------------------------------------------------\n");
+            std::printf("Ray: (%f, %f. %f) : <%f, %f, %f>\n", newRay.origin.x, newRay.origin.y, newRay.origin.z, newRay.dir.x, newRay.dir.y, newRay.dir.z);
+            std::printf("Cube min: (%f, %f, %f)\n", newCube.getMin().x, newCube.getMin().y, newCube.getMin().z);
+            std::printf("Cube max: (%f, %f, %f)\n", newCube.getMax().x, newCube.getMax().y, newCube.getMax().z);
+            std::printf("Cube pos: (%f, %f, %f)\n", newCube.rb.pos.x, newCube.rb.pos.y, newCube.rb.pos.z);
+        }
+
+        return ret;
+    };
 
     // * ===================================
     // * Plane vs Primitives
