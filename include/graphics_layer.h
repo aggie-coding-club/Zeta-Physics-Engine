@@ -11,6 +11,10 @@
     #define GS_GL_VERSION_STR "#version 330 core\n"
 #endif
 
+struct RawModel{
+
+};
+
 
 struct VertexData{
     gs_vec3 pos;
