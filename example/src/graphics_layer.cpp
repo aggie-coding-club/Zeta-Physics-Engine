@@ -1,4 +1,4 @@
-#include "graphics_layer.h"
+#include "../include/graphics_layer.h"
 
 gs_command_buffer_t commandBuffer = {};
 gs_graphics_bind_desc_t binds = {};
@@ -322,7 +322,7 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
 
     vb_desc.data = &rectPrisms[0];
     vb_desc.size = rectPrisms.size()  * sizeof(RectPrismData);
-    gs_graphics_vertex_buffer_update_impl(vbo, &vb_desc);;  
+    gs_graphics_vertex_buffer_update_impl(vbo, &vb_desc);
 
     gs_graphics_bind_vertex_buffer_desc_t vbo_desc = {};
     vbo_desc.buffer = vbo;
