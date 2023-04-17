@@ -504,7 +504,7 @@ namespace Collisions {
                     break;
                 }
 
-                case FACE_B_X:{
+                case FACE_B_X: {
                     frontNormal = result.normal;
                     front = cube2.rb.pos * frontNormal + hB.x;
                     sideNormal1 = rotB.c2; // yNormal
