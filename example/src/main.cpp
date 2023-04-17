@@ -11,6 +11,7 @@
 #include "primitives.h"
 #include "graphics_layer.h"
 #include "graphics_layer.cpp"
+#include "intersections.h"
 
 typedef struct fps_camera_t {
     float pitch;
@@ -40,6 +41,8 @@ void init() {
 
     gs_platform_lock_mouse(gs_platform_main_window(), true);    
     SetupScene(fps.cam);
+
+    loadObjModel("sphere.obj");
 }
 
 void fps_camera_update(fps_camera_t* fps)
@@ -48,7 +51,7 @@ void fps_camera_update(fps_camera_t* fps)
 
     gs_vec2 dp = gs_vec2_scale(gs_platform_mouse_deltav(), 0.01f);
     const float mod = gs_platform_key_down(GS_KEYCODE_LEFT_SHIFT) ? 2.f : 1.f; 
-    float dt = platform->time.delta;
+    dt = platform->time.delta;
     float old_pitch = fps->pitch;
 
     // Keep track of previous amount to clamp the camera's orientation
@@ -125,10 +128,49 @@ void update() {
     #endif
 
 
+    static ZMath::Vec3D testCubePosition = {15, 5, 0};
+    float speed = 25;
+    if (gs_platform_key_down(GS_KEYCODE_LEFT)){
+        testCubePosition.x -= speed * dt; 
+    }else if (gs_platform_key_down(GS_KEYCODE_RIGHT)){
+        testCubePosition.x += speed * dt; 
+    }
+
+    if (gs_platform_key_down(GS_KEYCODE_UP)){
+        testCubePosition.z -= speed * dt; 
+    }else if (gs_platform_key_down(GS_KEYCODE_DOWN)){
+        testCubePosition.z += speed * dt; 
+    }
+    
+    // cube_two.rb.pos = {0, 5, 0};
+    static ZMath::Vec3D testCubePositionTwo = {15, 6, 15};
+    
+
+    ZMath::Vec3D mirror_pos_one_min = testCubePosition - 5;
+    ZMath::Vec3D mirror_pos_one_max = testCubePosition + 5;
+    
+    Primitives::Cube mirror_cube_1(mirror_pos_one_min, mirror_pos_one_max, our_cube.rb.theta, our_cube.rb.phi);
+
+    ZMath::Vec3D mirror_pos_two_min = testCubePositionTwo - 5;
+    ZMath::Vec3D mirror_pos_two_max = testCubePositionTwo + 5;
+    
+    Primitives::Cube mirror_cube_2(mirror_pos_two_min, mirror_pos_two_max, cube_two.rb.theta, cube_two.rb.phi);
+    
+    Primitives::AABB aabb_1(mirror_cube_1.getLocalMin(), mirror_cube_1.getLocalMax());
+    Primitives::AABB aabb_2(mirror_cube_2.getLocalMin(), mirror_cube_2.getLocalMax());
+
     // drawing the cubes
-    DrawRectPrism(&appState, our_cube.getVertices(), {-20, 0, -20}, {0.7, 0, 0, 1.0f});
-    DrawRectPrism(&appState, cube_two.getVertices(), {20, 0, 20}, {1.0f, 1.0f, 1.0f, 1.0f});
-    DrawRectPrism(&appState, cube_three.getVertices(), {-10, 0, 15}, {1.0f, 0.9f, 0.0f, 1.0f});
+    // if(Collisions::CubeAndCube(mirror_cube_1, mirror_cube_2)){
+    if(Collisions::AABBAndAABB(aabb_1, aabb_2)){
+        DrawRectPrism(&appState, mirror_cube_1.getVertices(), {mirror_cube_1.rb.pos.x, mirror_cube_1.rb.pos.y, mirror_cube_1.rb.pos.z}, {1.0f, 0.0f, 0.0f, 1.0f});
+    }else{
+        DrawRectPrism(&appState, mirror_cube_1.getVertices(), {mirror_cube_1.rb.pos.x, mirror_cube_1.rb.pos.y, mirror_cube_1.rb.pos.z}, {0.0f, 1.0f, 0.0f, 1.0f});
+    }
+
+    DrawRectPrism(&appState, mirror_cube_2.getVertices(), {mirror_cube_2.rb.pos.x, mirror_cube_2.rb.pos.y, mirror_cube_2.rb.pos.z}, {1.0f, 1.0f, 1.0f, 1.0f});
+
+    // DrawRectPrism(&appState, cube_two.getVertices(), {cube_two.rb.pos.x, cube_two.rb.pos.y, cube_two.rb.pos.z}, {1.0f, 1.0f, 1.0f, 1.0f});
+    // DrawRectPrism(&appState, cube_three.getVertices(), {-10, 0, 15}, {1.0f, 0.9f, 0.0f, 1.0f});
     DrawRectPrism(&appState, ground.getVertices(), {0, -10, 0}, {1.0f, 1.0f, 1.0f, 1.0f});
     UpdateScene(&appState, fps.cam);
 
