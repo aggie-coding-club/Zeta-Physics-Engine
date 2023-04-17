@@ -368,6 +368,8 @@ namespace Collisions {
 
             // * rotation matrices for switching between local spaces
             
+            // todo do the math to figure out if we actually need to do the abs
+
             // Rotate anything from B's local space into A's
             ZMath::Mat3D C = ZMath::abs(rotAT * rotB);
 

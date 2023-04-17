@@ -319,10 +319,10 @@ void UpdateScene(AppState *appState, gs_camera_t cam){
     gs_graphics_vertex_buffer_desc_t vb_desc  = {};
 
     // printf("\nvector size %i \n", rectPrisms.size()  * sizeof(RectPrismData));
-
+    
     vb_desc.data = &rectPrisms[0];
     vb_desc.size = rectPrisms.size()  * sizeof(RectPrismData);
-    gs_graphics_vertex_buffer_update_impl(vbo, &vb_desc);
+    gs_graphics_vertex_buffer_update(vbo, &vb_desc);
 
     gs_graphics_bind_vertex_buffer_desc_t vbo_desc = {};
     vbo_desc.buffer = vbo;
