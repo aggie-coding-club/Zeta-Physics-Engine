@@ -1,7 +1,7 @@
 #ifndef COLLISIONS_H
 #define COLLISIONS_H
 
-#include <intersections.h>
+#include "intersections.h"
 
 // We can use the normals for each as possible separation axes
 // We have to account for certain edge cases when moving this to 3D
