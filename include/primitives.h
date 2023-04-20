@@ -46,6 +46,7 @@ namespace Primitives {
             // We use a static body for a plane as it should not be affected by forces and impulse.
             StaticBody3D sb;
             ZMath::Vec3D normal; // Normal vector to the plane in global coordinates.
+            ZMath::Mat3D rot; // Rotate anything from this plane's local space to global space. Cache this value for efficiency.
 
             /**
              * @brief Create an unrotated plane.
@@ -61,6 +62,7 @@ namespace Primitives {
                 ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
 
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
+                rot = ZMath::Mat3D::identity(); // no rotation
             };
 
             /**
@@ -78,10 +80,11 @@ namespace Primitives {
                 ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
                 ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
 
-                ZMath::rotateXY(v1, sb.pos, sb.theta);
-                ZMath::rotateXZ(v1, sb.pos, sb.phi);
-                ZMath::rotateXY(v2, sb.pos, sb.theta);
-                ZMath::rotateXZ(v2, sb.pos, sb.phi);
+                rot = ZMath::Mat3D::generateRotationMatrix(angXY, angXZ);
+
+                // rotate the points to find the normal
+                v1 = rot * v1;
+                v2 = rot * v2;
 
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
@@ -171,9 +174,8 @@ namespace Primitives {
             ZMath::Vec3D halfSize;
 
         public:
-            // todo cache a rotation matrix for the cube instead of storing its angles.
-
             RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
+            ZMath::Mat3D rot; // Rotate anything from this cube's local space to global space. Cache this value for efficiency.
 
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
             //
@@ -187,6 +189,8 @@ namespace Primitives {
                 rb.phi = angXZ;
                 rb.mass = 20.0f;
                 rb.invMass = 0.05f;
+
+                rot = ZMath::Mat3D::generateRotationMatrix(angXY, angXZ);
             };
 
             // Get the min vertex in the cube's UVW coordinates.
