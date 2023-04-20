@@ -70,16 +70,16 @@ namespace ZMath {
                 y = j;
             };
 
-            Vec2D operator + (Vec2D const &vec) const { return Vec2D(x + vec.x, y + vec.y); };
-            Vec2D operator - (Vec2D const &vec) const { return Vec2D(x - vec.x, y - vec.y); };
-            Vec2D operator * (float c) const { return Vec2D(c*x, c*y); };
-            float operator * (Vec2D const &vec) const { return x * vec.x + y * vec.y; };
+            inline Vec2D operator + (Vec2D const &vec) const { return Vec2D(x + vec.x, y + vec.y); };
+            inline Vec2D operator - (Vec2D const &vec) const { return Vec2D(x - vec.x, y - vec.y); };
+            inline Vec2D operator * (float c) const { return Vec2D(c*x, c*y); };
+            inline float operator * (Vec2D const &vec) const { return x * vec.x + y * vec.y; };
 
             // * Add a constant to each vector component.
-            Vec2D operator + (float c) const { return Vec2D(x + c, y + c); };
+            inline Vec2D operator + (float c) const { return Vec2D(x + c, y + c); };
 
-            bool operator != (Vec2D const &vec) const { return x != vec.x || y != vec.y; };
-            bool operator == (Vec2D const &vec) const { return x == vec.x && y == vec.y; };
+            inline bool operator != (Vec2D const &vec) const { return x != vec.x || y != vec.y; };
+            inline bool operator == (Vec2D const &vec) const { return x == vec.x && y == vec.y; };
 
             Vec2D& operator += (Vec2D const &vec) {
                 x += vec.x;
@@ -124,35 +124,35 @@ namespace ZMath {
             };
 
             // * Get the cross product of this and another vector.
-            Vec2D cross (Vec2D const &vec) const { return x*vec.y - y*vec.x; };
+            inline Vec2D cross (Vec2D const &vec) const { return x*vec.y - y*vec.x; };
 
             // * Get the magnitude.
-            float mag() const { return sqrtf(x*x + y*y); };
+            inline float mag() const { return sqrtf(x*x + y*y); };
 
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
-            float magSq() const { return x*x + y*y; };
+            inline float magSq() const { return x*x + y*y; };
 
             // * Get the vector projection of another vector onto this vector (Parameter onto this).
-            Vec2D proj (Vec2D const &vec) const { return (*this) * ((x*vec.x + y*vec.y)/(x*x + y*y)); };
+            inline Vec2D proj (Vec2D const &vec) const { return (*this) * ((x*vec.x + y*vec.y)/(x*x + y*y)); };
 
             // * Get the distance between this and another vector.
-            float dist (Vec2D const &vec) const { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
+            inline float dist (Vec2D const &vec) const { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y)); };
 
             // * Get the distance squared between this and another vector.
             // * This should be used over dist() when possible as it is less expensive.
-            float distSq (Vec2D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y); };
+            inline float distSq (Vec2D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            Vec2D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y)); };
+            inline Vec2D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y)); };
 
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
             // * This function is very expensive. Only call if absolutely needed.
-            float angle (Vec2D const &vec) const { return acos((x*vec.x + y*vec.y)/(sqrtf(x*x + y*y) * sqrtf(vec.x*vec.x + vec.y*vec.y))); };
+            inline float angle (Vec2D const &vec) const { return acos((x*vec.x + y*vec.y)/(sqrtf(x*x + y*y) * sqrtf(vec.x*vec.x + vec.y*vec.y))); };
 
             // * Get the value of cos^2(theta) between the vectors.
-            float cos2Ang (Vec2D const &vec) const {
+            inline float cos2Ang (Vec2D const &vec) const {
                 float d = x*vec.x + y*vec.y;
                 return (d*d)/((x*x + y*y)*(vec.x*vec.x + vec.y*vec.y));
             };
@@ -218,17 +218,17 @@ namespace ZMath {
                 z = k;
             };
 
-            Vec3D operator + (Vec3D const &vec) const { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
-            Vec3D operator - (Vec3D const &vec) const { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
-            Vec3D operator * (float c) const { return Vec3D(c*x, c*y, c*z); };
-            float operator * (Vec3D const &vec) const { return x * vec.x + y * vec.y + z * vec.z; };
+            inline Vec3D operator + (Vec3D const &vec) const { return Vec3D(x + vec.x, y + vec.y, z + vec.z); };
+            inline Vec3D operator - (Vec3D const &vec) const { return Vec3D(x - vec.x, y - vec.y, z - vec.z); };
+            inline Vec3D operator * (float c) const { return Vec3D(c*x, c*y, c*z); };
+            inline float operator * (Vec3D const &vec) const { return x * vec.x + y * vec.y + z * vec.z; };
 
             // * Add a constant to each vector component.
-            Vec3D operator + (float c) const { return Vec3D(x + c, y + c, z + c); };
-            Vec3D operator - (float c) const { return Vec3D(x - c, y - c, z - c); };
+            inline Vec3D operator + (float c) const { return Vec3D(x + c, y + c, z + c); };
+            inline Vec3D operator - (float c) const { return Vec3D(x - c, y - c, z - c); };
 
-            bool operator != (Vec3D const &vec) const { return x != vec.x || y != vec.y || z != vec.z; };
-            bool operator == (Vec3D const &vec) const { return x == vec.x && y == vec.y && z == vec.z; };
+            inline bool operator != (Vec3D const &vec) const { return x != vec.x || y != vec.y || z != vec.z; };
+            inline bool operator == (Vec3D const &vec) const { return x == vec.x && y == vec.y && z == vec.z; };
 
             Vec3D& operator += (Vec3D const &vec) {
                 x += vec.x;
@@ -279,35 +279,35 @@ namespace ZMath {
             };
 
             // * Get the cross product of this and another vector.
-            Vec3D cross (Vec3D const &vec) const { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
+            inline Vec3D cross (Vec3D const &vec) const { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
 
             // * Get the magnitude.
-            float mag() const { return sqrtf(x*x + y*y + z*z); };
+            inline float mag() const { return sqrtf(x*x + y*y + z*z); };
 
             // * Get the magnitude squared.
             // * This should be used over mag() when possible as it is less expensive.
-            float magSq() const { return x*x + y*y + z*z; };
+            inline float magSq() const { return x*x + y*y + z*z; };
 
             // * Get the vector projection of another vector onto this vector (Parameter onto this).
-            Vec3D proj (Vec3D const &vec) const { return (*this) * ((x*vec.x + y*vec.y + z*vec.z)/(x*x + y*y + z*z)); };
+            inline Vec3D proj (Vec3D const &vec) const { return (*this) * ((x*vec.x + y*vec.y + z*vec.z)/(x*x + y*y + z*z)); };
 
             // * Get the distance between this and another vector.
-            float dist (Vec3D const &vec) const { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
+            inline float dist (Vec3D const &vec) const { return sqrtf((x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z)); };
 
             // * Get the distance squared between this and another vector.
             // * This should be used over dist() when possible as it is less expensive.
-            float distSq (Vec3D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z); };
+            inline float distSq (Vec3D const &vec) const { return (x - vec.x) * (x - vec.x) + (y - vec.y) * (y - vec.y) + (z - vec.z) * (z - vec.z); };
 
             // * Get the normal vector. This is used to determine the direction a vector is pointing in.
-            Vec3D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y + z*z)); };
+            inline Vec3D normalize() const { return (*this) * (1.0f/sqrtf(x*x + y*y + z*z)); };
 
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
             // * This function is very expensive. Only call if absolutely needed.
-            float angle (Vec3D const &vec) const { return acos((x*vec.x + y*vec.y + z*vec.z)/(sqrtf(x*x + y*y + z*z) * sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z))); };
+            inline float angle (Vec3D const &vec) const { return acos((x*vec.x + y*vec.y + z*vec.z)/(sqrtf(x*x + y*y + z*z) * sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z))); };
 
             // * Get the value of cos^2(theta) between the vectors.
-            float cos2Ang (Vec3D const &vec) const {
+            inline float cos2Ang (Vec3D const &vec) const {
                 float d = x*vec.x + y*vec.y + z*vec.z;
                 return (d*d)/((x*x + y*y + z*z)*(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z));
             };
@@ -319,26 +319,26 @@ namespace ZMath {
     // * ============================================
 
     // * Get the absolute value of all components in a 2D vector.
-    Vec2D abs(const Vec2D &vec) { return Vec2D(std::fabs(vec.x), std::fabs(vec.y)); };
+    inline Vec2D abs(const Vec2D &vec) { return Vec2D(std::fabs(vec.x), std::fabs(vec.y)); };
 
     // * Get the absolute value of all components in a 3D vector.
-    Vec3D abs(const Vec3D &vec) { return Vec3D(std::fabs(vec.x), std::fabs(vec.y), std::fabs(vec.z)); };
+    inline Vec3D abs(const Vec3D &vec) { return Vec3D(std::fabs(vec.x), std::fabs(vec.y), std::fabs(vec.z)); };
 
     // * Get the max value of two floats.
-    float max(float a, float b) { return a > b ? a : b; };
+    inline float max(float a, float b) { return a > b ? a : b; };
 
     // * Get the min value of two floats.
-    float min(float a, float b) { return a < b ? a : b; };
+    inline float min(float a, float b) { return a < b ? a : b; };
 
     // * Convert an angle in degrees to radians.
-    float toRadians(float degrees) { return (degrees/180) * PI; };
+    inline float toRadians(float degrees) { return (degrees/180) * PI; };
 
     // * @brief Rotate a point in 3D space with respect to the XY-plane about an origin.
     // * 
     // * @param point The point in 3D space to rotate.
     // * @param origin The origin the point will be rotated about.
     // * @param angle The angle, in degrees, to rotate the point by.
-    void rotateXY(Vec3D &point, const Vec3D &origin, float angle) {
+    inline void rotateXY(Vec3D &point, const Vec3D &origin, float angle) {
         float x = point.x - origin.x, y = point.y - origin.y;
 
         float cosine = cosf(toRadians(angle));
@@ -354,7 +354,7 @@ namespace ZMath {
     // * @param point The point in 3D space to rotate.
     // * @param origin The origin the point will be rotated about.
     // * @param angle The angle, in degrees, to rotate the point by.
-    void rotateXZ(Vec3D &point, const Vec3D &origin, float angle) {
+    inline void rotateXZ(Vec3D &point, const Vec3D &origin, float angle) {
         float x = point.x - origin.x, z = point.z - origin.z;
 
         float cosine = cosf(toRadians(angle));
@@ -367,14 +367,14 @@ namespace ZMath {
 
     // * Handle tolerance for floating point numbers.
     // * If no epsilon is specified, the default of 5 * 10^-4 will be used.
-    bool compare(float a, float b, float epsilon = EPSILON) { return std::fabs(a - b) <= epsilon; };
+    inline bool compare(float a, float b, float epsilon = EPSILON) { return std::fabs(a - b) <= epsilon; };
 
     // * Handler tolerance for 3D vectors of floating point numbers.
     // * If no epsilon is specified, the default of 5 * 10^-4 will be used.
-    bool compare(Vec3D u, Vec3D v, float epsilon = EPSILON) { return std::fabs(u.x - v.x) <= epsilon && std::fabs(u.y - v.y) <= epsilon && std::fabs(u.z - v.z) <= epsilon; };
+    inline bool compare(Vec3D u, Vec3D v, float epsilon = EPSILON) { return std::fabs(u.x - v.x) <= epsilon && std::fabs(u.y - v.y) <= epsilon && std::fabs(u.z - v.z) <= epsilon; };
 
     // * Clamp a float between a min and max.
-    float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
+    inline float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
 
 
     // * Class modeling a 2x2 Matrix stored in column major order.
@@ -442,19 +442,19 @@ namespace ZMath {
                 c2.y = 0;
             };
 
-            Mat2D operator + (const Mat2D &mat) const { return Mat2D(c1 + mat.c1, c2 + mat.c2); };
-            Mat2D operator - (const Mat2D &mat) const { return Mat2D(c1 - mat.c1, c2 - mat.c2); };
-            Mat2D operator * (const Mat2D &mat) const {
+            inline Mat2D operator + (const Mat2D &mat) const { return Mat2D(c1 + mat.c1, c2 + mat.c2); };
+            inline Mat2D operator - (const Mat2D &mat) const { return Mat2D(c1 - mat.c1, c2 - mat.c2); };
+            inline Mat2D operator * (const Mat2D &mat) const {
                 return Mat2D(
                     c1.x*mat.c1.x + c1.x*mat.c1.y, c1.x*mat.c2.x + c2.x*mat.c2.y,
                     c1.y*mat.c1.x + c2.y*mat.c1.y, c1.y*mat.c2.x + c2.y*mat.c2.y
                 );
             };
 
-            Mat2D operator * (float c) const { return Mat2D(c1*c, c2*c); };
-            Vec2D operator * (const Vec2D &vec) const { return Vec2D(c1.x*vec.x + c2.x*vec.y, c1.y*vec.x + c2.y*vec.y); };
-            Mat2D operator + (float c) const { return Mat2D(c1 + c, c2 + c); };
-            Mat2D operator - (float c) const { return Mat2D(c1 - c, c2 - c); };
+            inline Mat2D operator * (float c) const { return Mat2D(c1*c, c2*c); };
+            inline Vec2D operator * (const Vec2D &vec) const { return Vec2D(c1.x*vec.x + c2.x*vec.y, c1.y*vec.x + c2.y*vec.y); };
+            inline Mat2D operator + (float c) const { return Mat2D(c1 + c, c2 + c); };
+            inline Mat2D operator - (float c) const { return Mat2D(c1 - c, c2 - c); };
 
             Mat2D& operator += (const Mat2D &mat) {
                 c1.x += mat.c1.x;
@@ -519,12 +519,12 @@ namespace ZMath {
                 return (*this);
             };
 
-            bool operator == (const Mat2D &mat) const { return c1.x == mat.c1.x && c1.y == mat.c1.y && c2.x == mat.c2.x && c2.y == mat.c2.y; };
-            bool operator != (const Mat2D &mat) const { return c1.x != mat.c1.x || c1.y != mat.c1.y || c2.x != mat.c2.x || c2.y != mat.c2.y; };
+            inline bool operator == (const Mat2D &mat) const { return c1.x == mat.c1.x && c1.y == mat.c1.y && c2.x == mat.c2.x && c2.y == mat.c2.y; };
+            inline bool operator != (const Mat2D &mat) const { return c1.x != mat.c1.x || c1.y != mat.c1.y || c2.x != mat.c2.x || c2.y != mat.c2.y; };
 
             // Return the inverse of this matrix.
             // Note this may experience issues for matrices with determinants nearly equal to 0.
-            Mat2D inverse() const {
+            inline Mat2D inverse() const {
                 float det = c1.x * c2.y - c2.x * c1.y;
                 Mat2D mat(*this);
 
@@ -537,7 +537,7 @@ namespace ZMath {
             };
 
             // Return the transpose of this matrix.
-            Mat2D transpose() const { return Mat2D(c1.x, c1.y, c2.x, c2.y); };
+            inline Mat2D transpose() const { return Mat2D(c1.x, c1.y, c2.x, c2.y); };
 
 
             // * ===============================
@@ -615,10 +615,10 @@ namespace ZMath {
                 c3.zero();
             };
 
-            Mat3D operator + (const Mat3D &mat) const { return Mat3D(c1 + mat.c1, c2 + mat.c2, c3 + mat.c3); };
-            Mat3D operator - (const Mat3D &mat) const { return Mat3D(c1 - mat.c1, c2 - mat.c2, c3 - mat.c3); };
+            inline Mat3D operator + (const Mat3D &mat) const { return Mat3D(c1 + mat.c1, c2 + mat.c2, c3 + mat.c3); };
+            inline Mat3D operator - (const Mat3D &mat) const { return Mat3D(c1 - mat.c1, c2 - mat.c2, c3 - mat.c3); };
 
-            Mat3D operator * (const Mat3D &mat) const {
+            inline Mat3D operator * (const Mat3D &mat) const {
                 return Mat3D(
                     // row 1
                     c1.x*mat.c1.x + c2.x*mat.c1.y + c3.x*mat.c1.z,
@@ -637,9 +637,9 @@ namespace ZMath {
                 );
             };
 
-            Mat3D operator * (float c) const { return Mat3D(c1*c, c2*c, c3*c); };
+            inline Mat3D operator * (float c) const { return Mat3D(c1*c, c2*c, c3*c); };
 
-            Vec3D operator * (const Vec3D &vec) const {
+            inline Vec3D operator * (const Vec3D &vec) const {
                 return Vec3D(
                     c1.x*vec.x + c2.x*vec.y + c3.x*vec.z,
                     c1.y*vec.x + c2.y*vec.y + c3.y*vec.z,
@@ -647,8 +647,8 @@ namespace ZMath {
                 );
             };
 
-            Mat3D operator + (float c) const { return Mat3D(c1 + c, c2 + c, c3 + c); };
-            Mat3D operator - (float c) const { return Mat3D(c1 - c, c2 - c, c3 - c); };
+            inline Mat3D operator + (float c) const { return Mat3D(c1 + c, c2 + c, c3 + c); };
+            inline Mat3D operator - (float c) const { return Mat3D(c1 - c, c2 - c, c3 - c); };
 
             Mat3D& operator += (const Mat3D &mat) {
                 c1.x += mat.c1.x;
@@ -753,24 +753,24 @@ namespace ZMath {
                 return (*this);
             };
 
-            bool operator == (const Mat3D &mat) const {
+            inline bool operator == (const Mat3D &mat) const {
                 return c1.x == mat.c1.x && c1.y == mat.c1.y && c1.z == mat.c1.z &&
                         c2.x == mat.c2.x && c2.y == mat.c2.y && c2.z == mat.c2.z &&
                         c3.x == mat.c3.x && c3.y == mat.c3.y && c3.z == mat.c3.z;
             };
 
-            bool operator != (const Mat3D &mat) const {
+            inline bool operator != (const Mat3D &mat) const {
                 return c1.x != mat.c1.x || c1.y != mat.c1.y || c1.z != mat.c1.z ||
                         c2.x != mat.c2.x || c2.y != mat.c2.y || c2.z != mat.c2.z ||
                         c3.x != mat.c3.x || c3.y != mat.c3.y || c3.z != mat.c3.z;
             };
 
             // Return the transpose of this Matrix.
-            Mat3D transpose() const { return Mat3D(c1.x, c1.y, c1.z, c2.x, c2.y, c2.z, c3.x, c3.y, c3.z); };
+            inline Mat3D transpose() const { return Mat3D(c1.x, c1.y, c1.z, c2.x, c2.y, c2.z, c3.x, c3.y, c3.z); };
 
             // Return the inverse of this Matrix.
             // Note this may experience issues for matrices with determinants nearly equal to 0.
-            Mat3D inverse() const {
+            inline Mat3D inverse() const {
                 // for optimization
                 float qz = c2.y*c3.z;
                 float rx = c3.y*c1.z;
@@ -803,12 +803,12 @@ namespace ZMath {
             // * ===============================
 
             // * Get the 3x3 identity matrix.
-            static Mat3D identity() { return Mat3D(1, 0, 0, 0, 1, 0, 0, 0, 1); };
+            static inline Mat3D identity() { return Mat3D(1, 0, 0, 0, 1, 0, 0, 0, 1); };
 
             // * Generate the 3D rotation matrix about the x-axis for an angle, theta.
             // * Theta should be in degrees.
             // * Note: this rotates counter-clockwise about the axis.
-            static Mat3D rotationMatX(float theta) {
+            static inline Mat3D rotationMatX(float theta) {
                 float c = cosf(toRadians(theta));
                 float s = sinf(toRadians(theta));
 
@@ -818,7 +818,7 @@ namespace ZMath {
             // * Generate the 3D rotation matrix about the y-axis for an angle, theta.
             // * Theta should be in degrees.
             // * Note: this rotates counter-clockwise about the axis.
-            static Mat3D rotationMatY(float theta) {
+            static inline Mat3D rotationMatY(float theta) {
                 float c = cosf(toRadians(theta));
                 float s = sinf(toRadians(theta));
 
@@ -828,7 +828,7 @@ namespace ZMath {
             // * Generate the 3D rotation matrix about the z-axis for an angle, theta.
             // * Theta should be in degrees.
             // * Note: this rotates counter-clockwise about the axis.
-            static Mat3D rotationMatZ(float theta) {
+            static inline Mat3D rotationMatZ(float theta) {
                 float c = cosf(toRadians(theta));
                 float s = sinf(toRadians(theta));
 
@@ -843,7 +843,7 @@ namespace ZMath {
              * @return (Mat3D) 3D rotation matrix that will rotate anything from the object's local space into global coordinates.
              * Note: the transpose of this will rotate anything from global space into the object's local space.
              */
-            static Mat3D generateRotationMatrix(float theta, float phi) {
+            static inline Mat3D generateRotationMatrix(float theta, float phi) {
                 float cT = cosf(toRadians(theta)), sT = sinf(toRadians(theta));
                 float cP = cosf(toRadians(phi)), sP = sinf(toRadians(phi));
 
@@ -856,10 +856,10 @@ namespace ZMath {
     // * ===================================
 
     // * Take the absolute value of each element of a 2x2 matrix.
-    Mat2D abs(Mat2D const &mat) { return Mat2D(std::fabs(mat.c1.x), std::fabs(mat.c2.x), std::fabs(mat.c1.y), std::fabs(mat.c2.y)); };
+    inline Mat2D abs(Mat2D const &mat) { return Mat2D(std::fabs(mat.c1.x), std::fabs(mat.c2.x), std::fabs(mat.c1.y), std::fabs(mat.c2.y)); };
 
     // * Take the absolute value of each element of a 3x3 matrix.
-    Mat3D abs(Mat3D const &mat) {
+    inline Mat3D abs(Mat3D const &mat) {
         return Mat3D(
             std::fabs(mat.c1.x), std::fabs(mat.c2.x), std::fabs(mat.c3.x),
             std::fabs(mat.c1.y), std::fabs(mat.c2.y), std::fabs(mat.c3.y),
