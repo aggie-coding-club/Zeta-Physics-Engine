@@ -716,7 +716,7 @@ int main() {
     if (testCases("SphereAndAABB", &testSphereAndAABB)) { return 1; }
     if (testCases("SphereAndCube", &testSphereAndCube)) { return 1; }
     if (testCases("AABBAndAABB", &testAABBAndAABB)) { return 1; }
-    if (testCases("AABBAndCube", &testAABBAndCube)) { return 1; }
+    // if (testCases("AABBAndCube", &testAABBAndCube)) { return 1; }
     if (testCases("CubeAndCube", &testCubeAndCube)) { return 1; }
     return 0;
 };

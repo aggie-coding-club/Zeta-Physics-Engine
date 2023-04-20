@@ -547,15 +547,39 @@ namespace Collisions {
 
     // Determine if a cube intersects another cube.
     bool CubeAndCube(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
-        // ? We can make an AABB object from the first cube and create a new cube object by subtracting the angles
-        // ?  the first cube was rotated by from the second cube and perform an AABB vs Cube check.
+        // ? Use the separating axis theorem to determine if there is an intersection between the cubes.
 
-        // todo add the separating axis one liner solution
+        // half size of cube a and b respectively
+        ZMath::Vec3D hA = cube1.getHalfSize(), hB = cube2.getHalfSize();
 
-        Primitives::AABB aabb(cube1.getLocalMin(), cube2.getLocalMax());
-        Primitives::Cube cube(cube2.getLocalMin(), cube2.getLocalMax(), cube2.rb.theta - cube1.rb.theta, cube2.rb.phi - cube1.rb.phi);
+        // rotate anything from global space to A's local space
+        ZMath::Mat3D rotAT = cube1.rot.transpose();
 
-        return AABBAndCube(aabb, cube);
+        // determine the difference between the positions
+        ZMath::Vec3D dP = cube2.rb.pos - cube1.rb.pos;
+        ZMath::Vec3D dA = rotAT * dP;
+        ZMath::Vec3D dB = cube2.rot.transpose() * dP;
+
+        // * rotation matrices for switching between local spaces
+        
+        // todo do the math to figure out if we actually need to do the abs
+        // todo not sure what math to do for this though
+
+        // Rotate anything from B's local space into A's
+        ZMath::Mat3D C = ZMath::abs(rotAT * cube2.rot);
+
+        // Rotate anything from A's local space into B's
+        ZMath::Mat3D CT = C.transpose();
+
+        // * Check for intersections with the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - C * hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - C * hA;
+        return faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0;
     };
 }
 
