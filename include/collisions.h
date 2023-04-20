@@ -160,7 +160,7 @@ namespace Collisions {
             // todo do some more math to make sure all the signs are correct
 
             // Rotate the normal to the incident cube's local space and flip the sign.
-            ZMath::Vec3D n = -(rot.transpose() * normal); // ! may not need to flip the sign since our normal points towards A from B
+            ZMath::Vec3D n = -(rot.transpose() * normal); // ! may not need to flip the sign since our normal points towards B from A
             ZMath::Vec3D nAbs = ZMath::abs(n);
 
             // Determine the vertices in terms of halfsize.

@@ -4,7 +4,6 @@
 #define BODIES_H
 
 #include "zmath.h"
-#include <iostream> // ! debugging
 
 namespace Primitives {
     struct RigidBody3D {
