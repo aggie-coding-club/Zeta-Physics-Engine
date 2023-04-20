@@ -93,12 +93,11 @@ namespace Collisions {
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
             CollisionManifold result;
 
-            ZMath::Vec3D center = sphere.rb.pos;
+            ZMath::Vec3D center = sphere.rb.pos - cube.rb.pos;
             ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
             // rotate the center of the sphere into the UVW coordinates of our cube
-            ZMath::rotateXZ(center, cube.rb.pos, 360 - cube.rb.phi);
-            ZMath::rotateXY(center, cube.rb.pos, 360 - cube.rb.theta);
+            center = cube.rot * center + cube.rb.pos;
             
             // perform the check as if it was an AABB vs Sphere
             ZMath::Vec3D closest(center);
@@ -113,8 +112,8 @@ namespace Collisions {
 
             // the closest point to the sphere's center will be our contact point rotated back into global coordinates coordinates
 
-            ZMath::rotateXY(closest, cube.rb.pos, cube.rb.theta);
-            ZMath::rotateXZ(closest, cube.rb.pos, cube.rb.phi);
+            closest -= cube.rb.pos;
+            closest = cube.rot.transpose() * closest + cube.rb.pos;
 
             result.numPoints = 1;
             result.contactPoints = new ZMath::Vec3D[1];
@@ -233,6 +232,7 @@ namespace Collisions {
             // todo fs need to test this function extensively
             // todo may only need to compute the dist for [0] and [2] and use that for all the data
             // todo make sure the signs are correct
+            // todo simplify the ifs
 
             // calculate the distance
             // first set of distances
@@ -330,6 +330,7 @@ namespace Collisions {
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
             // todo make sure the sign for the normal is correct
+            // todo refactor to use the cahced value and also update to use the proper ones
 
             CollisionManifold result;
 
