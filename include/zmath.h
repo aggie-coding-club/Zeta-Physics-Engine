@@ -840,15 +840,10 @@ namespace ZMath {
              * 
              * @param theta (float) Angle in degrees the object is rotated with respect to the XY plane.
              * @param phi (float) Angle in degrees the object is rotated with respect to the XZ plane.
-             * @return (Mat3D) 3D rotation matrix that will rotate anything from the object's local space into global coordinates.
-             * Note: the transpose of this will rotate anything from global space into the object's local space.
+             * @return (Mat3D) 3D rotation matrix that will rotate anything from global space into the object's local space.
+             * Note: the transpose of this will rotate anything from local space into global space.
              */
-            static inline Mat3D generateRotationMatrix(float theta, float phi) {
-                float cT = cosf(toRadians(theta)), sT = sinf(toRadians(theta));
-                float cP = cosf(toRadians(phi)), sP = sinf(toRadians(phi));
-
-                return Mat3D(cT, -sT, 0, sT, cT, 0, 0, 0, 1) * Mat3D(cP, 0, sP, 0, 1, 0, -sP, 0, cP);
-            };
+            static inline Mat3D generateRotationMatrix(float theta, float phi) { return rotationMatZ(theta) * rotationMatY(phi); };
     };
 
     // * ===================================

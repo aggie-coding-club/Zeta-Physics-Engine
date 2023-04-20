@@ -46,7 +46,7 @@ namespace Primitives {
             // We use a static body for a plane as it should not be affected by forces and impulse.
             StaticBody3D sb;
             ZMath::Vec3D normal; // Normal vector to the plane in global coordinates.
-            ZMath::Mat3D rot; // Rotate anything from this plane's local space to global space. Cache this value for efficiency.
+            ZMath::Mat3D rot; // Rotate anything from global space to this plane's local space. Cache this value for efficiency.
 
             /**
              * @brief Create an unrotated plane.
@@ -83,8 +83,10 @@ namespace Primitives {
                 rot = ZMath::Mat3D::generateRotationMatrix(angXY, angXZ);
 
                 // rotate the points to find the normal
-                v1 = rot * v1;
-                v2 = rot * v2;
+                ZMath::Mat3D rotT = rot.transpose();
+
+                v1 = rotT * v1;
+                v2 = rotT * v2;
 
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
@@ -175,7 +177,7 @@ namespace Primitives {
 
         public:
             RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
-            ZMath::Mat3D rot; // Rotate anything from this cube's local space to global space. Cache this value for efficiency.
+            ZMath::Mat3D rot; // Rotate anything from global space to this cube's local space. Cache this value for efficiency.
 
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
             //
