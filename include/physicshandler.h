@@ -360,17 +360,6 @@ namespace PhysicsHandler {
                 objs.count++;
             };
 
-            // ! this is the shittiest way of doing anything ever
-            // ! delete the second I get the chance
-            // Because this is just for demoing, there will be no check to make sure the index is actually valid
-            // Therefore, dont be stupid
-            // please remember delete[], please.....................
-            Object* getObject() {
-                Object* o = new Object[objs.count];
-                for (int i = 0; i < objs.count; i++) { o[i] = objs.objects[i]; }
-                return o;
-            };
-
             // Remove an object at the index from the list of objects to be updated by the physics handler.
             void removeObject(int index) {
                 for (int i = index; i < objs.count - 1; i++) { objs.objects[i] = objs.objects[i + 1]; }

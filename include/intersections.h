@@ -368,8 +368,6 @@ namespace Collisions {
         rayOrigin = cube.rot * rayOrigin + cube.rb.pos;
         rayDir = cube.rot * rayDir;
 
-        //rayDir.normalize(); // ! might need
-
         Primitives::AABB newCube(cube.getLocalMin(), cube.getLocalMax());
         Primitives::Ray3D newRay(rayOrigin, rayDir);
 
