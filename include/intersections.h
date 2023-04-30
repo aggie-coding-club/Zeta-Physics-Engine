@@ -568,6 +568,7 @@ namespace Collisions {
         
         // todo do the math to figure out if we actually need to do the abs
         // todo not sure what math to do for this though
+        // ! When we have a proper scene to test, use that to check if the absolute value is necessary
 
         // Rotate anything from B's local space into A's
         ZMath::Mat3D C = ZMath::abs(rotAT * cube2.rot);

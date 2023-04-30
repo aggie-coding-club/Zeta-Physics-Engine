@@ -230,90 +230,44 @@ namespace Collisions {
             int np = 0;
 
             // todo fs need to test this function extensively
-            // todo may only need to compute the dist for [0] and [2] and use that for all the data
             // todo make sure the signs are correct
-            // todo simplify the ifs
 
             // calculate the distance
             // first set of distances
             float d0 = n1 * vIn[0] - offset1;
             float d1 = n1 * vIn[1] - offset1;
-            float d2 = n1 * vIn[2] - offset1;
-            float d3 = n1 * vIn[3] - offset1;
 
             // second set of distances
-            float d4 = n2 * vIn[0] - offset2;
-            float d5 = n2 * vIn[1] - offset2;
-            float d6 = n2 * vIn[2] - offset2;
-            float d7 = n2 * vIn[3] - offset2;
-
-            // todo print out all the distances to check them as many should be equivalent
+            float d2 = n2 * vIn[0] - offset2;
+            float d3 = n2 * vIn[3] - offset2;
 
             // * Compute the clipping points.
+            // ? If the points are outside the reference cube's clipping plane (more or less inside the cube), add them as clipping points.
+            // ? Otherwise, check if the vertices are separated by the edge of the reference cube used for this clipping plane.
 
             // first input point
-            // if the points are inside the reference cube, add them as clipping points
-            if (d0 <= 0.0f && d4 <= 0.0f) { 
-                vOut[np++] = vIn[0];
-
-            // check if the vertices are separated by the edge of the reference cube
-            } else if (d0 <= 0.0f && d4 * d6 < 0.0f) {
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d4/(d4 - d6));
-
-            } else if (d4 <= 0.0f && d0 * d2 < 0.0f) {
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d0/(d0 - d2));
-
-            } else if (d0 * d2 < 0.0f && d4 * d6 < 0.0f) {
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * ((d0/(d0 - d2)) + (d4/(d4 - d6)));
-            }
+            if (d0 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[0]; }
+            else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * (d0/(d1 + d0)) + (vIn[3] - vIn[0]) * (d2/(d3 + d2)); }
+            else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * (d0/(d1 + d0)); } 
+            else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[3] - vIn[0]) * (d2/(d3 + d2)); }
 
             // second input point
-            // if the points are inside the reference cube, add them as clipping points
-            if (d1 <= 0.0f && d5 <= 0.0f) {
-                vOut[np++] = vIn[1];
-            
-            // check if the vertices are separated by the edge of the reference cube
-            } else if (d1 <= 0.0f && d5 * d7 < 0.0f) {
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d5/(d5 - d7));
-
-            } else if (d5 <= 0.0f && d1 * d3 < 0.0f) {
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d1/(d1 - d3));
-
-            } else if (d1 * d3 < 0.0f && d5 * d7 < 0.0f) {
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * ((d1/(d1 - d3)) + (d5/(d5 - d7)));
-            }
+            if (d1 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[1]; }
+            else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * (d1/(d1 + d0)) + (vIn[2] - vIn[1]) * (d2/(d2 + d3)); }
+            else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * (d1/(d1 + d0)); }
+            else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[2] - vIn[1]) * (d2/(d3 + d2)); }
 
             // third input point
-            // if the points are inside the reference cube, add them as clipping points
-            if (d2 <= 0.0f && d6 <= 0.0f) {
-                vOut[np++] = vIn[2];
-            
-            // check if the vertices are separated by the edge of the reference cube
-            } else if (d2 <= 0.0f && d4 * d6 < 0.0f) {
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d4/(d4 - d6));
-
-            } else if (d6 <= 0.0f && d0 * d2 < 0.0f) {
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * (d0/(d0 - d2));
-
-            } else if (d0 * d2 < 0.0f && d4 * d6 < 0.0f) {
-                vOut[np++] = vIn[0] + (vIn[2] - vIn[0]) * ((d0/(d0 - d2)) + (d4/(d4 - d6)));
-            }
+            if (d1 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[2]; }
+            else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * (d1/(d1 + d0)) + (vIn[1] - vIn[2]) * (d3/(d2 + d3)); }
+            else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * (d1/(d1 + d0)); }
+            else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[1] - vIn[2]) * (d3/(d3 + d2)); }
 
             // fourth input point
-            // if the points are inside the reference cube, add them as clipping points
-            if (d3 <= 0.0f && d7 <= 0.0f) {
-                vOut[np++] = vIn[3];
-            
-            // check if the vertices are separated by the edge of the reference cube
-            } else if (d3 <= 0.0f && d5 * d7 < 0.0f) {
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d5/(d5 - d7));
-
-            } else if (d7 <= 0.0f && d1 * d3 < 0.0f) {
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * (d1/(d1 - d3));
-
-            } else if (d1 * d3 < 0.0f && d5 * d7 < 0.0f) {
-                vOut[np++] = vIn[1] + (vIn[3] - vIn[1]) * ((d1/(d1 - d3)) + (d5/(d5 - d7)));
-            }
+            if (d0 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[3]; }
+            else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * (d0/(d1 + d0)) + (vIn[0] - vIn[3]) * (d3/(d3 + d2)); }
+            else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * (d0/(d1 + d0)); }
+            else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[0] - vIn[3]) * (d3/(d3 + d2)); }
 
             return np;
         };
