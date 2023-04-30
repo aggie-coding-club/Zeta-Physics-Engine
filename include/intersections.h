@@ -1,8 +1,6 @@
 #ifndef INTERSECTIONS_H
 #define INTERSECTIONS_H
 
-// todo unit tests
-
 // todo any of these involving planes may have issues regarding the z in the local coords. Remember to use Compare to the z value the plane is at in local coords.
 
 #include "primitives.h"
@@ -509,19 +507,27 @@ namespace Collisions {
 
     // Determine if an unrotated cube intersects a cube.
     bool AABBAndCube(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
-        // ? Rotate the AABB into the cube's UVW coordinates.
-        // ? Afterwards, use the same logic as AABB vs AABB.
+        // ? Use the separating axis theorem to determine if there is an intersection between the AABB and cube.
 
-        // ! This should not work, I don't think.
-        // ! Solve the problem using the separating axis theorem but with one unrotated.
+        // half size of the aabb and cube respectively (A = AABB, B = Cube)
+        ZMath::Vec3D hA = aabb.getHalfSize(), hB = cube.getHalfSize();
 
-        ZMath::Vec3D min1 = aabb.getMin() - cube.rb.pos, max1 = aabb.getMax() - cube.rb.pos;
-        ZMath::Vec3D min2 = cube.getLocalMin(), max2 = cube.getLocalMax();
+        // rotate anything from global space to the cube's local space
+        ZMath::Mat3D rotBT = cube.rot.transpose();
 
-        min1 = cube.rot * min1 + cube.rb.pos;
-        max1 = cube.rot * max1 + cube.rb.pos;
+        // determine the distance between the positions
+        ZMath::Vec3D dA = cube.rb.pos - aabb.rb.pos; // global space is the AABB's local space
+        ZMath::Vec3D dB = rotBT * dA;
 
-        return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
+        // * Check for intersection using the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - rotBT * hA;
+        return faceB.x <= 0 && faceB.y <= 0 && faceB.z < 0;
     };
 
     // * ===================================
@@ -576,7 +582,7 @@ namespace Collisions {
         if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
 
         // amount of penetration along B's axes
-        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - C * hA;
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - CT * hA;
         return faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0;
     };
 }

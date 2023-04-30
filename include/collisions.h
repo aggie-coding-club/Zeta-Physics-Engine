@@ -319,7 +319,8 @@ namespace Collisions {
         };
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
-            return {};
+            CollisionManifold result;
+            return result;
         };
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
@@ -330,7 +331,7 @@ namespace Collisions {
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
             // todo make sure the sign for the normal is correct
-            // todo refactor to use the cahced value and also update to use the proper ones
+            // todo refactor to use the cahced value
 
             CollisionManifold result;
 
@@ -377,7 +378,7 @@ namespace Collisions {
             }
 
             // amount of penetration along B's axes
-            ZMath::Vec3D faceB = ZMath::abs(dB) - hB - C * hA;
+            ZMath::Vec3D faceB = ZMath::abs(dB) - hB - CT * hA;
             if (faceB.x > 0 || faceB.y > 0 || faceB.z > 0) {
                 result.hit = 0;
                 return result;
@@ -440,21 +441,6 @@ namespace Collisions {
 
             switch(axis) {
                 case FACE_A_X: {
-                    // * Project onto the best axis (so in this case A's x-axis)
-                    // * We now know the min and max values for the remaining face must be contained in the vertices; therefore, we can cosntruct our min and max vectors for the face
-                    // * We can then use this to solve the problem further
-
-                    // ? Current roadblock: Need to find a way to determine distance to the side but there are two sides to do so with
-                    // ? This doesn't allow for the same simple check as in 2D
-                    // ? Therefore, we can either solve this new problem as a 2D one or find a more elegant solution
-                    // ? I will try to find the latter but will resort to the former if needed
-
-                    // Determine the side normals for y and z, which we'll call yNormal and zNormal.
-                    // This should just be the second and third column in the rotation matrix for A (rotA).
-
-                    // I believe this should now work. I should test individual portions of function
-                    // I'll have to test more stuff later
-
                     frontNormal = result.normal;
                     front = cube1.rb.pos * frontNormal + hA.x;
                     sideNormal1 = rotA.c2; // yNormal
