@@ -244,7 +244,7 @@ namespace Collisions {
             // * Compute the clipping points.
             // ? If the points are outside the reference cube's clipping plane (more or less inside the cube), add them as clipping points.
             // ? Otherwise, check if the vertices are separated by the edge of the reference cube used for this clipping plane.
-
+            
             // first input point
             if (d0 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[0]; }
             else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * (d0/(d1 + d0)) + (vIn[3] - vIn[0]) * (d2/(d3 + d2)); }
@@ -533,8 +533,7 @@ namespace Collisions {
 
                 if (separation <= 0) {
                     contactPoints[np++] = clipPoints2[i] - frontNormal * separation;
-                    float pDist = std::fabs(separation);
-                    if (result.pDist < pDist) { result.pDist = pDist; }
+                    if (result.pDist < separation) { result.pDist = separation; }
                 }
             }
 
@@ -548,6 +547,7 @@ namespace Collisions {
 
             // * update the manifold to contain the results.
 
+            result.pDist = -result.pDist;
             result.hit = 1;
             result.numPoints = np;
             result.contactPoints = new ZMath::Vec3D[np];
