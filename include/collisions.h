@@ -537,14 +537,6 @@ namespace Collisions {
                 }
             }
 
-            // Ensure there are contact points.
-            // ! This check is probs unnecessary
-            // ! Can do the math to check later
-            if (!np) {
-                result.hit = 0;
-                return result;
-            }
-
             // * update the manifold to contain the results.
 
             result.pDist = -result.pDist;
