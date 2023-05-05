@@ -116,12 +116,7 @@ namespace ZMath {
                 return (*this);
             };
 
-            Vec2D& operator - () {
-                x = -x;
-                y = -y;
-
-                return (*this);
-            };
+            inline Vec2D& operator - () const { Vec2D(-x, -y); };
 
             // * Get the cross product of this and another vector.
             inline Vec2D cross (Vec2D const &vec) const { return x*vec.y - y*vec.x; };
@@ -270,7 +265,7 @@ namespace ZMath {
                 return (*this);
             };
 
-            Vec3D operator - () const { return Vec3D(-x, -y, -z); };
+            inline Vec3D operator - () const { return Vec3D(-x, -y, -z); };
 
             // * Get the cross product of this and another vector.
             inline Vec3D cross (Vec3D const &vec) const { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
@@ -504,14 +499,7 @@ namespace ZMath {
                 return (*this);
             };
 
-            Mat2D& operator - () {
-                c1.x = -c1.x;
-                c1.y = -c1.y;
-                c2.x = -c2.x;
-                c2.y = -c2.y;
-
-                return (*this);
-            };
+            inline Mat2D operator - () const { return Mat2D(-c1, -c2); };
 
             inline bool operator == (const Mat2D &mat) const { return c1.x == mat.c1.x && c1.y == mat.c1.y && c2.x == mat.c2.x && c2.y == mat.c2.y; };
             inline bool operator != (const Mat2D &mat) const { return c1.x != mat.c1.x || c1.y != mat.c1.y || c2.x != mat.c2.x || c2.y != mat.c2.y; };
@@ -746,6 +734,8 @@ namespace ZMath {
 
                 return (*this);
             };
+
+            inline Mat3D operator - () const { return Mat3D(-c1, -c2, -c3); };
 
             inline bool operator == (const Mat3D &mat) const {
                 return c1.x == mat.c1.x && c1.y == mat.c1.y && c1.z == mat.c1.z &&
