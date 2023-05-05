@@ -270,13 +270,7 @@ namespace ZMath {
                 return (*this);
             };
 
-            Vec3D& operator - () {
-                x = -x;
-                y = -y;
-                z = -z;
-
-                return (*this);
-            };
+            Vec3D operator - () const { return Vec3D(-x, -y, -z); };
 
             // * Get the cross product of this and another vector.
             inline Vec3D cross (Vec3D const &vec) const { return Vec3D(y*vec.z - z*vec.y, -(x*vec.z - z*vec.x), x*vec.y - y*vec.x); };
