@@ -387,7 +387,7 @@ namespace Collisions {
 
             // * Setup clipping plane data based on the best axis
 
-            ZMath::Vec3D frontNormal, sideNormal1, sideNormal2;
+            ZMath::Vec3D sideNormal1, sideNormal2;
             ZMath::Vec3D incidentFace[4]; // 4 vertices for the collision in 3D
             float front, negSide1, negSide2, posSide1, posSide2;
 
@@ -461,10 +461,10 @@ namespace Collisions {
             result.pDist = 0.0f;
 
             for (int i = 0; i < 4; ++i) {
-                separation = frontNormal * clipPoints2[i] - front;
+                separation = result.normal * clipPoints2[i] - front;
 
                 if (separation <= 0) {
-                    contactPoints[np++] = clipPoints2[i] - frontNormal * separation;
+                    contactPoints[np++] = clipPoints2[i] - result.normal * separation;
                     if (result.pDist < separation) { result.pDist = separation; }
                 }
             }
