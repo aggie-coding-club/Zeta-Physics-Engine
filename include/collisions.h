@@ -726,9 +726,8 @@ namespace Collisions {
             ZMath::Vec3D dB = rotBT * dP;
 
             // * rotation matrices for switching between local spaces
-            
-            // todo do the math to figure out if we actually need to do the abs
-            // todo not sure what math to do for this though
+
+            // ! When scenes are developed test if we actually need the absolute value
 
             // Rotate anything from B's local space into A's
             ZMath::Mat3D C = ZMath::abs(rotAT * cube2.rot);
