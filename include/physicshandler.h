@@ -22,14 +22,12 @@ namespace PhysicsHandler {
         // v_2' = v_2 - invMass_2 * J * collisionNormal. Note the - is to account for the direction which the normal is pointing.
         // It's opposite for one of the two objects.
 
-        // ! signs might be messed up
-
-        float J = (((rb1.vel - rb2.vel) * -(1 + rb1.cor * rb2.cor)) * manifold.normal)/(rb1.invMass + rb2.invMass);
+        float J = ((ZMath::abs(rb1.vel - rb2.vel) * -(1 + rb1.cor * rb2.cor)) * manifold.normal)/(rb1.invMass + rb2.invMass);
         // ! only add the commented line if we end up finding this is insufficient for impulse resolution
         // J /= manifold.numPoints; // we know the numPoints must be at least 1 for a collision to have occurred
 
-        rb1.vel += manifold.normal * (rb1.invMass * J);
-        rb2.vel -= manifold.normal * (rb2.invMass * J);
+        rb1.vel -= manifold.normal * (rb1.invMass * J);
+        rb2.vel += manifold.normal * (rb2.invMass * J);
     };
 
 
