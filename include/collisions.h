@@ -339,15 +339,11 @@ namespace Collisions {
                 case FACE_A_X: {
                     frontNormal = result.normal;
                     front = aabb1.rb.pos * frontNormal + hA.x;
-                    sideNormal1 = ZMath::Vec3D(0, 1, 0); // yNormal
-                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
-                    float ySide = aabb1.rb.pos * sideNormal1;
-                    float zSide = aabb1.rb.pos * sideNormal2;
 
-                    negSide1 = -ySide + hA.y; // negSideY
-                    posSide1 = ySide + hA.y; // posSideY
-                    negSide2 = -zSide + hA.z; // negSideZ
-                    posSide2 = zSide + hA.z; // posSideZ
+                    negSide1 = aabb1.rb.pos.y - hA.y; // negSideY
+                    posSide1 = aabb1.rb.pos.y + hA.y; // posSideY
+                    negSide2 = aabb1.rb.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb1.rb.pos.z + hA.z; // posSideZ
 
                     computeIncidentFace(incidentFace, hB, aabb2.rb.pos, ZMath::Mat3D::identity(), frontNormal);
                     break;
@@ -356,15 +352,11 @@ namespace Collisions {
                 case FACE_A_Y: {
                     frontNormal = result.normal;
                     front = aabb1.rb.pos * frontNormal + hA.y;
-                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
-                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
-                    float xSide = aabb1.rb.pos * sideNormal1;
-                    float zSide = aabb1.rb.pos * sideNormal2;
 
-                    negSide1 = -xSide + hA.x; // negSideX
-                    posSide1 = xSide + hA.x; // posSideX
-                    negSide2 = -zSide + hA.z; // negSideZ
-                    posSide2 = zSide + hA.z; // posSideZ
+                    negSide1 = aabb1.rb.pos.x - hA.x; // negSideX
+                    posSide1 = aabb1.rb.pos.x + hA.x; // posSideX
+                    negSide2 = aabb1.rb.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb1.rb.pos.z + hA.z; // posSideZ
 
                     computeIncidentFace(incidentFace, hB, aabb2.rb.pos, ZMath::Mat3D::identity(), frontNormal);
                     break;
@@ -373,15 +365,11 @@ namespace Collisions {
                 case FACE_A_Z: {
                     frontNormal = result.normal;
                     front = aabb1.rb.pos * frontNormal + hA.z;
-                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
-                    sideNormal2 = ZMath::Vec3D(0, 1, 0); // yNormal
-                    float xSide = aabb1.rb.pos * sideNormal1;
-                    float ySide = aabb1.rb.pos * sideNormal2;
 
-                    negSide1 = -xSide + hA.x; // negSideX
-                    posSide1 = xSide + hA.x; // posSideX
-                    negSide2 = -ySide + hA.y; // negSideY
-                    posSide2 = ySide + hA.y; // posSideY
+                    negSide1 = aabb1.rb.pos.x - hA.x; // negSideX
+                    posSide1 = aabb1.rb.pos.x + hA.x; // posSideX
+                    negSide2 = aabb1.rb.pos.y - hA.y; // negSideY
+                    posSide2 = aabb1.rb.pos.y + hA.y; // posSideY
 
                     computeIncidentFace(incidentFace, hB, aabb2.rb.pos, ZMath::Mat3D::identity(), frontNormal);
                     break;
@@ -535,15 +523,11 @@ namespace Collisions {
                 case FACE_A_X: {
                     frontNormal = result.normal;
                     front = aabb.rb.pos * frontNormal + hA.x;
-                    sideNormal1 = ZMath::Vec3D(0, 1, 0); // yNormal
-                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
-                    float ySide = aabb.rb.pos * sideNormal1;
-                    float zSide = aabb.rb.pos * sideNormal2;
 
-                    negSide1 = -ySide + hA.y; // negSideY
-                    posSide1 = ySide + hA.y; // posSideY
-                    negSide2 = -zSide + hA.z; // negSideZ
-                    posSide2 = zSide + hA.z; // posSideZ
+                    negSide1 = aabb.rb.pos.y - hA.y; // negSideY
+                    posSide1 = aabb.rb.pos.y + hA.y; // posSideY
+                    negSide2 = aabb.rb.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb.rb.pos.z + hA.z; // posSideZ
 
                     computeIncidentFace(incidentFace, hB, cube.rb.pos, cube.rot, frontNormal);
                     break;
@@ -552,15 +536,11 @@ namespace Collisions {
                 case FACE_A_Y: {
                     frontNormal = result.normal;
                     front = aabb.rb.pos * frontNormal + hA.y;
-                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
-                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
-                    float xSide = aabb.rb.pos * sideNormal1;
-                    float zSide = aabb.rb.pos * sideNormal2;
 
-                    negSide1 = -xSide + hA.x; // negSideX
-                    posSide1 = xSide + hA.x; // posSideX
-                    negSide2 = -zSide + hA.z; // negSideZ
-                    posSide2 = zSide + hA.z; // posSideZ
+                    negSide1 = aabb.rb.pos.x - hA.x; // negSideX
+                    posSide1 = aabb.rb.pos.x + hA.x; // posSideX
+                    negSide2 = aabb.rb.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb.rb.pos.z + hA.z; // posSideZ
 
                     computeIncidentFace(incidentFace, hB, cube.rb.pos, cube.rot, frontNormal);
                     break;
@@ -569,15 +549,11 @@ namespace Collisions {
                 case FACE_A_Z: {
                     frontNormal = result.normal;
                     front = aabb.rb.pos * frontNormal + hA.z;
-                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
-                    sideNormal2 = ZMath::Vec3D(0, 1, 0); // yNormal
-                    float xSide = aabb.rb.pos * sideNormal1;
-                    float ySide = aabb.rb.pos * sideNormal2;
 
-                    negSide1 = -xSide + hA.x; // negSideX
-                    posSide1 = xSide + hA.x; // posSideX
-                    negSide2 = -ySide + hA.y; // negSideY
-                    posSide2 = ySide + hA.y; // posSideY
+                    negSide1 = aabb.rb.pos.x - hA.x; // negSideX
+                    posSide1 = aabb.rb.pos.x + hA.x; // posSideX
+                    negSide2 = aabb.rb.pos.y - hA.y; // negSideY
+                    posSide2 = aabb.rb.pos.y + hA.y; // posSideY
 
                     computeIncidentFace(incidentFace, hB, cube.rb.pos, cube.rot, frontNormal);
                     break;
