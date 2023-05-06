@@ -333,8 +333,6 @@ namespace Collisions {
         // ? Normal points towards B and away from A
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
-            // todo make sure the sign for the normal is correct
-
             CollisionManifold result;
 
             // half size of AABB a and b respectively
@@ -484,8 +482,6 @@ namespace Collisions {
         // ? Normal points towards B and away from A
 
         CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
-            // todo make sure the sign for the normal is correct
-
             CollisionManifold result;
 
             // half size of a and b respectively
@@ -711,8 +707,6 @@ namespace Collisions {
         // ? Normal points towards B and away from A
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
-            // todo make sure the sign for the normal is correct
-
             CollisionManifold result;
 
             // half size of cube a and b respectively
