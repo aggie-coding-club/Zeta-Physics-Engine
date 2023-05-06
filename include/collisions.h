@@ -626,7 +626,7 @@ namespace Collisions {
                     negSide2 = -zSide + hB.z; // negSideZ
                     posSide2 = zSide + hB.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hA, aabb.rb.pos, ZMath::Mat3D::identity(), result.normal);
+                    computeIncidentFaceAABB(incidentFace, hA, aabb.rb.pos, result.normal);
                     break;
                 }
 
@@ -642,7 +642,7 @@ namespace Collisions {
                     negSide2 = -zSide + hB.z; // negSideZ
                     posSide2 = zSide + hB.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hA, aabb.rb.pos, ZMath::Mat3D::identity(), result.normal);
+                    computeIncidentFaceAABB(incidentFace, hA, aabb.rb.pos, result.normal);
                     break;
                 }
 
@@ -658,7 +658,7 @@ namespace Collisions {
                     negSide2 = -ySide + hB.y; // negSideY
                     posSide2 = ySide + hB.y; // posSideY
 
-                    computeIncidentFace(incidentFace, hA, aabb.rb.pos, ZMath::Mat3D::identity(), result.normal);
+                    computeIncidentFaceAABB(incidentFace, hA, aabb.rb.pos, result.normal);
                     break;
                 }
             }
