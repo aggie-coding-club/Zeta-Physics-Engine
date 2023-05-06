@@ -290,9 +290,6 @@ namespace Collisions {
             // begin with 0 output points
             int np = 0;
 
-            // todo fs need to test this function extensively
-            // todo make sure the signs are correct
-
             // calculate the distance
             // first set of distances
             float d0 = n1 * vIn[0] - offset1;
@@ -435,8 +432,6 @@ namespace Collisions {
             }
 
             // * Clip the incident edge with box planes.
-
-            // todo check if there's a faster way to do this step due to both being axis aligned
 
             ZMath::Vec3D clipPoints1[4];
             ZMath::Vec3D clipPoints2[4];
