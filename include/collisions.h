@@ -155,11 +155,8 @@ namespace Collisions {
         static void computeIncidentFace(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, 
                                         const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
 
-            // todo will fs need to test this function
-            // todo do some more math to make sure all the signs are correct
-
-            // Rotate the normal to the incident cube's local space and flip the sign.
-            ZMath::Vec3D n = -(rot.transpose() * normal); // ! may not need to flip the sign since our normal points towards B from A
+            // Rotate the normal to the incident cube's local space.
+            ZMath::Vec3D n = rot.transpose() * normal;
             ZMath::Vec3D nAbs = ZMath::abs(n);
 
             // Determine the vertices in terms of halfsize.
