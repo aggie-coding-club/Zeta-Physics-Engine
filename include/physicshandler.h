@@ -3,11 +3,6 @@
 
 #include "collisions.h"
 
-// todo test the physics handler
-// todo update function doesn't work properly
-
-// todo change the resize stuff
-
 namespace PhysicsHandler {
     // * =========================
     // * Impulse Resolution
@@ -74,10 +69,19 @@ namespace PhysicsHandler {
     };
 
     namespace { // make this struct private to this file
+        // todo rename to something better
+        // these are also likely just placeholders until we can find a good value
+        static const int startingSlots = 64;
+        static const int halfSlots = 32;
+
         // todo Definitely refactor to only need to store rigidbodies
         // todo could probably also shrink the lists at certain times
         // todo possibly start the lists at lower values
-        // ? For now, default to allocating 8 slots for Objects. Probably up once we start implementing more stuff.
+        // ? For now, default to allocating 64 slots for Objects. Probably up once we start implementing more stuff.
+
+        // todo will also need a static bodies list to handle our various collision planes
+        // ! These will not be affected by the physics but we will be unable to use any algorithm related to them if their data is not in out handler
+        // ! This slight efficiency is the price paid for the abstraction on the end of the user
 
         struct Objects {
             Object** objects; // list of active objects
@@ -156,9 +160,9 @@ namespace PhysicsHandler {
                 delete[] colWrapper.bodies2;
                 delete[] colWrapper.manifolds;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[4];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[4];
-                colWrapper.manifolds = new Collisions::CollisionManifold[4];
+                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
 
                 colWrapper.capacity = 4;
                 colWrapper.count = 0;
@@ -171,13 +175,13 @@ namespace PhysicsHandler {
 
             // Make a physics handler with a default gravity of -9.8 and an update speed of 60FPS.
             Handler() : g(ZMath::Vec3D(0, 0, -9.8f)), updateStep(0.0167f) {
-                objs.objects = new Object*[8];
+                objs.objects = new Object*[startingSlots];
                 objs.capacity = 8;
                 objs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[4];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[4];
-                colWrapper.manifolds = new Collisions::CollisionManifold[4];
+                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
                 colWrapper.capacity = 4;
                 colWrapper.count = 0;
             };
@@ -188,13 +192,13 @@ namespace PhysicsHandler {
              * @param grav (Vec3D) The force applied by gravity.
              */
             Handler(ZMath::Vec3D const &grav) : g(grav), updateStep(0.0167f) {
-                objs.objects = new Object*[8];
+                objs.objects = new Object*[startingSlots];
                 objs.capacity = 8;
                 objs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[4];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[4];
-                colWrapper.manifolds = new Collisions::CollisionManifold[4];
+                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
                 colWrapper.capacity = 4;
                 colWrapper.count = 0;
             };
@@ -206,13 +210,13 @@ namespace PhysicsHandler {
              * @param updateStep (float) The amount of time in seconds that must pass before the handler updates.
              */
             Handler(ZMath::Vec3D const &grav, float updateStep) : g(grav), updateStep(updateStep) {
-                objs.objects = new Object*[8];
+                objs.objects = new Object*[startingSlots];
                 objs.capacity = 8;
                 objs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[4];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[4];
-                colWrapper.manifolds = new Collisions::CollisionManifold[4];
+                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
                 colWrapper.capacity = 4;
                 colWrapper.count = 0;
             };
