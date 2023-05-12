@@ -155,7 +155,7 @@ namespace Primitives {
             ZMath::Vec3D getHalfSize() const { return halfSize; };
 
             ZMath::Vec3D* getVertices() const{
-                ZMath::Vec3D* vertices = new ZMath::Vec3D[4];
+                ZMath::Vec3D* vertices = new ZMath::Vec3D[8];
 
                 vertices[0] = {rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z}; // bottom left
                 vertices[1] = {rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z}; // top left
