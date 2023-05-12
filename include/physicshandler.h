@@ -4,7 +4,9 @@
 #include "collisions.h"
 
 // todo test the physics handler
-// todo go through and add checks to make sure the pointers aren't null before freeing the memory pointed to by them
+// todo update function doesn't work properly
+
+// todo update the object lists to store Object pointers, this way the objects can be updated in the handler and update the original object
 
 namespace PhysicsHandler {
     // * =========================
@@ -92,6 +94,11 @@ namespace PhysicsHandler {
             int count; // number of collisions
         };
     }
+
+    // TODO refactor to use a batch system
+    // ! In other words, there will be a max for objects one specific physics world can handle
+    // ! This is not ideal though so maybe make the default large and resize if necessary
+    // ! Staticbodies shouldn't have to be stored, instead it should be stored using a single plane to represent their collision boxes
 
 
     // * ========================

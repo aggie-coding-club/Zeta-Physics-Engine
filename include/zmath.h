@@ -14,6 +14,9 @@ namespace ZMath {
     // * Default tolerance value for a floating point comparison
     #define EPSILON 0.0005
 
+    // * Get the sign of a number.
+    inline float signOf(float n) { return n < 0.0f ? -1.0f : 1.0f; };
+
 
     // * Class modeling a 2D Vector.
     class Vec2D {
@@ -151,6 +154,9 @@ namespace ZMath {
                 float d = x*vec.x + y*vec.y;
                 return (d*d)/((x*x + y*y)*(vec.x*vec.x + vec.y*vec.y));
             };
+
+            // * Get the sign of each entry.
+            inline Vec2D getSigns() const { return Vec2D(signOf(x), signOf(y)); };
     };
 
 
@@ -300,6 +306,9 @@ namespace ZMath {
                 float d = x*vec.x + y*vec.y + z*vec.z;
                 return (d*d)/((x*x + y*y + z*z)*(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z));
             };
+
+            // * Get a vector with the sign of each entry.
+            inline Vec3D getSigns() const { return Vec3D(signOf(x), signOf(y), signOf(z)); };
     };
 
 
@@ -520,6 +529,9 @@ namespace ZMath {
 
             // Return the transpose of this matrix.
             inline Mat2D transpose() const { return Mat2D(c1.x, c1.y, c2.x, c2.y); };
+
+            // Return a matrix with the sign of each entry.
+            inline Mat2D getSigns() const { return Mat2D(c1.getSigns(), c2.getSigns()); };
 
 
             // * ===============================
@@ -781,6 +793,10 @@ namespace ZMath {
 
                 return mat.transpose();
             };
+
+            // Return a Mat3D with the signs of the entries.
+            inline Mat3D getSigns() const { return Mat3D(c1.getSigns(), c2.getSigns(), c3.getSigns()); };
+
 
             // * ===============================
             // * Utility Matrix Functions
