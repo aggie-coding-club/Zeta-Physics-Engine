@@ -6,7 +6,7 @@
 // todo test the physics handler
 // todo update function doesn't work properly
 
-// todo update the object lists to store Object pointers, this way the objects can be updated in the handler and update the original object
+// todo change the resize stuff
 
 namespace PhysicsHandler {
     // * =========================
@@ -80,7 +80,7 @@ namespace PhysicsHandler {
         // ? For now, default to allocating 8 slots for Objects. Probably up once we start implementing more stuff.
 
         struct Objects {
-            Object* objects; // list of active objects
+            Object** objects; // list of active objects
             int capacity; // current max capacity
             int count; // number of objects 
         };
@@ -171,7 +171,7 @@ namespace PhysicsHandler {
 
             // Make a physics handler with a default gravity of -9.8 and an update speed of 60FPS.
             Handler() : g(ZMath::Vec3D(0, 0, -9.8f)), updateStep(0.0167f) {
-                objs.objects = new Object[8];
+                objs.objects = new Object*[8];
                 objs.capacity = 8;
                 objs.count = 0;
 
@@ -188,7 +188,7 @@ namespace PhysicsHandler {
              * @param grav (Vec3D) The force applied by gravity.
              */
             Handler(ZMath::Vec3D const &grav) : g(grav), updateStep(0.0167f) {
-                objs.objects = new Object[8];
+                objs.objects = new Object*[8];
                 objs.capacity = 8;
                 objs.count = 0;
 
@@ -206,7 +206,7 @@ namespace PhysicsHandler {
              * @param updateStep (float) The amount of time in seconds that must pass before the handler updates.
              */
             Handler(ZMath::Vec3D const &grav, float updateStep) : g(grav), updateStep(updateStep) {
-                objs.objects = new Object[8];
+                objs.objects = new Object*[8];
                 objs.capacity = 8;
                 objs.count = 0;
 
@@ -225,7 +225,7 @@ namespace PhysicsHandler {
             Handler(Handler const &handler) : g (handler.g), updateStep(handler.updateStep) {
                 objs.capacity = handler.objs.capacity;
                 objs.count = handler.objs.count;
-                objs.objects = new Object[objs.capacity];
+                objs.objects = new Object*[objs.capacity];
 
                 for (int i = 0; i < objs.count; i++) { objs.objects[i] = handler.objs.objects[i]; }
 
@@ -282,7 +282,7 @@ namespace PhysicsHandler {
 
                 objs.capacity = handler.objs.capacity;
                 objs.count = handler.objs.count;
-                objs.objects = new Object[objs.capacity];
+                objs.objects = new Object*[objs.capacity];
 
                 for (int i = 0; i < objs.count; i++) { objs.objects[i] = handler.objs.objects[i]; }
 
@@ -350,10 +350,10 @@ namespace PhysicsHandler {
             // * ===========================
 
             // Add an object to the list of objects to be updated by the physics handler.
-            void addObject(Object &obj) {
+            void addObject(Object* obj) {
                 if (objs.count == objs.capacity) {
                     objs.capacity *= 2;
-                    Object* temp = new Object[objs.capacity];
+                    Object** temp = new Object*[objs.capacity];
 
                     for (int i = 0; i < objs.count; i++) { temp[i] = objs.objects[i]; }
 
@@ -380,29 +380,29 @@ namespace PhysicsHandler {
                 // Broad phase: collision detection
                 for (int i = 0; i < objs.count - 1; i++) {
                     for (int j = i + 1; j < objs.count; j++) {
-                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(objs.objects[i].collider, objs.objects[j].collider);
+                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(objs.objects[i]->collider, objs.objects[j]->collider);
 
                         if (result.hit) {
                             // todo refactor to be more efficient
                             // ! This is just to get it working
 
-                            switch (objs.objects[i].collider.type) {
+                            switch (objs.objects[i]->collider.type) {
                                 case Primitives::SPHERE_COLLIDER:
-                                    if (objs.objects[j].collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i].collider.sphere.rb, objs.objects[j].collider.sphere.rb, result); }
-                                    if (objs.objects[j].collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i].collider.sphere.rb, objs.objects[j].collider.aabb.rb, result); }
-                                    if (objs.objects[j].collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i].collider.sphere.rb, objs.objects[j].collider.cube.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i]->collider.sphere.rb, objs.objects[j]->collider.sphere.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i]->collider.sphere.rb, objs.objects[j]->collider.aabb.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i]->collider.sphere.rb, objs.objects[j]->collider.cube.rb, result); }
                                     break;
                                 
                                 case Primitives::AABB_COLLIDER:
-                                    if (objs.objects[j].collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i].collider.aabb.rb, objs.objects[j].collider.sphere.rb, result); }
-                                    if (objs.objects[j].collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i].collider.aabb.rb, objs.objects[j].collider.aabb.rb, result); }
-                                    if (objs.objects[j].collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i].collider.aabb.rb, objs.objects[j].collider.cube.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i]->collider.aabb.rb, objs.objects[j]->collider.sphere.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i]->collider.aabb.rb, objs.objects[j]->collider.aabb.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i]->collider.aabb.rb, objs.objects[j]->collider.cube.rb, result); }
                                     break;
 
                                 case Primitives::CUBE_COLLIDER:
-                                    if (objs.objects[j].collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i].collider.cube.rb, objs.objects[j].collider.sphere.rb, result); }
-                                    if (objs.objects[j].collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i].collider.cube.rb, objs.objects[j].collider.aabb.rb, result); }
-                                    if (objs.objects[j].collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i].collider.cube.rb, objs.objects[j].collider.cube.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i]->collider.cube.rb, objs.objects[j]->collider.sphere.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i]->collider.cube.rb, objs.objects[j]->collider.aabb.rb, result); }
+                                    if (objs.objects[j]->collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i]->collider.cube.rb, objs.objects[j]->collider.cube.rb, result); }
                                     break;
 
                                 default:
@@ -425,7 +425,7 @@ namespace PhysicsHandler {
                 clearCollisions();
 
                 // Update our rigidbodies
-                for (int i = 0; i < objs.count; i++) { objs.objects[i].update(g, dt); }
+                for (int i = 0; i < objs.count; i++) { objs.objects[i]->update(g, dt); }
             };
     };
 }
