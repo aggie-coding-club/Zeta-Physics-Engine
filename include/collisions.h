@@ -62,13 +62,10 @@ namespace Collisions {
             // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
             // ? From here, we can check the distance from this point to the sphere's center.
 
-            ZMath::Vec3D closest(sphere.rb.pos);
+            ZMath::Vec3D closest = sphere.rb.pos;
             ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
 
-            closest.x = ZMath::clamp(closest.x, min.x, max.x);
-            closest.y = ZMath::clamp(closest.y, min.y, max.y);
-            closest.z = ZMath::clamp(closest.z, min.z, max.z);
-
+            closest = ZMath::clamp(closest, min, max);
             result.hit = closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
 
             if (!result.hit) { return result; }
@@ -93,20 +90,15 @@ namespace Collisions {
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
             CollisionManifold result;
 
-            ZMath::Vec3D center = sphere.rb.pos - cube.rb.pos;
+            ZMath::Vec3D closest = sphere.rb.pos - cube.rb.pos;
             ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
             // rotate the center of the sphere into the UVW coordinates of our cube
-            center = cube.rot * center + cube.rb.pos;
+            closest = cube.rot * closest + cube.rb.pos;
             
             // perform the check as if it was an AABB vs Sphere
-            ZMath::Vec3D closest(center);
-
-            closest.x = ZMath::clamp(closest.x, min.x, max.x);
-            closest.y = ZMath::clamp(closest.y, min.y, max.y);
-            closest.z = ZMath::clamp(closest.z, min.z, max.z);
-
-            result.hit = closest.distSq(center) <= sphere.r*sphere.r;
+            closest = ZMath::clamp(closest, min, max);
+            result.hit = closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
 
             if (!result.hit) { return result; }
 
