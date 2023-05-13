@@ -374,6 +374,16 @@ namespace ZMath {
     // * Clamp a float between a min and max.
     inline float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };
 
+    // * Clamp a Vec2D between a min and max vector.
+    inline Vec2D clamp(const Vec2D &n, const Vec2D &min, const Vec2D &max) {
+        return Vec2D(ZMath::max(ZMath::min(n.x, max.x), min.x), ZMath::max(ZMath::min(n.y, max.y), min.y));
+    };
+
+    // * Clamp a Vec3D between a min and max vector.
+    inline Vec3D clamp(const Vec3D &n, const Vec3D &min, const Vec3D &max) {
+        return Vec3D(clamp(n.x, min.x, max.x), clamp(n.y, min.y, max.y), clamp(n.z, min.z, max.z));
+    };
+
 
     // * Class modeling a 2x2 Matrix stored in column major order.
     class Mat2D {

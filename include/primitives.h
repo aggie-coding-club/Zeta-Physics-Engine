@@ -83,10 +83,10 @@ namespace Primitives {
                 rot = ZMath::Mat3D::generateRotationMatrix(angXY, angXZ);
 
                 // rotate the points to find the normal
-                ZMath::Mat3D rotT = rot.transpose();
+                // ZMath::Mat3D rotT = rot.transpose();
 
-                v1 = rotT * v1;
-                v2 = rotT * v2;
+                v1 = rot * v1;
+                v2 = rot * v2;
 
                 normal = (v2 - sb.pos).cross(v1 - sb.pos);
             };
