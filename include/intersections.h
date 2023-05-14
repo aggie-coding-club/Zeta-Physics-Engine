@@ -74,9 +74,6 @@ namespace Collisions {
         // ? We then ensure this point in time statisfies all 3 equations.
         // ? If it does and there's overlap, we have an intersection; otherwise we do not.
 
-       // todo potentially could use the proportions method instead
-       // todo defo do this
-
         ZMath::Vec3D s1 = line1.start, s2 = line2.start, e1 = line1.end, e2 = line2.end;
         ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
 
@@ -96,18 +93,11 @@ namespace Collisions {
                 // ! same thing for the second case, too.
 
                 float t = (s2.x - s1.x)/v1.x;
-                return s2.y == s1.y + v1.y * t && s2.z == s1.z + v1.z * t &&
-                        min1.x <= max2.x && min2.x <= max1.x &&
-                        min1.y <= max2.y && min2.y <= max1.y &&
-                        min1.z <= max2.z && min2.z <= max1.z;
+                return s2.y == s1.y + v1.y * t && s2.z == s1.z + v1.z * t && min1.x <= max2.x && min2.x <= max1.x;
             }
 
-            if (v1.y) {
-                return s1.x == s2.x && s2.z == s1.z + v1.z * ((s2.y - s1.y)/v1.y) &&
-                        min1.y <= max2.y && min2.y <= max1.y &&
-                        min1.z <= max2.z && min2.z <= max1.z;
-            }
-
+            if (v1.y) { return s1.x == s2.x && s2.z == s1.z + v1.z * ((s2.y - s1.y)/v1.y) && min1.y <= max2.y && min2.y <= max1.y; }
+            
             return s1.x == s2.x && s1.y == s2.y && min1.z <= max2.z && min2.z <= max1.z;
         }
 
