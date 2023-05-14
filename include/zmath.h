@@ -32,11 +32,8 @@ namespace ZMath {
             // * Constructors
             // * ============================
 
-            // * Instantiate a Vec2D object with all components set to 0.
-            Vec2D() : x(0), y(0) {};
-
             // * Instantiate a Vec2D object with all components set to the same value.
-            Vec2D(float d) : x(d), y(d) {};
+            Vec2D(float d = 0) : x(d), y(d) {};
 
             // * Instantiate a Vec3D object with each component assigned.
             Vec2D(float i, float j) : x(i), y(j) {};
@@ -174,11 +171,8 @@ namespace ZMath {
             // * Constructors
             // * ============================
 
-            // * Instantiate a Vec3D object with all components set to 0.
-            Vec3D() : x(0), y(0), z(0) {};
-
             // * Instantiate a Vec3D object with all components set to the same value.
-            Vec3D(float d) : x(d), y(d), z(d) {};
+            Vec3D(float d = 0) : x(d), y(d), z(d) {};
 
             // * Instantiate a Vec3D object with each component assigned.
             Vec3D(float i, float j, float k) : x(i), y(j), z(k) {};
