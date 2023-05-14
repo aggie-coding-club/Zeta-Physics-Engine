@@ -80,11 +80,14 @@ namespace Collisions {
         ZMath::Vec3D s1 = line1.start, s2 = line2.start, e1 = line1.end, e2 = line2.end;
         ZMath::Vec3D v1 = e1 - s1, v2 = e2 - s2;
 
-        // ! This works but could probably take the ratios between the lines instead
-        ZMath::Vec3D n1 = v1.normalize(), n2 = v2.normalize(); // used for checking for parallel lines
+        // Determine the proportion between the two. If it is the same, the lines are parallel due to it relying on time.
+        float c;
+        if (v1.x) { c = v2.x/v1.x; }
+        else if (v1.y) { c = v2.y/v1.y; }
+        else { c = v2.z/v1.z; } // v1.z != 0
 
         // check for parallel lines
-        if (n1.x == n2.x && n1.y == n2.y && n1.z == n2.z) {
+        if (c && ZMath::compare(c*v1.x, v2.x) && ZMath::compare(c*v1.y, v2.y) && ZMath::compare(c*v1.z, v2.z)) {
             ZMath::Vec3D min1 = line1.getMin(), max1 = line1.getMax();
             ZMath::Vec3D min2 = line2.getMin(), max2 = line2.getMax();
 

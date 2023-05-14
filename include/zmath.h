@@ -119,7 +119,7 @@ namespace ZMath {
                 return (*this);
             };
 
-            inline Vec2D& operator - () const { Vec2D(-x, -y); };
+            inline Vec2D operator - () const { return Vec2D(-x, -y); };
 
             // * Get the cross product of this and another vector.
             inline Vec2D cross (Vec2D const &vec) const { return x*vec.y - y*vec.x; };
