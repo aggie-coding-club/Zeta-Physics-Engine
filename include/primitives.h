@@ -99,7 +99,7 @@ namespace Primitives {
 
             // Get the vertices of the plane in terms of global coordinates.
             // Remember to use delete[] on the object you assign this to afterwards to free the memory.
-            ZMath::Vec3D* getVertices() const {
+            ZMath::Vec3D* getVertices() const { // todo test to make sure I don't need to use the transpose
                 ZMath::Vec3D* v = new ZMath::Vec3D[4]; // 4 as it is rectangular
 
                 v[0] = ZMath::Vec3D(-halfSize.x, -halfSize.y, pos.z);
@@ -139,28 +139,26 @@ namespace Primitives {
              * @param min (Vec3D) Min vertex of the AABB.
              * @param max (Vec3D) Max vertex of the AABB.
              */
-            AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) : halfSize((max - min) * 0.5f) {
-                rb.pos = min + halfSize;
-                rb.theta = 0.0f;
-                rb.phi = 0.0f;
-            };
+            AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) : halfSize((max - min) * 0.5f), pos(min + halfSize) {};
 
-            ZMath::Vec3D getMin() const { return rb.pos - halfSize; };
-            ZMath::Vec3D getMax() const { return rb.pos + halfSize; };
+            ZMath::Vec3D getMin() const { return pos - halfSize; };
+            ZMath::Vec3D getMax() const { return pos + halfSize; };
             ZMath::Vec3D getHalfSize() const { return halfSize; };
 
             ZMath::Vec3D* getVertices() const{
                 ZMath::Vec3D* vertices = new ZMath::Vec3D[8];
 
-                vertices[0] = {rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z}; // bottom left
-                vertices[1] = {rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z}; // top left
-                vertices[2] = {rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z}; // top right
-                vertices[3] = {rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z};  // bottom right
+                // todo fix order to match OpenGL bindings
+
+                vertices[0] = {pos.x - halfSize.x, pos.y - halfSize.y, pos.z + halfSize.z}; // bottom left
+                vertices[1] = {pos.x - halfSize.x, pos.y + halfSize.y, pos.z + halfSize.z}; // top left
+                vertices[2] = {pos.x + halfSize.x, pos.y + halfSize.y, pos.z + halfSize.z}; // top right
+                vertices[3] = {pos.x + halfSize.x, pos.y - halfSize.y, pos.z + halfSize.z};  // bottom right
                 
-                vertices[4] = {rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z}; // bottom left
-                vertices[5] = {rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z}; // top left
-                vertices[6] = {rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z}; // top right
-                vertices[7] = {rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z}; // bottom right
+                vertices[4] = {pos.x - halfSize.x, pos.y - halfSize.y, pos.z - halfSize.z}; // bottom left
+                vertices[5] = {pos.x - halfSize.x, pos.y + halfSize.y, pos.z - halfSize.z}; // top left
+                vertices[6] = {pos.x + halfSize.x, pos.y + halfSize.y, pos.z - halfSize.z}; // top right
+                vertices[7] = {pos.x + halfSize.x, pos.y - halfSize.y, pos.z - halfSize.z}; // bottom right
 
                 return vertices;
             };
@@ -174,51 +172,44 @@ namespace Primitives {
             ZMath::Vec3D pos; // Centerpoint of the Cube.
             ZMath::Mat3D rot; // Rotate anything from global space to this cube's local space. Cache this value for efficiency.
 
+            float theta; // Rotation with respect to the XY plane.
+            float phi; // Rotation with respect to the XZ plane.
+
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
             //
             // @param min Min vertex of the cube as if it was not rotated.
             // @param max Max vertex of the cube as if it was not rotated.
             // @param angXY Angle the cube is rotated by with respect to the XY plane in degrees.
             // @param angXZ Angle the cube is rotated by with respect to the XZ plane in degrees.
-            Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) : halfSize((max - min) * 0.5f) {
-                rb.pos = min + halfSize;
-                rb.theta = angXY;
-                rb.phi = angXZ;
-                rb.mass = 20.0f;
-                rb.invMass = 0.05f;
-
-                rot = ZMath::Mat3D::generateRotationMatrix(angXY, angXZ);
-            };
+            Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) : halfSize((max - min) * 0.5f),
+                    pos(min + halfSize), theta(angXY), phi(angXZ), rot(ZMath::Mat3D::generateRotationMatrix(theta, phi)) {};
 
             // Get the min vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMin() const { return rb.pos - halfSize; };
+            ZMath::Vec3D getLocalMin() const { return pos - halfSize; };
 
             // Get the max vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMax() const { return rb.pos + halfSize; };
+            ZMath::Vec3D getLocalMax() const { return pos + halfSize; };
 
             // Get half the distance between the cube's min and max vertices.
             ZMath::Vec3D getHalfSize() const { return halfSize; };
 
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
-            ZMath::Vec3D* getVertices() const {
+            ZMath::Vec3D* getVertices() const { // todo test to make sure I don't need to use the transpose
                 ZMath::Vec3D* v = new ZMath::Vec3D[8];
 
-                // todo maybe reorder
-                // ! p sure this is a bad order for them. Will fix sometime after our presentation
-                v[0] = rb.pos - halfSize;
-                v[1] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y - halfSize.y, rb.pos.z +  halfSize.z);
-                v[2] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z + halfSize.z);
-                v[3] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y - halfSize.y, rb.pos.z - halfSize.z);
-                v[4] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z + halfSize.z);
-                v[5] = ZMath::Vec3D(rb.pos.x - halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z);
-                v[6] = ZMath::Vec3D(rb.pos.x + halfSize.x, rb.pos.y + halfSize.y, rb.pos.z - halfSize.z);
-                v[7] = rb.pos + halfSize;
+                // todo reorder to match OpenGL bindings
+                v[0] = pos - halfSize;
+                v[1] = ZMath::Vec3D(-halfSize.x, -halfSize.y, halfSize.z);
+                v[2] = ZMath::Vec3D(halfSize.x, -halfSize.y, halfSize.z);
+                v[3] = ZMath::Vec3D(halfSize.x, -halfSize.y, -halfSize.z);
+                v[4] = ZMath::Vec3D(-halfSize.x, halfSize.y, halfSize.z);
+                v[5] = ZMath::Vec3D(-halfSize.x, halfSize.y, -halfSize.z);
+                v[6] = ZMath::Vec3D(halfSize.x, halfSize.y, -halfSize.z);
+                v[7] = pos + halfSize;
 
-                for (int i = 0; i < 8; i++) {
-                    ZMath::rotateXY(v[i], rb.pos, rb.theta);
-                    ZMath::rotateXZ(v[i], rb.pos, rb.phi);
-                }
+                // Rotate the vertices.
+                for (int i = 0; i < 8; i++) { v[i] = rot*v[i] + pos; }
 
                 return v;
             }; 
