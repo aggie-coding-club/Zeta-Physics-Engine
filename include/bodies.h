@@ -24,6 +24,8 @@ namespace Primitives {
     };
 
     struct RigidBody3D {
+        RigidBody3D() = default; // Default constructor to make the compiler happy (for efficiency).
+
         // * Handle and store the collider.
 
         RigidBodyCollider colliderType;
@@ -70,6 +72,8 @@ namespace Primitives {
     };
 
     struct StaticBody3D {
+        StaticBody3D() = default; // Default constructor to make the compiler happy (for efficiency).
+
         // * Information related to the static body.
 
         ZMath::Vec3D pos; // centerpoint of the staticbody.

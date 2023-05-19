@@ -28,45 +28,9 @@ namespace PhysicsHandler {
     };
 
 
-    // todo might wanna move this object wrapper elsewhere.
-
     // * ==============
     // * Wrappers
     // * ==============
-
-    class Object {
-        public:
-            // The collider associated with the physics object
-            Primitives::Collider3D collider;
-
-            // Create a physics object.
-            Object() {};
-
-            // Create a physics object with a predefined collider.
-            Object(const Primitives::Collider3D &collider) {
-                (this->collider).type = collider.type;
-
-                switch (collider.type) {
-                    case Primitives::SPHERE_COLLIDER:
-                        (this->collider).sphere = collider.sphere;
-                        break;
-
-                    case Primitives::AABB_COLLIDER:
-                        (this->collider).aabb = collider.aabb;
-                        break;
-
-                    case Primitives::CUBE_COLLIDER:
-                        (this->collider).cube = collider.cube;
-                        break;
-                }
-            };
-
-            void update(ZMath::Vec3D const &g, float dt) {
-                if (collider.type == Primitives::SPHERE_COLLIDER) { collider.sphere.rb.update(g, dt); }
-                else if (collider.type == Primitives::AABB_COLLIDER) { collider.aabb.rb.update(g, dt); }
-                else if (collider.type == Primitives::CUBE_COLLIDER) { collider.cube.rb.update(g, dt); }
-            };
-    };
 
     namespace { // make this struct private to this file
         // todo rename to something better
@@ -76,33 +40,35 @@ namespace PhysicsHandler {
 
         // todo Definitely refactor to only need to store rigidbodies
         // todo could probably also shrink the lists at certain times
-        // todo possibly start the lists at lower values
+        // todo possibly start the lists at lower (or greater) values
         // ? For now, default to allocating 64 slots for Objects. Probably up once we start implementing more stuff.
 
         // todo will also need a static bodies list to handle our various collision planes
         // ! These will not be affected by the physics but we will be unable to use any algorithm related to them if their data is not in out handler
         // ! This slight efficiency is the price paid for the abstraction on the end of the user
 
-        struct Objects {
-            Object** objects; // list of active objects
+        struct RigidBodies {
+            Primitives::RigidBody3D** rigidBodies = nullptr; // list of active rigid bodies
             int capacity; // current max capacity
-            int count; // number of objects 
+            int count; // number of rigid bodies 
         };
 
+        struct StaticBodies {
+            Primitives::StaticBody3D** staticBodies = nullptr; // list of active static bodies
+            int capacity; // current max capacity
+            int count; // number of static bodies
+        };
+
+        // todo rename to something better
         struct CollisionWrapper {
-            Primitives::RigidBody3D* bodies1; // list of colliding bodies (Object A)
-            Primitives::RigidBody3D* bodies2; // list of colliding bodies (Object B)
-            Collisions::CollisionManifold* manifolds; // list of the collision manifolds between the objects
+            Primitives::RigidBody3D** bodies1 = nullptr; // list of colliding bodies (Object A)
+            Primitives::RigidBody3D** bodies2 = nullptr; // list of colliding bodies (Object B)
+            Collisions::CollisionManifold* manifolds = nullptr; // list of the collision manifolds between the objects
 
             int capacity; // current max capacity
             int count; // number of collisions
         };
     }
-
-    // TODO refactor to use a batch system
-    // ! In other words, there will be a max for objects one specific physics world can handle
-    // ! This is not ideal though so maybe make the default large and resize if necessary
-    // ! Staticbodies shouldn't have to be stored, instead it should be stored using a single plane to represent their collision boxes
 
 
     // * ========================
@@ -116,10 +82,11 @@ namespace PhysicsHandler {
             // * =================
 
             ZMath::Vec3D g; // gravity
-            Objects objs; // objects to update
+            RigidBodies rbs; // rigid bodies to update
+            StaticBodies sbs; // static bodies the rigid bodies could interact with
             CollisionWrapper colWrapper; // collision information
             float updateStep; // amount of dt to update after
-            int IMPULSE_ITERATIONS = 6; // number of times to apply the impulse update.
+            static const int IMPULSE_ITERATIONS = 6; // number of times to apply the impulse update.
 
 
             // * ==============================
@@ -175,14 +142,18 @@ namespace PhysicsHandler {
 
             // Make a physics handler with a default gravity of -9.8 and an update speed of 60FPS.
             Handler() : g(ZMath::Vec3D(0, 0, -9.8f)), updateStep(0.0167f) {
-                objs.objects = new Object*[startingSlots];
-                objs.capacity = 8;
-                objs.count = 0;
+                rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
+                rbs.capacity = startingSlots;
+                rbs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                sbs.staticBodies = new Primitives::StaticBody3D*[startingSlots];
+                sbs.capacity = startingSlots;
+                sbs.count = 0;
+
+                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
-                colWrapper.capacity = 4;
+                colWrapper.capacity = halfSlots;
                 colWrapper.count = 0;
             };
 
@@ -192,14 +163,18 @@ namespace PhysicsHandler {
              * @param grav (Vec3D) The force applied by gravity.
              */
             Handler(ZMath::Vec3D const &grav) : g(grav), updateStep(0.0167f) {
-                objs.objects = new Object*[startingSlots];
-                objs.capacity = 8;
-                objs.count = 0;
+                rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
+                rbs.capacity = startingSlots;
+                rbs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                sbs.staticBodies = new Primitives::StaticBody3D*[startingSlots];
+                sbs.capacity = startingSlots;
+                sbs.count = 0;
+
+                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
-                colWrapper.capacity = 4;
+                colWrapper.capacity = halfSlots;
                 colWrapper.count = 0;
             };
 
@@ -207,17 +182,22 @@ namespace PhysicsHandler {
              * @brief Make a physics handler with custom gravity and a custom update speed.
              * 
              * @param grav (Vec3D) The force applied by gravity.
-             * @param updateStep (float) The amount of time in seconds that must pass before the handler updates.
+             * @param updateStep (float) The amount of time in seconds that must pass before the handler updates. Note: 
+             *                            increasing this value too much will cause lag.
              */
             Handler(ZMath::Vec3D const &grav, float updateStep) : g(grav), updateStep(updateStep) {
-                objs.objects = new Object*[startingSlots];
-                objs.capacity = 8;
-                objs.count = 0;
+                rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
+                rbs.capacity = startingSlots;
+                rbs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                sbs.staticBodies = new Primitives::StaticBody3D*[startingSlots];
+                sbs.capacity = startingSlots;
+                sbs.count = 0;
+
+                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
-                colWrapper.capacity = 4;
+                colWrapper.capacity = halfSlots;
                 colWrapper.count = 0;
             };
 
@@ -227,18 +207,26 @@ namespace PhysicsHandler {
              * @param handler (Handler) The physics handler to copy.
              */
             Handler(Handler const &handler) : g (handler.g), updateStep(handler.updateStep) {
-                objs.capacity = handler.objs.capacity;
-                objs.count = handler.objs.count;
-                objs.objects = new Object*[objs.capacity];
+                rbs.capacity = handler.rbs.capacity;
+                rbs.count = handler.rbs.count;
+                rbs.rigidBodies = new Primitives::RigidBody3D*[rbs.capacity];
 
-                for (int i = 0; i < objs.count; i++) { objs.objects[i] = handler.objs.objects[i]; }
+                for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i] = handler.rbs.rigidBodies[i]; }
+
+                // ==================================================================================
+
+                sbs.capacity = handler.sbs.capacity;
+                sbs.count = handler.sbs.count;
+                sbs.staticBodies = new Primitives::StaticBody3D*[sbs.capacity];
+
+                for (int i = 0; i < sbs.count; ++i) { sbs.staticBodies[i] = handler.sbs.staticBodies[i]; }
 
                 // ==================================================================================
 
                 colWrapper.capacity = handler.colWrapper.capacity;
                 colWrapper.count = handler.colWrapper.count;
-                colWrapper.bodies1 = new Primitives::RigidBody3D[colWrapper.capacity];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[colWrapper.capacity];
+                colWrapper.bodies1 = new Primitives::RigidBody3D*[colWrapper.capacity];
+                colWrapper.bodies2 = new Primitives::RigidBody3D*[colWrapper.capacity];
                 colWrapper.manifolds = new Collisions::CollisionManifold[colWrapper.capacity];
 
                 for (int i = 0; i < colWrapper.count; i++) {
@@ -254,9 +242,13 @@ namespace PhysicsHandler {
              * @param handler (Handler) The physics handler to move.
              */
             Handler(Handler&& handler) : g(handler.g), updateStep(handler.updateStep) {
-                objs.objects = handler.objs.objects;
-                objs.capacity = handler.objs.capacity;
-                objs.count = handler.objs.count;
+                rbs.rigidBodies = handler.rbs.rigidBodies;
+                rbs.capacity = handler.rbs.capacity;
+                rbs.count = handler.rbs.count;
+
+                sbs.staticBodies = handler.sbs.staticBodies;
+                sbs.capacity = handler.sbs.capacity;
+                sbs.count = handler.sbs.count;
 
                 colWrapper.bodies1 = handler.colWrapper.bodies1;
                 colWrapper.bodies2 = handler.colWrapper.bodies2;
@@ -264,88 +256,42 @@ namespace PhysicsHandler {
                 colWrapper.capacity = handler.colWrapper.capacity;
                 colWrapper.count = handler.colWrapper.count;
 
-                handler.objs.objects = nullptr;
+                handler.rbs.rigidBodies = nullptr;
+                handler.sbs.staticBodies = nullptr;
                 handler.colWrapper.bodies1 = nullptr;
                 handler.colWrapper.bodies2 = nullptr;
                 handler.colWrapper.manifolds = nullptr;
 
-                handler.objs.capacity = 0;
-                handler.objs.count = 0;
+                handler.rbs.capacity = 0;
+                handler.rbs.count = 0;
+                handler.sbs.capacity = 0;
+                handler.sbs.count = 0;
                 handler.colWrapper.capacity = 0;
                 handler.colWrapper.count = 0;
             };
 
-            Handler& operator = (Handler const &handler) {
-                g = handler.g;
-                updateStep = handler.updateStep;
+            // The physics handler cannot be reassigned.
+            Handler& operator = (Handler const &handler) { throw std::runtime_error("PhysicsHandler instance cannot be reassigned."); };
+            Handler& operator = (Handler&& handler) { throw std::runtime_error("PhysicsHandler instance cannot be reassigned."); };
 
-                delete[] objs.objects;
-                delete[] colWrapper.bodies1;
-                delete[] colWrapper.bodies2;
-                delete[] colWrapper.manifolds;
+            ~Handler() {
+                // If one of the pointers is not NULL, none of them are.
+                if (rbs.rigidBodies) {
+                    for (int i = 0; i < rbs.count; ++i) { delete rbs.rigidBodies[i]; }
+                    for (int i = 0; i < sbs.count; ++i) { delete sbs.staticBodies[i]; }
 
-                objs.capacity = handler.objs.capacity;
-                objs.count = handler.objs.count;
-                objs.objects = new Object*[objs.capacity];
+                    delete[] rbs.rigidBodies;
+                    delete[] sbs.staticBodies;
 
-                for (int i = 0; i < objs.count; i++) { objs.objects[i] = handler.objs.objects[i]; }
+                    for (int i = 0; i < colWrapper.count; ++i) {
+                        delete colWrapper.bodies1[i];
+                        delete colWrapper.bodies2[i];
+                    }
 
-                // ===================================================================================
-
-                colWrapper.capacity = handler.colWrapper.capacity;
-                colWrapper.count = handler.colWrapper.count;
-                colWrapper.bodies1 = new Primitives::RigidBody3D[colWrapper.capacity];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[colWrapper.capacity];
-                colWrapper.manifolds = new Collisions::CollisionManifold[colWrapper.capacity];
-
-                for (int i = 0; i < colWrapper.count; i++) {
-                    colWrapper.bodies1[i] = handler.colWrapper.bodies1[i];
-                    colWrapper.bodies2[i] = handler.colWrapper.bodies2[i];
-                    colWrapper.manifolds[i] = handler.colWrapper.manifolds[i];
-                }
-
-                return *this;
-            };
-
-            Handler& operator = (Handler&& handler) {
-                if (this != &handler) { // ensure no self assignment
-                    g = handler.g;
-                    updateStep = handler.updateStep;
-
-                    delete[] objs.objects;
                     delete[] colWrapper.bodies1;
                     delete[] colWrapper.bodies2;
                     delete[] colWrapper.manifolds;
-
-                    objs.objects = handler.objs.objects;
-                    objs.capacity = handler.objs.capacity;
-                    objs.count = handler.objs.count;
-
-                    colWrapper.bodies1 = handler.colWrapper.bodies1;
-                    colWrapper.bodies2 = handler.colWrapper.bodies2;
-                    colWrapper.manifolds = handler.colWrapper.manifolds;
-                    colWrapper.capacity = handler.colWrapper.capacity;
-                    colWrapper.count = handler.colWrapper.count;
-
-                    handler.objs.objects = nullptr;
-                    handler.colWrapper.bodies1 = nullptr;
-                    handler.colWrapper.bodies2 = nullptr;
-                    handler.colWrapper.manifolds = nullptr;
-
-                    handler.objs.capacity = 0;
-                    handler.objs.count = 0;
-                    handler.colWrapper.capacity = 0;
-                    handler.colWrapper.count = 0;
                 }
-
-                return *this;
-            };
-
-            ~Handler() {
-                delete[] objs.objects;
-                delete[] colWrapper.bodies1;
-                delete[] colWrapper.bodies2;
-                delete[] colWrapper.manifolds;
             };
 
 
