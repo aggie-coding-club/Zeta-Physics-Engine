@@ -93,12 +93,12 @@ namespace PhysicsHandler {
             // * Functions for Ease of Use
             // * ==============================
 
-            inline void addCollision(Primitives::RigidBody3D const &rb1, Primitives::RigidBody3D const &rb2, Collisions::CollisionManifold const &manifold) {
+            inline void addCollision(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2, Collisions::CollisionManifold const &manifold) {
                 if (colWrapper.count == colWrapper.capacity) {
                     colWrapper.capacity *= 2;
 
-                    Primitives::RigidBody3D* temp1 = new Primitives::RigidBody3D[colWrapper.capacity];
-                    Primitives::RigidBody3D* temp2 = new Primitives::RigidBody3D[colWrapper.capacity];
+                    Primitives::RigidBody3D** temp1 = new Primitives::RigidBody3D*[colWrapper.capacity];
+                    Primitives::RigidBody3D** temp2 = new Primitives::RigidBody3D*[colWrapper.capacity];
                     Collisions::CollisionManifold* temp3 = new Collisions::CollisionManifold[colWrapper.capacity];
 
                     for (int i = 0; i < colWrapper.count; i++) {
@@ -123,15 +123,16 @@ namespace PhysicsHandler {
             };
 
             inline void clearCollisions() {
+                // todo could refactor to base this around the current count of rigidbodies
                 delete[] colWrapper.bodies1;
                 delete[] colWrapper.bodies2;
                 delete[] colWrapper.manifolds;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D[halfSlots];
+                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
 
-                colWrapper.capacity = 4;
+                colWrapper.capacity = halfSlots;
                 colWrapper.count = 0;
             };
 
@@ -296,29 +297,51 @@ namespace PhysicsHandler {
 
 
             // * ===========================
-            // * Object List Functions
+            // * Body List Functions
             // * ===========================
 
-            // Add an object to the list of objects to be updated by the physics handler.
-            void addObject(Object* obj) {
-                if (objs.count == objs.capacity) {
-                    objs.capacity *= 2;
-                    Object** temp = new Object*[objs.capacity];
+            // Add a rigid body to the list of rigid bodies to be updated.
+            void addRigidBody(Primitives::RigidBody3D* rb) {
+                if (rbs.count == rbs.capacity) {
+                    rbs.capacity *= 2;
+                    Primitives::RigidBody3D** temp = new Primitives::RigidBody3D*[rbs.capacity];
 
-                    for (int i = 0; i < objs.count; i++) { temp[i] = objs.objects[i]; }
+                    for (int i = 0; i < rbs.count; ++i) { temp[i] = rbs.rigidBodies[i]; }
 
-                    delete[] objs.objects;
-                    objs.objects = temp;
+                    delete[] rbs.rigidBodies;
+                    rbs.rigidBodies = temp;
                 }
 
-                objs.objects[objs.count] = obj;
-                objs.count++;
+                rbs.rigidBodies[rbs.count++] = rb;
             };
 
-            // Remove an object at the index from the list of objects to be updated by the physics handler.
-            void removeObject(int index) {
-                for (int i = index; i < objs.count - 1; i++) { objs.objects[i] = objs.objects[i + 1]; }
-                objs.count--;
+            // Add a static body to the list of static bodies.
+            void addStaticBody(Primitives::StaticBody3D* sb) {
+                if (sbs.count == sbs.capacity) {
+                    sbs.capacity *= 2;
+                    Primitives::StaticBody3D** temp = new Primitives::StaticBody3D*[sbs.capacity];
+
+                    for (int i = 0; i < sbs.count; ++i) { temp[i] = sbs.staticBodies[i]; }
+
+                    delete[] sbs.staticBodies;
+                    sbs.staticBodies = temp;
+                }
+
+                sbs.staticBodies[sbs.count++] = sb;
+            };
+
+            // Remove a rigid body at the given index.
+            void removeRigidBody(int index) {
+                delete rbs.rigidBodies[index];
+                for (int i = index; i < rbs.count; ++i) { rbs.rigidBodies[i] = rbs.rigidBodies[i + 1]; }
+                rbs.count--;
+            };
+
+            // Remove a static body at the given index.
+            void removeStaticBody(int index) {
+                delete sbs.staticBodies[index];
+                for (int i = index; i < sbs.count; ++i) { sbs.staticBodies[i] = sbs.staticBodies[i + 1]; }
+                sbs.count--;
             };
 
 
