@@ -34,12 +34,12 @@ namespace Collisions {
 
             float r = sphere1.r + sphere2.r;
 
-            if (sphere1.rb.pos.distSq(sphere2.rb.pos) > r*r) {
+            if (sphere1.c.distSq(sphere2.c) > r*r) {
                 result.hit = 0;
                 return result;
             }
 
-            ZMath::Vec3D sphereDiff = sphere2.rb.pos - sphere1.rb.pos;
+            ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
             float d = sphereDiff.mag(); // allows us to only take the sqrt once
 
             result.pDist = (sphere1.r + sphere2.r - d) * 0.5f;
@@ -49,7 +49,7 @@ namespace Collisions {
             // determine the contact point
             result.numPoints = 1;
             result.contactPoints = new ZMath::Vec3D[result.numPoints];
-            result.contactPoints[0] = sphere1.rb.pos + (result.normal * (sphere1.r - result.pDist));
+            result.contactPoints[0] = sphere1.c + (result.normal * (sphere1.r - result.pDist));
 
             return result;
         };
@@ -62,11 +62,11 @@ namespace Collisions {
             // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
             // ? From here, we can check the distance from this point to the sphere's center.
 
-            ZMath::Vec3D closest = sphere.rb.pos;
+            ZMath::Vec3D closest = sphere.c;
             ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
 
             closest = ZMath::clamp(closest, min, max);
-            result.hit = closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
+            result.hit = closest.distSq(sphere.c) <= sphere.r*sphere.r;
 
             if (!result.hit) { return result; }
 
@@ -79,7 +79,7 @@ namespace Collisions {
 
             // determine the penetration distance and collision normal
 
-            ZMath::Vec3D diff = closest - sphere.rb.pos;
+            ZMath::Vec3D diff = closest - sphere.c;
             float d = diff.mag(); // allows us to only take the sqrt once
             result.pDist = sphere.r - d;
             result.normal = diff * (1.0f/d);
@@ -90,22 +90,22 @@ namespace Collisions {
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
             CollisionManifold result;
 
-            ZMath::Vec3D closest = sphere.rb.pos - cube.rb.pos;
+            ZMath::Vec3D closest = sphere.c - cube.pos;
             ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
             // rotate the center of the sphere into the UVW coordinates of our cube
-            closest = cube.rot * closest + cube.rb.pos;
+            closest = cube.rot * closest + cube.pos;
             
             // perform the check as if it was an AABB vs Sphere
             closest = ZMath::clamp(closest, min, max);
-            result.hit = closest.distSq(sphere.rb.pos) <= sphere.r*sphere.r;
+            result.hit = closest.distSq(sphere.c) <= sphere.r*sphere.r;
 
             if (!result.hit) { return result; }
 
             // the closest point to the sphere's center will be our contact point rotated back into global coordinates coordinates
 
-            closest -= cube.rb.pos;
-            closest = cube.rot.transpose() * closest + cube.rb.pos;
+            closest -= cube.pos;
+            closest = cube.rot.transpose() * closest + cube.pos;
 
             result.numPoints = 1;
             result.contactPoints = new ZMath::Vec3D[1];
@@ -113,7 +113,7 @@ namespace Collisions {
 
             // determine the penetration distance and the collision normal
 
-            ZMath::Vec3D diff = closest - sphere.rb.pos;
+            ZMath::Vec3D diff = closest - sphere.c;
             float d = diff.mag(); // allows us to only take the sqrt once
             result.pDist = sphere.r - d;
             result.normal = diff * (1.0f/d);
@@ -334,7 +334,7 @@ namespace Collisions {
             // because both are axis aligned, global space is the same as the local space of both AABBs.
 
             // distance between the two
-            ZMath::Vec3D dP = aabb2.rb.pos - aabb1.rb.pos;
+            ZMath::Vec3D dP = aabb2.pos - aabb1.pos;
             ZMath::Vec3D absDP = ZMath::abs(dP);
 
             // penetration along A's (and B's) axes
@@ -385,38 +385,38 @@ namespace Collisions {
 
             switch(axis) {
                 case FACE_A_X: {
-                    front = aabb1.rb.pos * result.normal + hA.x;
+                    front = aabb1.pos * result.normal + hA.x;
 
-                    negSide1 = aabb1.rb.pos.y - hA.y; // negSideY
-                    posSide1 = aabb1.rb.pos.y + hA.y; // posSideY
-                    negSide2 = aabb1.rb.pos.z - hA.z; // negSideZ
-                    posSide2 = aabb1.rb.pos.z + hA.z; // posSideZ
+                    negSide1 = aabb1.pos.y - hA.y; // negSideY
+                    posSide1 = aabb1.pos.y + hA.y; // posSideY
+                    negSide2 = aabb1.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb1.pos.z + hA.z; // posSideZ
 
-                    computeIncidentFaceAABB(incidentFace, hB, aabb2.rb.pos, result.normal);
+                    computeIncidentFaceAABB(incidentFace, hB, aabb2.pos, result.normal);
                     break;
                 }
 
                 case FACE_A_Y: {
-                    front = aabb1.rb.pos * result.normal + hA.y;
+                    front = aabb1.pos * result.normal + hA.y;
 
-                    negSide1 = aabb1.rb.pos.x - hA.x; // negSideX
-                    posSide1 = aabb1.rb.pos.x + hA.x; // posSideX
-                    negSide2 = aabb1.rb.pos.z - hA.z; // negSideZ
-                    posSide2 = aabb1.rb.pos.z + hA.z; // posSideZ
+                    negSide1 = aabb1.pos.x - hA.x; // negSideX
+                    posSide1 = aabb1.pos.x + hA.x; // posSideX
+                    negSide2 = aabb1.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb1.pos.z + hA.z; // posSideZ
 
-                    computeIncidentFaceAABB(incidentFace, hB, aabb2.rb.pos, result.normal);
+                    computeIncidentFaceAABB(incidentFace, hB, aabb2.pos, result.normal);
                     break;
                 }
 
                 case FACE_A_Z: {
-                    front = aabb1.rb.pos * result.normal + hA.z;
+                    front = aabb1.pos * result.normal + hA.z;
 
-                    negSide1 = aabb1.rb.pos.x - hA.x; // negSideX
-                    posSide1 = aabb1.rb.pos.x + hA.x; // posSideX
-                    negSide2 = aabb1.rb.pos.y - hA.y; // negSideY
-                    posSide2 = aabb1.rb.pos.y + hA.y; // posSideY
+                    negSide1 = aabb1.pos.x - hA.x; // negSideX
+                    posSide1 = aabb1.pos.x + hA.x; // posSideX
+                    negSide2 = aabb1.pos.y - hA.y; // negSideY
+                    posSide2 = aabb1.pos.y + hA.y; // posSideY
 
-                    computeIncidentFaceAABB(incidentFace, hB, aabb2.rb.pos, result.normal);
+                    computeIncidentFaceAABB(incidentFace, hB, aabb2.pos, result.normal);
                     break;
                 }
             }
@@ -486,7 +486,7 @@ namespace Collisions {
             ZMath::Mat3D rotBT = cube.rot.transpose();
 
             // determine the difference between the positions
-            ZMath::Vec3D dA = cube.rb.pos - aabb.rb.pos;
+            ZMath::Vec3D dA = cube.pos - aabb.pos;
             ZMath::Vec3D dB = rotBT * dA;
 
             // * Check for intersections with the separating axis theorem
@@ -562,86 +562,86 @@ namespace Collisions {
 
             switch(axis) {
                 case FACE_A_X: {
-                    front = aabb.rb.pos * result.normal + hA.x;
+                    front = aabb.pos * result.normal + hA.x;
 
-                    negSide1 = aabb.rb.pos.y - hA.y; // negSideY
-                    posSide1 = aabb.rb.pos.y + hA.y; // posSideY
-                    negSide2 = aabb.rb.pos.z - hA.z; // negSideZ
-                    posSide2 = aabb.rb.pos.z + hA.z; // posSideZ
+                    negSide1 = aabb.pos.y - hA.y; // negSideY
+                    posSide1 = aabb.pos.y + hA.y; // posSideY
+                    negSide2 = aabb.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb.pos.z + hA.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hB, cube.rb.pos, cube.rot, result.normal);
+                    computeIncidentFace(incidentFace, hB, cube.pos, cube.rot, result.normal);
                     break;
                 }
 
                 case FACE_A_Y: {
-                    front = aabb.rb.pos * result.normal + hA.y;
+                    front = aabb.pos * result.normal + hA.y;
 
-                    negSide1 = aabb.rb.pos.x - hA.x; // negSideX
-                    posSide1 = aabb.rb.pos.x + hA.x; // posSideX
-                    negSide2 = aabb.rb.pos.z - hA.z; // negSideZ
-                    posSide2 = aabb.rb.pos.z + hA.z; // posSideZ
+                    negSide1 = aabb.pos.x - hA.x; // negSideX
+                    posSide1 = aabb.pos.x + hA.x; // posSideX
+                    negSide2 = aabb.pos.z - hA.z; // negSideZ
+                    posSide2 = aabb.pos.z + hA.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hB, cube.rb.pos, cube.rot, result.normal);
+                    computeIncidentFace(incidentFace, hB, cube.pos, cube.rot, result.normal);
                     break;
                 }
 
                 case FACE_A_Z: {
-                    front = aabb.rb.pos * result.normal + hA.z;
+                    front = aabb.pos * result.normal + hA.z;
 
-                    negSide1 = aabb.rb.pos.x - hA.x; // negSideX
-                    posSide1 = aabb.rb.pos.x + hA.x; // posSideX
-                    negSide2 = aabb.rb.pos.y - hA.y; // negSideY
-                    posSide2 = aabb.rb.pos.y + hA.y; // posSideY
+                    negSide1 = aabb.pos.x - hA.x; // negSideX
+                    posSide1 = aabb.pos.x + hA.x; // posSideX
+                    negSide2 = aabb.pos.y - hA.y; // negSideY
+                    posSide2 = aabb.pos.y + hA.y; // posSideY
 
-                    computeIncidentFace(incidentFace, hB, cube.rb.pos, cube.rot, result.normal);
+                    computeIncidentFace(incidentFace, hB, cube.pos, cube.rot, result.normal);
                     break;
                 }
 
                 case FACE_B_X: {
-                    front = cube.rb.pos * result.normal + hB.x;
+                    front = cube.pos * result.normal + hB.x;
                     sideNormal1 = cube.rot.c2; // yNormal
                     sideNormal2 = cube.rot.c3; // zNormal
-                    float ySide = cube.rb.pos * sideNormal1;
-                    float zSide = cube.rb.pos * sideNormal2;
+                    float ySide = cube.pos * sideNormal1;
+                    float zSide = cube.pos * sideNormal2;
 
                     negSide1 = -ySide + hB.y; // negSideY
                     posSide1 = ySide + hB.y; // posSideY
                     negSide2 = -zSide + hB.z; // negSideZ
                     posSide2 = zSide + hB.z; // posSideZ
 
-                    computeIncidentFaceAABB(incidentFace, hA, aabb.rb.pos, result.normal);
+                    computeIncidentFaceAABB(incidentFace, hA, aabb.pos, result.normal);
                     break;
                 }
 
                 case FACE_B_Y: {
-                    front = cube.rb.pos * result.normal + hB.y;
+                    front = cube.pos * result.normal + hB.y;
                     sideNormal1 = cube.rot.c1; // xNormal
                     sideNormal2 = cube.rot.c3; // zNormal
-                    float xSide = cube.rb.pos * sideNormal1;
-                    float zSide = cube.rb.pos * sideNormal2;
+                    float xSide = cube.pos * sideNormal1;
+                    float zSide = cube.pos * sideNormal2;
 
                     negSide1 = -xSide + hB.x; // negSideX
                     posSide1 = xSide + hB.x; // posSideX
                     negSide2 = -zSide + hB.z; // negSideZ
                     posSide2 = zSide + hB.z; // posSideZ
 
-                    computeIncidentFaceAABB(incidentFace, hA, aabb.rb.pos, result.normal);
+                    computeIncidentFaceAABB(incidentFace, hA, aabb.pos, result.normal);
                     break;
                 }
 
                 case FACE_B_Z: {
-                    front = cube.rb.pos * result.normal + hB.z;
+                    front = cube.pos * result.normal + hB.z;
                     sideNormal1 = cube.rot.c1; // xNormal
                     sideNormal2 = cube.rot.c2; // yNormal
-                    float xSide = cube.rb.pos * sideNormal1;
-                    float ySide = cube.rb.pos * sideNormal2;
+                    float xSide = cube.pos * sideNormal1;
+                    float ySide = cube.pos * sideNormal2;
 
                     negSide1 = -xSide + hB.x; // negSideX
                     posSide1 = xSide + hB.x; // posSideX
                     negSide2 = -ySide + hB.y; // negSideY
                     posSide2 = ySide + hB.y; // posSideY
 
-                    computeIncidentFaceAABB(incidentFace, hA, aabb.rb.pos, result.normal);
+                    computeIncidentFaceAABB(incidentFace, hA, aabb.pos, result.normal);
                     break;
                 }
             }
@@ -713,7 +713,7 @@ namespace Collisions {
             ZMath::Mat3D rotBT = cube2.rot.transpose();
 
             // determine the difference between the positions
-            ZMath::Vec3D dP = cube2.rb.pos - cube1.rb.pos;
+            ZMath::Vec3D dP = cube2.pos - cube1.pos;
             ZMath::Vec3D dA = rotAT * dP;
             ZMath::Vec3D dB = rotBT * dP;
 
@@ -800,98 +800,98 @@ namespace Collisions {
 
             switch(axis) {
                 case FACE_A_X: {
-                    front = cube1.rb.pos * result.normal + hA.x;
+                    front = cube1.pos * result.normal + hA.x;
                     sideNormal1 = cube1.rot.c2; // yNormal
                     sideNormal2 = cube1.rot.c3; // zNormal
-                    float ySide = cube1.rb.pos * sideNormal1;
-                    float zSide = cube1.rb.pos * sideNormal2;
+                    float ySide = cube1.pos * sideNormal1;
+                    float zSide = cube1.pos * sideNormal2;
 
                     negSide1 = -ySide + hA.y; // negSideY
                     posSide1 = ySide + hA.y; // posSideY
                     negSide2 = -zSide + hA.z; // negSideZ
                     posSide2 = zSide + hA.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hB, cube2.rb.pos, cube2.rot, result.normal);
+                    computeIncidentFace(incidentFace, hB, cube2.pos, cube2.rot, result.normal);
                     break;
                 }
 
                 case FACE_A_Y: {
-                    front = cube1.rb.pos * result.normal + hA.y;
+                    front = cube1.pos * result.normal + hA.y;
                     sideNormal1 = cube1.rot.c1; // xNormal
                     sideNormal2 = cube1.rot.c3; // zNormal
-                    float xSide = cube1.rb.pos * sideNormal1;
-                    float zSide = cube1.rb.pos * sideNormal2;
+                    float xSide = cube1.pos * sideNormal1;
+                    float zSide = cube1.pos * sideNormal2;
 
                     negSide1 = -xSide + hA.x; // negSideX
                     posSide1 = xSide + hA.x; // posSideX
                     negSide2 = -zSide + hA.z; // negSideZ
                     posSide2 = zSide + hA.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hB, cube2.rb.pos, cube2.rot, result.normal);
+                    computeIncidentFace(incidentFace, hB, cube2.pos, cube2.rot, result.normal);
                     break;
                 }
 
                 case FACE_A_Z: {
-                    front = cube1.rb.pos * result.normal + hA.z;
+                    front = cube1.pos * result.normal + hA.z;
                     sideNormal1 = cube1.rot.c1; // xNormal
                     sideNormal2 = cube1.rot.c2; // yNormal
-                    float xSide = cube1.rb.pos * sideNormal1;
-                    float ySide = cube1.rb.pos * sideNormal2;
+                    float xSide = cube1.pos * sideNormal1;
+                    float ySide = cube1.pos * sideNormal2;
 
                     negSide1 = -xSide + hA.x; // negSideX
                     posSide1 = xSide + hA.x; // posSideX
                     negSide2 = -ySide + hA.y; // negSideY
                     posSide2 = ySide + hA.y; // posSideY
 
-                    computeIncidentFace(incidentFace, hB, cube2.rb.pos, cube2.rot, result.normal);
+                    computeIncidentFace(incidentFace, hB, cube2.pos, cube2.rot, result.normal);
                     break;
                 }
 
                 case FACE_B_X: {
-                    front = cube2.rb.pos * result.normal + hB.x;
+                    front = cube2.pos * result.normal + hB.x;
                     sideNormal1 = cube2.rot.c2; // yNormal
                     sideNormal2 = cube2.rot.c3; // zNormal
-                    float ySide = cube2.rb.pos * sideNormal1;
-                    float zSide = cube2.rb.pos * sideNormal2;
+                    float ySide = cube2.pos * sideNormal1;
+                    float zSide = cube2.pos * sideNormal2;
 
                     negSide1 = -ySide + hB.y; // negSideY
                     posSide1 = ySide + hB.y; // posSideY
                     negSide2 = -zSide + hB.z; // negSideZ
                     posSide2 = zSide + hB.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hA, cube1.rb.pos, cube1.rot, result.normal);
+                    computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
                     break;
                 }
 
                 case FACE_B_Y: {
-                    front = cube2.rb.pos * result.normal + hB.y;
+                    front = cube2.pos * result.normal + hB.y;
                     sideNormal1 = cube2.rot.c1; // xNormal
                     sideNormal2 = cube2.rot.c3; // zNormal
-                    float xSide = cube2.rb.pos * sideNormal1;
-                    float zSide = cube2.rb.pos * sideNormal2;
+                    float xSide = cube2.pos * sideNormal1;
+                    float zSide = cube2.pos * sideNormal2;
 
                     negSide1 = -xSide + hB.x; // negSideX
                     posSide1 = xSide + hB.x; // posSideX
                     negSide2 = -zSide + hB.z; // negSideZ
                     posSide2 = zSide + hB.z; // posSideZ
 
-                    computeIncidentFace(incidentFace, hA, cube1.rb.pos, cube1.rot, result.normal);
+                    computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
                     break;
                 }
 
                 case FACE_B_Z: {
-                    front = cube2.rb.pos * result.normal + hB.z;
+                    front = cube2.pos * result.normal + hB.z;
                     sideNormal1 = cube2.rot.c1; // xNormal
                     sideNormal2 = cube2.rot.c2; // yNormal
-                    float xSide = cube2.rb.pos * sideNormal1;
-                    float ySide = cube2.rb.pos * sideNormal2;
+                    float xSide = cube2.pos * sideNormal1;
+                    float ySide = cube2.pos * sideNormal2;
 
                     negSide1 = -xSide + hB.x; // negSideX
                     posSide1 = xSide + hB.x; // posSideX
                     negSide2 = -ySide + hB.y; // negSideY
                     posSide2 = ySide + hB.y; // posSideY
 
-                    computeIncidentFace(incidentFace, hA, cube1.rb.pos, cube1.rot, result.normal);
+                    computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
                     break;
                 }
             }
@@ -951,34 +951,34 @@ namespace Collisions {
     CollisionManifold findCollisionFeatures(Primitives::RigidBody3D const &rb1, Primitives::RigidBody3D const &rb2) {
         switch (rb1.colliderType) {
             case Primitives::SPHERE_COLLIDER:
-                if (rb2.colliderType == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.sphere); }
-                if (rb2.colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.aabb); }
-                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.cube); }
+                if (rb2.colliderType == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(rb1.sphere, rb2.sphere); }
+                if (rb2.colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(rb1.sphere, rb2.aabb); }
+                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1.sphere, rb2.cube); }
 
             case Primitives::AABB_COLLIDER:
                 if (rb2.colliderType == Primitives::SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(c2.sphere, c1.aabb);
+                    CollisionManifold manifold = findCollisionFeatures(rb2.sphere, rb1.aabb);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2.colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(c1.aabb, c2.aabb); }
-                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.sphere, c2.cube); }
+                if (rb2.colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(rb1.aabb, rb2.aabb); }
+                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1.aabb, rb2.cube); }
 
             case Primitives::CUBE_COLLIDER:
                 if (rb2.colliderType == Primitives::CUBE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(c2.sphere, c1.cube);
+                    CollisionManifold manifold = findCollisionFeatures(rb2.sphere, rb1.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
                 if (rb2.colliderType == Primitives::AABB_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(c2.aabb, c1.cube);
+                    CollisionManifold manifold = findCollisionFeatures(rb2.aabb, rb1.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(c1.cube, c2.cube); }
+                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1.cube, rb2.cube); }
 
             default:
                 // * User defined types go here.
