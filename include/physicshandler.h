@@ -9,7 +9,7 @@ namespace PhysicsHandler {
     // * =========================
 
     // Resolve a collision between two rigidbodies.
-    void applyImpulse(Primitives::RigidBody3D &rb1, Primitives::RigidBody3D &rb2, Collisions::CollisionManifold const &manifold) {
+    void applyImpulse(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2, Collisions::CollisionManifold const &manifold) {
         // delta v = J/m
         // For this calculation we need to acocunt for the relative velocity between the two objects
         // v_r = v_1 - v_2
@@ -19,12 +19,12 @@ namespace PhysicsHandler {
         // v_2' = v_2 - invMass_2 * J * collisionNormal. Note the - is to account for the direction which the normal is pointing.
         // It's opposite for one of the two objects.
 
-        float J = ((ZMath::abs(rb1.vel - rb2.vel) * -(1 + rb1.cor * rb2.cor)) * manifold.normal)/(rb1.invMass + rb2.invMass);
+        float J = ((ZMath::abs(rb1->vel - rb2->vel) * -(1 + rb1->cor * rb2->cor)) * manifold.normal)/(rb1->invMass + rb2->invMass);
         // ! only add the commented line if we end up finding this is insufficient for impulse resolution
         // J /= manifold.numPoints; // we know the numPoints must be at least 1 for a collision to have occurred
 
-        rb1.vel -= manifold.normal * (rb1.invMass * J);
-        rb2.vel += manifold.normal * (rb2.invMass * J);
+        rb1->vel -= manifold.normal * (rb1->invMass * J);
+        rb2->vel += manifold.normal * (rb2->invMass * J);
     };
 
 
@@ -38,14 +38,9 @@ namespace PhysicsHandler {
         static const int startingSlots = 64;
         static const int halfSlots = 32;
 
-        // todo Definitely refactor to only need to store rigidbodies
-        // todo could probably also shrink the lists at certain times
-        // todo possibly start the lists at lower (or greater) values
         // ? For now, default to allocating 64 slots for Objects. Probably up once we start implementing more stuff.
-
-        // todo will also need a static bodies list to handle our various collision planes
-        // ! These will not be affected by the physics but we will be unable to use any algorithm related to them if their data is not in out handler
-        // ! This slight efficiency is the price paid for the abstraction on the end of the user
+        // ! Probs remove the static bodies list. The user should handle collisions with static bodies by checking for the collider
+        // !  type vs the rigid or kinetic body type using the functions in intersection.h
 
         struct RigidBodies {
             Primitives::RigidBody3D** rigidBodies = nullptr; // list of active rigid bodies
@@ -350,39 +345,16 @@ namespace PhysicsHandler {
             // * ============================
 
             void update(float dt) {
+                // todo update to check for static body collisions and update the velocity of the rigid body accordingly
+                    // ! May have to be handled separately by the user as static body collisions could warrant multiple responses
+                    // ! The Game Engine would handle the event system, too, so there wouldn't be a way to ping the user's program when a sb col occurs
+                    // ! Probs remove the list of static bodies and let them handle that themselves
+
                 // Broad phase: collision detection
-                for (int i = 0; i < objs.count - 1; i++) {
-                    for (int j = i + 1; j < objs.count; j++) {
-                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(objs.objects[i]->collider, objs.objects[j]->collider);
-
-                        if (result.hit) {
-                            // todo refactor to be more efficient
-                            // ! This is just to get it working
-
-                            switch (objs.objects[i]->collider.type) {
-                                case Primitives::SPHERE_COLLIDER:
-                                    if (objs.objects[j]->collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i]->collider.sphere.rb, objs.objects[j]->collider.sphere.rb, result); }
-                                    if (objs.objects[j]->collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i]->collider.sphere.rb, objs.objects[j]->collider.aabb.rb, result); }
-                                    if (objs.objects[j]->collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i]->collider.sphere.rb, objs.objects[j]->collider.cube.rb, result); }
-                                    break;
-                                
-                                case Primitives::AABB_COLLIDER:
-                                    if (objs.objects[j]->collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i]->collider.aabb.rb, objs.objects[j]->collider.sphere.rb, result); }
-                                    if (objs.objects[j]->collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i]->collider.aabb.rb, objs.objects[j]->collider.aabb.rb, result); }
-                                    if (objs.objects[j]->collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i]->collider.aabb.rb, objs.objects[j]->collider.cube.rb, result); }
-                                    break;
-
-                                case Primitives::CUBE_COLLIDER:
-                                    if (objs.objects[j]->collider.type == Primitives::SPHERE_COLLIDER) { addCollision(objs.objects[i]->collider.cube.rb, objs.objects[j]->collider.sphere.rb, result); }
-                                    if (objs.objects[j]->collider.type == Primitives::AABB_COLLIDER) { addCollision(objs.objects[i]->collider.cube.rb, objs.objects[j]->collider.aabb.rb, result); }
-                                    if (objs.objects[j]->collider.type == Primitives::CUBE_COLLIDER) { addCollision(objs.objects[i]->collider.cube.rb, objs.objects[j]->collider.cube.rb, result); }
-                                    break;
-
-                                default:
-                                    // * User defined types go here.
-                                    break;
-                            }
-                        }
+                for (int i = 0; i < rbs.count - 1; i++) {
+                    for (int j = i + 1; j < rbs.count; j++) {
+                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(*(rbs.rigidBodies[i]), *(rbs.rigidBodies[j]));
+                        if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
                     }
                 }
 
@@ -398,7 +370,7 @@ namespace PhysicsHandler {
                 clearCollisions();
 
                 // Update our rigidbodies
-                for (int i = 0; i < objs.count; i++) { objs.objects[i]->update(g, dt); }
+                for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i]->update(g, dt); }
             };
     };
 }
