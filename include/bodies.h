@@ -3,12 +3,39 @@
 #ifndef BODIES_H
 #define BODIES_H
 
-#include "zmath.h"
+#include "primitives.h"
 
 namespace Primitives {
+    enum RigidBodyCollider {
+        SPHERE_COLLIDER,
+        AABB_COLLIDER,
+        CUBE_COLLIDER,
+        CUSTOM_COLLIDER,
+        NONE
+    };
+
+    enum StaticBodyCollider {
+        PLANE_COLLIDER,
+        SPHERE_COLLIDER,
+        AABB_COLLIDER,
+        CUBE_COLLIDER,
+        CUSTOM_COLLIDER,
+        NONE
+    };
+
     struct RigidBody3D {
-        float theta; // rotation with respect to the XY plane.
-        float phi; // rotation with respect to the XZ plane.
+        // * Handle and store the collider.
+
+        RigidBodyCollider colliderType;
+        union {
+            Sphere sphere;
+            AABB aabb;
+            Cube cube;
+            // * Add custom colliders here.
+        };
+
+        // * Handle and store the physics.
+
         float mass; // Must remain constant.
         float invMass; // 1/mass. Must remain constant.
 
@@ -29,15 +56,37 @@ namespace Primitives {
             vel += (netForce * invMass) * ((float)(int)(dt/0.0167f) * 0.0167f);
             pos += vel * ((float)(int)(dt/0.0167f) * 0.0167f);
             netForce = ZMath::Vec3D();
+
+            // todo refactor so that we can store the colliders inside the bodies without having to update the 
+            // todo    positions of the colliders and bodies separately.
+            // ! temporary solution to test out the new architecture
+
+            // Update the pos of the collider.
+            // If statements are more readable than a switch here.
+            if      (colliderType == SPHERE_COLLIDER) { sphere.c = pos; }
+            else if (colliderType == AABB_COLLIDER)   { aabb.pos = pos; }
+            else if (colliderType == CUBE_COLLIDER)   { cube.pos = pos; }
         };
     };
 
     struct StaticBody3D {
+        // * Information related to the static body.
+
         ZMath::Vec3D pos; // centerpoint of the staticbody.
-        float theta; // rotation with respect to the XY plane.
-        float phi; // rotation with respect to the XZ plane.
+
+        // todo might not need to store the mass.
         float mass; // Must remain constant.
         float invMass; // 1/mass. Must remain constant.
+
+        // * Handle and store the collider.
+
+        StaticBodyCollider colliderType;
+        union {
+            Plane plane;
+            Sphere sphere;
+            AABB aabb;
+            Cube cube;
+        };
     };
 }
 

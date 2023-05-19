@@ -1,7 +1,7 @@
 #ifndef PRIMITIVES_H
 #define PRIMITIVES_H
 
-#include "bodies.h"
+#include "zmath.h"
 
 // todo add masses for each of the primitives for their rigidbodies
 
@@ -36,17 +36,19 @@ namespace Primitives {
     };
 
     // Models a rectangular, finite plane in 3D space.
+    // Planes should only be used as colliders for static bodies.
     // This should be used to model death planes, borders, etc. as planes are not affected by forces and impulse.
     class Plane {
         private:
             ZMath::Vec2D halfSize;
 
         public:
-            // static body representing the plane -- stores angles and the centerpoint.
-            // We use a static body for a plane as it should not be affected by forces and impulse.
-            StaticBody3D sb;
-            ZMath::Vec3D normal; // Normal vector to the plane in global coordinates.
+            ZMath::Vec3D pos; // Center of the plane.
+            ZMath::Vec3D normal; // Normal vector to the plane in global coordinates. Cached for efficiency.
             ZMath::Mat3D rot; // Rotate anything from global space to this plane's local space. Cache this value for efficiency.
+
+            float theta; // Angle rotated with respect to the XY plane.
+            float phi; // Angle rotated with respect to the XZ plane.
 
             /**
              * @brief Create an unrotated plane.
@@ -55,13 +57,13 @@ namespace Primitives {
              * @param max (Vec2D) The max vertex of the plane.
              * @param z (float) The z-level the plane lies on.
              */
-            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) 
-                    : halfSize((max - min) * 0.5f), sb({ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), 0.0f, 0.0f}) {
+            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) : halfSize((max - min) * 0.5f),
+                    pos(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z)), theta(0.0f), phi(0.0f) {
                 
-                ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
-                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+                ZMath::Vec3D v1 = ZMath::Vec3D(pos.x - halfSize.x, pos.y - halfSize.y, pos.z);
+                ZMath::Vec3D v2 = ZMath::Vec3D(pos.x + halfSize.x, pos.y - halfSize.y, pos.z);
 
-                normal = (v2 - sb.pos).cross(v1 - sb.pos);
+                normal = (v2 - pos).cross(v1 - pos);
                 rot = ZMath::Mat3D::identity(); // no rotation
             };
 
@@ -74,25 +76,25 @@ namespace Primitives {
              * @param angXY (float) The angle, in degrees, the plane is rotated with respect to the XY plane.
              * @param angXZ (float) The angle, in degrees, the plane is rotated with respect to the XZ plane.
              */
-            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) 
-                    : halfSize((max - min) * 0.5f), sb({ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z), angXY, angXZ}) {
+            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) : halfSize((max - min) * 0.5f),
+                    pos(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z)), theta(angXY), phi(angXZ) {
 
-                ZMath::Vec3D v1 = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
-                ZMath::Vec3D v2 = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+                ZMath::Vec3D v1 = ZMath::Vec3D(pos.x - halfSize.x, pos.y - halfSize.y, pos.z);
+                ZMath::Vec3D v2 = ZMath::Vec3D(pos.x + halfSize.x, pos.y - halfSize.y, pos.z);
 
                 rot = ZMath::Mat3D::generateRotationMatrix(angXY, angXZ);
 
                 // rotate the points to find the normal
-                // ZMath::Mat3D rotT = rot.transpose();
+                // // ZMath::Mat3D rotT = rot.transpose();
 
                 v1 = rot * v1;
                 v2 = rot * v2;
 
-                normal = (v2 - sb.pos).cross(v1 - sb.pos);
+                normal = (v2 - pos).cross(v1 - pos);
             };
 
-            ZMath::Vec2D getLocalMin() const { return ZMath::Vec2D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y); };
-            ZMath::Vec2D getLocalMax() const { return ZMath::Vec2D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y); };
+            ZMath::Vec2D getLocalMin() const { return ZMath::Vec2D(pos.x - halfSize.x, pos.y - halfSize.y); };
+            ZMath::Vec2D getLocalMax() const { return ZMath::Vec2D(pos.x + halfSize.x, pos.y + halfSize.y); };
             ZMath::Vec2D getHalfSize() const { return halfSize; };
 
             // Get the vertices of the plane in terms of global coordinates.
@@ -100,16 +102,13 @@ namespace Primitives {
             ZMath::Vec3D* getVertices() const {
                 ZMath::Vec3D* v = new ZMath::Vec3D[4]; // 4 as it is rectangular
 
-                v[0] = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
-                v[1] = ZMath::Vec3D(sb.pos.x - halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
-                v[2] = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y + halfSize.y, sb.pos.z);
-                v[3] = ZMath::Vec3D(sb.pos.x + halfSize.x, sb.pos.y - halfSize.y, sb.pos.z);
+                v[0] = ZMath::Vec3D(-halfSize.x, -halfSize.y, pos.z);
+                v[1] = ZMath::Vec3D(-halfSize.x, halfSize.y, 0);
+                v[2] = ZMath::Vec3D(halfSize.x, halfSize.y, 0);
+                v[3] = ZMath::Vec3D(halfSize.x, -halfSize.y, 0);
 
                 // rotate each vertex
-                for (int i = 0; i < 4; i++) {
-                    ZMath::rotateXY(v[i], sb.pos, sb.theta);
-                    ZMath::rotateXZ(v[i], sb.pos, sb.phi);
-                }
+                for (int i = 0; i < 4; i++) { v[i] = rot*v[i] + pos; }
 
                 return v;
             };
@@ -118,17 +117,13 @@ namespace Primitives {
     class Sphere {
         public:
             float r; // radius
-            RigidBody3D rb; // rigidbody representing the sphere -- stores its centerpoint
+            ZMath::Vec3D c; // centerpoint
 
             // @brief Create a Sphere with an arbitrary radius and center.
             //
             // @param rho (float) Radius of the sphere.
             // @param center (Vec3D) Center of the sphere.
-            Sphere(float rho, ZMath::Vec3D const &center) : r(rho) {
-                rb.pos = center;
-                rb.theta = 0.0f;
-                rb.phi = 0.0f;
-            };
+            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), c(center) {};
     };
 
     class AABB {
@@ -136,7 +131,7 @@ namespace Primitives {
             ZMath::Vec3D halfSize;
 
         public:
-            RigidBody3D rb; // rigid body representing the AABB -- stores the center point
+            ZMath::Vec3D pos; // Centerpoint of the AABB.
 
             /** 
              * @brief Instantiate a 3D unrotated Cube.
@@ -176,7 +171,7 @@ namespace Primitives {
             ZMath::Vec3D halfSize;
 
         public:
-            RigidBody3D rb; // rigid body representing the cube -- stores the angles rotated and the center point
+            ZMath::Vec3D pos; // Centerpoint of the Cube.
             ZMath::Mat3D rot; // Rotate anything from global space to this cube's local space. Cache this value for efficiency.
 
             // @brief Create a cube rotated by an arbitrary angle with arbitrary min and max vertices.
@@ -228,35 +223,6 @@ namespace Primitives {
                 return v;
             }; 
     };
-
-    // * ==================
-    // * Colliders
-    // * ==================
-
-    // ! Current design for this is bad; refactor later.
-    // ! This is just used to have some form of easy system to begin connecting everything together
-
-    enum Collider {
-        SPHERE_COLLIDER,
-        AABB_COLLIDER,
-        CUBE_COLLIDER,
-        CUSTOM_COLLIDER, // ? allows users to model their own colliders
-        NONE // ? No collider. Used for initializing a value without actually assigning a collider.
-    };
-
-    struct Collider3D {
-        // todo later overload the assignment operator and copy the union value by using memcpy.
-
-        Collider3D() {}; // default constructor to make the compiler happy
-
-        Collider type = NONE;
-        union {
-            Sphere sphere;
-            AABB aabb;
-            Cube cube;
-        };
-    };
-
 } // namespace Primitives
 
 #endif // !PRIMITIVES_H
