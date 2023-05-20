@@ -39,19 +39,11 @@ namespace PhysicsHandler {
         static const int halfSlots = 32;
 
         // ? For now, default to allocating 64 slots for Objects. Probably up once we start implementing more stuff.
-        // ! Probs remove the static bodies list. The user should handle collisions with static bodies by checking for the collider
-        // !  type vs the rigid or kinetic body type using the functions in intersection.h
 
         struct RigidBodies {
             Primitives::RigidBody3D** rigidBodies = nullptr; // list of active rigid bodies
             int capacity; // current max capacity
             int count; // number of rigid bodies 
-        };
-
-        struct StaticBodies {
-            Primitives::StaticBody3D** staticBodies = nullptr; // list of active static bodies
-            int capacity; // current max capacity
-            int count; // number of static bodies
         };
 
         // todo rename to something better
@@ -78,7 +70,6 @@ namespace PhysicsHandler {
 
             ZMath::Vec3D g; // gravity
             RigidBodies rbs; // rigid bodies to update
-            StaticBodies sbs; // static bodies the rigid bodies could interact with
             CollisionWrapper colWrapper; // collision information
             float updateStep; // amount of dt to update after
             static const int IMPULSE_ITERATIONS = 6; // number of times to apply the impulse update.
@@ -142,10 +133,6 @@ namespace PhysicsHandler {
                 rbs.capacity = startingSlots;
                 rbs.count = 0;
 
-                sbs.staticBodies = new Primitives::StaticBody3D*[startingSlots];
-                sbs.capacity = startingSlots;
-                sbs.count = 0;
-
                 colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
@@ -162,10 +149,6 @@ namespace PhysicsHandler {
                 rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
                 rbs.capacity = startingSlots;
                 rbs.count = 0;
-
-                sbs.staticBodies = new Primitives::StaticBody3D*[startingSlots];
-                sbs.capacity = startingSlots;
-                sbs.count = 0;
 
                 colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
@@ -186,10 +169,6 @@ namespace PhysicsHandler {
                 rbs.capacity = startingSlots;
                 rbs.count = 0;
 
-                sbs.staticBodies = new Primitives::StaticBody3D*[startingSlots];
-                sbs.capacity = startingSlots;
-                sbs.count = 0;
-
                 colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
                 colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
@@ -208,14 +187,6 @@ namespace PhysicsHandler {
                 rbs.rigidBodies = new Primitives::RigidBody3D*[rbs.capacity];
 
                 for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i] = handler.rbs.rigidBodies[i]; }
-
-                // ==================================================================================
-
-                sbs.capacity = handler.sbs.capacity;
-                sbs.count = handler.sbs.count;
-                sbs.staticBodies = new Primitives::StaticBody3D*[sbs.capacity];
-
-                for (int i = 0; i < sbs.count; ++i) { sbs.staticBodies[i] = handler.sbs.staticBodies[i]; }
 
                 // ==================================================================================
 
@@ -242,10 +213,6 @@ namespace PhysicsHandler {
                 rbs.capacity = handler.rbs.capacity;
                 rbs.count = handler.rbs.count;
 
-                sbs.staticBodies = handler.sbs.staticBodies;
-                sbs.capacity = handler.sbs.capacity;
-                sbs.count = handler.sbs.count;
-
                 colWrapper.bodies1 = handler.colWrapper.bodies1;
                 colWrapper.bodies2 = handler.colWrapper.bodies2;
                 colWrapper.manifolds = handler.colWrapper.manifolds;
@@ -253,15 +220,12 @@ namespace PhysicsHandler {
                 colWrapper.count = handler.colWrapper.count;
 
                 handler.rbs.rigidBodies = nullptr;
-                handler.sbs.staticBodies = nullptr;
                 handler.colWrapper.bodies1 = nullptr;
                 handler.colWrapper.bodies2 = nullptr;
                 handler.colWrapper.manifolds = nullptr;
 
                 handler.rbs.capacity = 0;
                 handler.rbs.count = 0;
-                handler.sbs.capacity = 0;
-                handler.sbs.count = 0;
                 handler.colWrapper.capacity = 0;
                 handler.colWrapper.count = 0;
             };
@@ -274,10 +238,7 @@ namespace PhysicsHandler {
                 // If one of the pointers is not NULL, none of them are.
                 if (rbs.rigidBodies) {
                     for (int i = 0; i < rbs.count; ++i) { delete rbs.rigidBodies[i]; }
-                    for (int i = 0; i < sbs.count; ++i) { delete sbs.staticBodies[i]; }
-
                     delete[] rbs.rigidBodies;
-                    delete[] sbs.staticBodies;
 
                     for (int i = 0; i < colWrapper.count; ++i) {
                         delete colWrapper.bodies1[i];
@@ -292,7 +253,7 @@ namespace PhysicsHandler {
 
 
             // * ===========================
-            // * Body List Functions
+            // * RigidBody List Functions
             // * ===========================
 
             // Add a rigid body to the list of rigid bodies to be updated.
@@ -310,33 +271,11 @@ namespace PhysicsHandler {
                 rbs.rigidBodies[rbs.count++] = rb;
             };
 
-            // Add a static body to the list of static bodies.
-            void addStaticBody(Primitives::StaticBody3D* sb) {
-                if (sbs.count == sbs.capacity) {
-                    sbs.capacity *= 2;
-                    Primitives::StaticBody3D** temp = new Primitives::StaticBody3D*[sbs.capacity];
-
-                    for (int i = 0; i < sbs.count; ++i) { temp[i] = sbs.staticBodies[i]; }
-
-                    delete[] sbs.staticBodies;
-                    sbs.staticBodies = temp;
-                }
-
-                sbs.staticBodies[sbs.count++] = sb;
-            };
-
             // Remove a rigid body at the given index.
             void removeRigidBody(int index) {
                 delete rbs.rigidBodies[index];
                 for (int i = index; i < rbs.count; ++i) { rbs.rigidBodies[i] = rbs.rigidBodies[i + 1]; }
                 rbs.count--;
-            };
-
-            // Remove a static body at the given index.
-            void removeStaticBody(int index) {
-                delete sbs.staticBodies[index];
-                for (int i = index; i < sbs.count; ++i) { sbs.staticBodies[i] = sbs.staticBodies[i + 1]; }
-                sbs.count--;
             };
 
 
