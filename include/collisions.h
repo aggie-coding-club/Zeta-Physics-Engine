@@ -948,41 +948,51 @@ namespace Collisions {
     }
 
     // Find the collision features and resolve the impulse between two arbitrary primitives.
-    CollisionManifold findCollisionFeatures(Primitives::RigidBody3D const &rb1, Primitives::RigidBody3D const &rb2) {
-        switch (rb1.colliderType) {
-            case Primitives::SPHERE_COLLIDER:
-                if (rb2.colliderType == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(rb1.sphere, rb2.sphere); }
-                if (rb2.colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(rb1.sphere, rb2.aabb); }
-                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1.sphere, rb2.cube); }
+    CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* &rb1, Primitives::RigidBody3D* rb2) {
+        switch (rb1->colliderType) {
+            case Primitives::SPHERE_COLLIDER: {
+                if (rb2->colliderType == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(rb1->sphere, rb2->sphere); }
+                if (rb2->colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(rb1->sphere, rb2->aabb); }
+                if (rb2->colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1->sphere, rb2->cube); }
 
-            case Primitives::AABB_COLLIDER:
-                if (rb2.colliderType == Primitives::SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2.sphere, rb1.aabb);
+                break;
+            }
+
+            case Primitives::AABB_COLLIDER: {
+                if (rb2->colliderType == Primitives::SPHERE_COLLIDER) {
+                    CollisionManifold manifold = findCollisionFeatures(rb2->sphere, rb1->aabb);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2.colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(rb1.aabb, rb2.aabb); }
-                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1.aabb, rb2.cube); }
+                if (rb2->colliderType == Primitives::AABB_COLLIDER) { return findCollisionFeatures(rb1->aabb, rb2->aabb); }
+                if (rb2->colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1->aabb, rb2->cube); }
 
-            case Primitives::CUBE_COLLIDER:
-                if (rb2.colliderType == Primitives::CUBE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2.sphere, rb1.cube);
+                break;
+            }
+
+            case Primitives::CUBE_COLLIDER: {
+                if (rb2->colliderType == Primitives::CUBE_COLLIDER) {
+                    CollisionManifold manifold = findCollisionFeatures(rb2->sphere, rb1->cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2.colliderType == Primitives::AABB_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2.aabb, rb1.cube);
+                if (rb2->colliderType == Primitives::AABB_COLLIDER) {
+                    CollisionManifold manifold = findCollisionFeatures(rb2->aabb, rb1->cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2.colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1.cube, rb2.cube); }
+                if (rb2->colliderType == Primitives::CUBE_COLLIDER) { return findCollisionFeatures(rb1->cube, rb2->cube); }
 
-            default:
+                break;
+            }
+
+            default: {
                 // * User defined types go here.
                 break;
+            }
         }
 
         return (CollisionManifold) {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};

@@ -353,7 +353,7 @@ namespace PhysicsHandler {
                 // Broad phase: collision detection
                 for (int i = 0; i < rbs.count - 1; i++) {
                     for (int j = i + 1; j < rbs.count; j++) {
-                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(*(rbs.rigidBodies[i]), *(rbs.rigidBodies[j]));
+                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
                         if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
                     }
                 }
