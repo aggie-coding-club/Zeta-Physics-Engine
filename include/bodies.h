@@ -24,7 +24,7 @@ namespace Primitives {
     };
 
     struct RigidBody3D {
-        RigidBody3D() = default; // Default constructor to make the compiler happy (for efficiency).
+        RigidBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
 
         // * Handle and store the collider.
 
@@ -75,7 +75,7 @@ namespace Primitives {
     };
 
     struct StaticBody3D {
-        StaticBody3D() = default; // Default constructor to make the compiler happy (for efficiency).
+        StaticBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
 
         // * Information related to the static body.
 
