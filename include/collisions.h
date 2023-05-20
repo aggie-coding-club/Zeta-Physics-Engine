@@ -948,7 +948,7 @@ namespace Collisions {
     }
 
     // Find the collision features and resolve the impulse between two arbitrary primitives.
-    CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* &rb1, Primitives::RigidBody3D* rb2) {
+    CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2) {
         switch (rb1->colliderType) {
             case Primitives::SPHERE_COLLIDER: {
                 if (rb2->colliderType == Primitives::SPHERE_COLLIDER) { return findCollisionFeatures(rb1->sphere, rb2->sphere); }

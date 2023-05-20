@@ -6,6 +6,9 @@
 
 ___
 
+## To Use
+* Include "include/physicshandler.h"
+
 ## Example Compilation:
 * On linux: `make -f makefile`
 * On Windows: `make win -f makefile`
