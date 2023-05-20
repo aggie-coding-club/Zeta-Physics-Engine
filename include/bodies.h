@@ -7,20 +7,20 @@
 
 namespace Primitives {
     enum RigidBodyCollider {
-        SPHERE_COLLIDER,
-        AABB_COLLIDER,
-        CUBE_COLLIDER,
-        CUSTOM_COLLIDER,
-        NONE
+        RIGID_SPHERE_COLLIDER,
+        RIGID_AABB_COLLIDER,
+        RIGID_CUBE_COLLIDER,
+        RIGID_CUSTOM_COLLIDER,
+        RIGID_NONE
     };
 
     enum StaticBodyCollider {
-        PLANE_COLLIDER,
-        SPHERE_COLLIDER,
-        AABB_COLLIDER,
-        CUBE_COLLIDER,
-        CUSTOM_COLLIDER,
-        NONE
+        STATIC_PLANE_COLLIDER,
+        STATIC_SPHERE_COLLIDER,
+        STATIC_AABB_COLLIDER,
+        STATIC_CUBE_COLLIDER,
+        STATIC_CUSTOM_COLLIDER,
+        STATIC_NONE
     };
 
     struct RigidBody3D {
@@ -68,9 +68,9 @@ namespace Primitives {
 
             // Update the pos of the collider.
             // If statements are more readable than a switch here.
-            if      (colliderType == SPHERE_COLLIDER) { sphere.c = pos; }
-            else if (colliderType == AABB_COLLIDER)   { aabb.pos = pos; }
-            else if (colliderType == CUBE_COLLIDER)   { cube.pos = pos; }
+            if      (colliderType == RIGID_SPHERE_COLLIDER) { sphere.c = pos; }
+            else if (colliderType == RIGID_AABB_COLLIDER)   { aabb.pos = pos; }
+            else if (colliderType == RIGID_CUBE_COLLIDER)   { cube.pos = pos; }
         };
     };
 
