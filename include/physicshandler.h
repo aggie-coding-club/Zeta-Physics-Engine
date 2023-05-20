@@ -63,12 +63,13 @@ namespace PhysicsHandler {
     // * ========================
 
     class Handler {
+        // todo #define values for common FPS
+
         private:
             // * =================
             // * Attributes
             // * =================
 
-            ZMath::Vec3D g; // gravity
             RigidBodies rbs; // rigid bodies to update
             CollisionWrapper colWrapper; // collision information
             float updateStep; // amount of dt to update after
@@ -123,6 +124,12 @@ namespace PhysicsHandler {
             };
 
         public:
+            // * =====================
+            // * Public Attributes
+            // * =====================
+
+            ZMath::Vec3D g; // gravity
+
             // * ===================================
             // * Constructors, Destructors, Etc.
             // * ===================================
@@ -181,7 +188,7 @@ namespace PhysicsHandler {
              * 
              * @param handler (Handler) The physics handler to copy.
              */
-            Handler(Handler const &handler) : g (handler.g), updateStep(handler.updateStep) {
+            Handler(Handler const &handler) : g(handler.g), updateStep(handler.updateStep) {
                 rbs.capacity = handler.rbs.capacity;
                 rbs.count = handler.rbs.count;
                 rbs.rigidBodies = new Primitives::RigidBody3D*[rbs.capacity];
@@ -252,9 +259,9 @@ namespace PhysicsHandler {
             };
 
 
-            // * ===========================
+            // * ============================
             // * RigidBody List Functions
-            // * ===========================
+            // * ============================
 
             // Add a rigid body to the list of rigid bodies to be updated.
             void addRigidBody(Primitives::RigidBody3D* rb) {
@@ -284,6 +291,8 @@ namespace PhysicsHandler {
             // * ============================
 
             void update(float dt) {
+                // todo make it update multiple times potentially depending on the value of dt (or maybe this is handled in the rigidbody update already)
+
                 // Broad phase: collision detection
                 for (int i = 0; i < rbs.count - 1; i++) {
                     for (int j = i + 1; j < rbs.count; j++) {

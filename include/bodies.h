@@ -51,12 +51,15 @@ namespace Primitives {
         ZMath::Vec3D vel = ZMath::Vec3D(); // velocity of the rigidbody.
         ZMath::Vec3D netForce = ZMath::Vec3D(); // sum of all forces acting on the rigidbody.
 
+        // todo pass timeStep so that we can make it actually accurate
         void update(ZMath::Vec3D const &g, float dt) {
             // * Add code to update a rigidbody here.
             // ? assuming g is gravity, and it is already negative
+            float t = (float)(int)(dt/0.0167f) * 0.0167f;
+
             netForce += g * mass;
-            vel += (netForce * invMass) * ((float)(int)(dt/0.0167f) * 0.0167f);
-            pos += vel * ((float)(int)(dt/0.0167f) * 0.0167f);
+            vel += (netForce * invMass) * t;
+            pos += vel * t;
             netForce = ZMath::Vec3D();
 
             // todo refactor so that we can store the colliders inside the bodies without having to update the 

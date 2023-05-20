@@ -103,7 +103,7 @@ void update() {
         // our_cube.rb.phi -= (1.5f * (int)(dt/0.0167f));
         dt -= (float)(int)(dt/0.0167f) * 0.0167;
     }
-  
+    
 
     // scene
     #if 0

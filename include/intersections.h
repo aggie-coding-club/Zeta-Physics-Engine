@@ -355,6 +355,7 @@ namespace Collisions {
         ZMath::Vec3D rayDir = ray.dir;
 
         // todo unsure if this will work for angles outside the first quadrant; it should, though (I think)
+        // ! test although im p sure it should work
 
         rayOrigin = cube.rot * rayOrigin + cube.pos;
         rayDir = cube.rot * rayDir;
@@ -401,6 +402,7 @@ namespace Collisions {
     };
 
     // todo PlaneAndAABB and PlaneAndCube both likely do not work
+    // todo fix
 
     // Determine if a plane intersects an unrotated cube.
     bool PlaneAndAABB(Primitives::Plane const &plane, Primitives::AABB const &aabb) {
