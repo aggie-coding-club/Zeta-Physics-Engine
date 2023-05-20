@@ -284,11 +284,6 @@ namespace PhysicsHandler {
             // * ============================
 
             void update(float dt) {
-                // todo update to check for static body collisions and update the velocity of the rigid body accordingly
-                    // ! May have to be handled separately by the user as static body collisions could warrant multiple responses
-                    // ! The Game Engine would handle the event system, too, so there wouldn't be a way to ping the user's program when a sb col occurs
-                    // ! Probs remove the list of static bodies and let them handle that themselves
-
                 // Broad phase: collision detection
                 for (int i = 0; i < rbs.count - 1; i++) {
                     for (int j = i + 1; j < rbs.count; j++) {
