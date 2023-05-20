@@ -995,7 +995,7 @@ namespace Collisions {
             }
         }
 
-        return (CollisionManifold) {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
+        return {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
     };
 };
 
