@@ -135,43 +135,15 @@ namespace PhysicsHandler {
             // * ===================================
 
             // Make a physics handler with a default gravity of -9.8 and an update speed of 60FPS.
+
+            /**
+             * @brief Create a physics handler.
+             * 
+             * @param g (Vec3D) The force applied by gravity. Default of <0, 0, -9.8f>.
+             * @param timeStep (float) The amount of time in seconds that must pass before the handler updates physics.
+             *                           Default speed of 60FPS.
+             */
             Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = 0.0167f) : g(g), updateStep(timeStep) {
-                rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
-                rbs.capacity = startingSlots;
-                rbs.count = 0;
-
-                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
-                colWrapper.capacity = halfSlots;
-                colWrapper.count = 0;
-            };
-
-            /**
-             * @brief Make a physics handler with custom gravity and an update speed of 60FPS.
-             * 
-             * @param grav (Vec3D) The force applied by gravity.
-             */
-            Handler(ZMath::Vec3D const &grav) : g(grav), updateStep(0.0167f) {
-                rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
-                rbs.capacity = startingSlots;
-                rbs.count = 0;
-
-                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
-                colWrapper.capacity = halfSlots;
-                colWrapper.count = 0;
-            };
-
-            /**
-             * @brief Make a physics handler with custom gravity and a custom update speed.
-             * 
-             * @param grav (Vec3D) The force applied by gravity.
-             * @param updateStep (float) The amount of time in seconds that must pass before the handler updates. Note: 
-             *                            increasing this value too much will cause lag.
-             */
-            Handler(ZMath::Vec3D const &grav, float updateStep) : g(grav), updateStep(updateStep) {
                 rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
                 rbs.capacity = startingSlots;
                 rbs.count = 0;

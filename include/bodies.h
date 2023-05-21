@@ -24,8 +24,6 @@ namespace Primitives {
     };
 
     struct RigidBody3D {
-        // todo add linear damping
-
         // Remember to specify the necessary fields before using the RigidBody3D if using the default constructor.
         // Consult documentation for those fields if needed.
         RigidBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
@@ -41,8 +39,8 @@ namespace Primitives {
          *                       Remember to manually assign a value to sphere, aabb, or cube depending on the collider type specified. DO NOT
          *                       assign a value to a collider other than the one corresponding to the type specified.
          */
-        RigidBody3D(ZMath::Vec3D pos, float mass, float cor, RigidBodyCollider colliderType) : pos(pos), mass(mass), invMass(1.0f/mass),
-                cor(cor), colliderType(colliderType) {};
+        RigidBody3D(ZMath::Vec3D const &pos, float mass, float cor, float linearDamping, RigidBodyCollider colliderType) 
+                : pos(pos), mass(mass), invMass(1.0f/mass), cor(cor), linearDamping(linearDamping), colliderType(colliderType) {};
 
         // * Handle and store the collider.
 
@@ -64,6 +62,10 @@ namespace Primitives {
         // Between 0 and 1 for our purposes.
         // 1 = perfectly elastic.
         float cor;
+
+        // Linear damping.
+        // Acts as linear friction on the rigidbody.
+        float linearDamping;
 
         ZMath::Vec3D pos; // centerpoint of the rigidbody.
         ZMath::Vec3D vel = ZMath::Vec3D(); // velocity of the rigidbody.
@@ -91,16 +93,21 @@ namespace Primitives {
     };
 
     struct StaticBody3D {
-        // todo setup a constructor
         StaticBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
+
+        /**
+         * @brief Create a 3D staticbody.
+         * 
+         * @param pos The centerpoint of the staticbody.
+         * @param colliderType The type of collider attached to the staticbody. This should be set to STATIC_NONE if there will not be one attached.
+         *                       Remember to manually assign a value to plane, sphere, aabb, or cube depending on the collider type specified.
+         *                       DO NOT assign a value to a collider other than the one corresponding to the type specified.
+         */
+        StaticBody3D(ZMath::Vec3D const &pos, StaticBodyCollider colliderType) : pos(pos), colliderType(colliderType) {};
 
         // * Information related to the static body.
 
         ZMath::Vec3D pos; // centerpoint of the staticbody.
-
-        // todo might not need to store the mass.
-        float mass; // Must remain constant.
-        float invMass; // 1/mass. Must remain constant.
 
         // * Handle and store the collider.
 
