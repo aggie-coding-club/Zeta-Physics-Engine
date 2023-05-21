@@ -33,18 +33,16 @@ namespace Collisions {
             CollisionManifold result;
 
             float r = sphere1.r + sphere2.r;
-
-            if (sphere1.c.distSq(sphere2.c) > r*r) {
-                result.hit = 0;
-                return result;
-            }
-
             ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
+
+            result.hit = sphereDiff.magSq() <= r*r;
+
+            if (!result.hit) { return result; }
+            
             float d = sphereDiff.mag(); // allows us to only take the sqrt once
 
             result.pDist = (sphere1.r + sphere2.r - d) * 0.5f;
             result.normal = sphereDiff * (1.0f/d);
-            result.hit = 1;
 
             // determine the contact point
             result.numPoints = 1;

@@ -10,6 +10,8 @@ namespace PhysicsHandler {
 
     #define FPS_24 0.0417f
     #define FPS_30 0.0333f
+    #define FPS_36 0.0278f
+    #define FPS_45 0.0222f
     #define FPS_50 0.02f
     #define FPS_60 0.0167f
 
@@ -80,7 +82,7 @@ namespace PhysicsHandler {
             RigidBodies rbs; // rigid bodies to update
             CollisionWrapper colWrapper; // collision information
             float updateStep; // amount of dt to update after
-            static const int IMPULSE_ITERATIONS = 3; // number of times to apply the impulse update.
+            static const int IMPULSE_ITERATIONS = 6; // number of times to apply the impulse update.
 
 
             // * ==============================
@@ -151,6 +153,8 @@ namespace PhysicsHandler {
              *    Default speed of 60FPS. Anything above 60FPS is not recommended as it can cause lag in lower end hardware.
              */
             Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = FPS_60) : g(g), updateStep(timeStep) {
+                if (updateStep < FPS_60) { updateStep = FPS_60; } // hard cap at 60 FPS
+
                 rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
                 rbs.capacity = startingSlots;
                 rbs.count = 0;

@@ -433,6 +433,21 @@ namespace Collisions {
         return sphere1.c.distSq(sphere2.c) <= r*r;
     };
 
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool SphereAndSphere(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
+        CollisionManifold result;
+
+        float r = sphere1.r + sphere2.r;
+        ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
+
+        if (sphereDiff.magSq() > r*r) { return 0; }
+        result.normal = sphereDiff.normalize();
+
+        return 1;
+    };
+
     // Determine if a sphere intersects an unrotated cube.
     bool SphereAndAABB(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
         // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
@@ -445,6 +460,23 @@ namespace Collisions {
 
         closest = ZMath::clamp(closest, min, max);
         return closest.distSq(sphere.c) <= sphere.r*sphere.r;
+    };
+
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool SphereAndAABB(Primitives::Sphere const &sphere, Primitives::AABB const & aabb, ZMath::Vec3D &normal) {
+        ZMath::Vec3D closest = sphere.c;
+        ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
+
+        closest = ZMath::clamp(closest, min, max);
+        ZMath::Vec3D diff = closest - sphere.c;
+
+        if (diff.magSq() > sphere.r*sphere.r) { return 0; }
+
+        normal = diff.normalize();
+
+        return 1;
     };
 
     // Determine if a sphere intersects a cube.
@@ -460,6 +492,32 @@ namespace Collisions {
         // perform the check as if it was an AABB vs Sphere
         closest = ZMath::clamp(closest, min, max);
         return closest.distSq(sphere.c) <= sphere.r*sphere.r;
+    };
+
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool SphereAndCube(Primitives::Sphere const &sphere, Primitives::Cube const &cube, ZMath::Vec3D &normal) {
+        ZMath::Vec3D closest = sphere.c - cube.pos;
+        ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
+
+        // rotate the center of the sphere into the UVW coordinates of our cube
+        closest = cube.rot * closest + cube.pos;
+        
+        // perform the check as if it was an AABB vs Sphere
+        closest = ZMath::clamp(closest, min, max);
+        ZMath::Vec3D diff = closest - sphere.c;
+
+        if (diff.magSq() > sphere.r*sphere.r) { return 0; }
+
+        // the closest point to the sphere's center will be our contact point rotated back into global coordinates coordinates
+
+        closest -= cube.pos;
+        closest = cube.rot.transpose() * closest + cube.pos;
+
+        normal = diff.normalize();
+
+        return 1;
     };
 
     // * ===================================
@@ -478,6 +536,15 @@ namespace Collisions {
     // Determine if an unrotated cube intersects a sphere.
     bool AABBAndSphere(Primitives::AABB const &aabb, Primitives::Sphere const &sphere) { return SphereAndAABB(sphere, aabb); };
 
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool AABBAndSphere(Primitives::AABB const &aabb, Primitives::Sphere const &sphere, ZMath::Vec3D &normal) {
+        bool hit = SphereAndAABB(sphere, aabb, normal);
+        normal = -normal;
+        return hit;
+    };
+
     // Determine if an unrotated cube intersects another unrotated cube.
     bool AABBAndAABB(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
         // ? Check if there's overlap for the AABBs on all three axes.
@@ -493,7 +560,49 @@ namespace Collisions {
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
     bool AABBAndAABB(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2, ZMath::Vec3D &normal) {
-        
+        // half size of AABB a and b respectively
+        ZMath::Vec3D hA = aabb1.getHalfSize(), hB = aabb2.getHalfSize();
+
+        // * Check for intersections using the separating axis theorem.
+        // because both are axis aligned, global space is the same as the local space of both AABBs.
+
+        // distance between the two
+        ZMath::Vec3D dP = aabb2.pos - aabb1.pos;
+        ZMath::Vec3D absDP = ZMath::abs(dP);
+
+        // penetration along A's (and B's) axes
+        ZMath::Vec3D faceA = absDP - hA - hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // ? Since they are axis aligned, the penetration between the two will be the same on any given axis.
+        // ?  Therefore, we only need to check for A.
+
+        // * Find the best axis (i.e. the axis with the least amount of penetration).
+
+        // Assume A's x-axis is the best axis first
+        float separation = faceA.x;
+        normal = dP.x > 0.0f ? ZMath::Vec3D(1, 0, 0) : ZMath::Vec3D(-1, 0, 0);
+
+        // tolerance values
+        float relativeTol = 0.95f;
+        float absoluteTol = 0.01f;
+
+        // ? check if there is another axis better than A's x axis by checking if the penetration along
+        // ?  the current axis being checked is greater than that of the current penetration
+        // ?  (as greater value = less negative = less penetration).
+
+        // A's remaining axes
+        if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
+            separation = faceA.y;
+            normal = dP.y > 0.0f ? ZMath::Vec3D(0, 1, 0) : ZMath::Vec3D(0, -1, 0);
+        }
+
+        if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
+            separation = faceA.z;
+            normal = dP.z > 0.0f ? ZMath::Vec3D(0, 0, 1) : ZMath::Vec3D(0, 0, -1);
+        }
+
+        return 1;
     };
 
     // Determine if an unrotated cube intersects a cube.
@@ -606,6 +715,15 @@ namespace Collisions {
 
     // Determine if a cube intersects a sphere.
     bool CubeAndSphere(Primitives::Cube const &cube, Primitives::Sphere const &sphere) { return SphereAndCube(sphere, cube); };
+
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool CubeAndSphere(Primitives::Cube const &cube, Primitives::Sphere const &sphere, ZMath::Vec3D &normal) {
+        bool hit = SphereAndCube(sphere, cube, normal);
+        normal = -normal;
+        return hit;
+    };
 
     // Determine if a cube intersects an unrotated cube.
     bool CubeAndAABB(Primitives::Cube const &cube, Primitives::AABB const &aabb) { return AABBAndCube(aabb, cube); };
