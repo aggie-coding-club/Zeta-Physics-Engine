@@ -3,8 +3,6 @@
 
 #include "zmath.h"
 
-// todo add masses for each of the primitives for their rigidbodies
-
 namespace Primitives {
     class Ray3D {
         public:

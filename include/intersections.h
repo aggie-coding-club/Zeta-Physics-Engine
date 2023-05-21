@@ -89,9 +89,6 @@ namespace Collisions {
             ZMath::Vec3D min2 = line2.getMin(), max2 = line2.getMax();
 
             if (v1.x) {
-                // ! unsure if we actually need to check for every interval or just x. We can test once we get unit tests.
-                // ! same thing for the second case, too.
-
                 float t = (s2.x - s1.x)/v1.x;
                 return s2.y == s1.y + v1.y * t && s2.z == s1.z + v1.z * t && min1.x <= max2.x && min2.x <= max1.x;
             }

@@ -63,7 +63,16 @@ namespace PhysicsHandler {
     // * ========================
 
     class Handler {
-        // todo #define values for common FPS
+        public:
+            // * ==================================
+            // * Fields with Common Framerates
+            // * ==================================
+
+            static const float FPS_60 = 0.0167f;
+            static const float FPS_50 = 0.02f;
+            static const float FPS_30 = 0.0333f;
+            static const float FPS_24 = 0.0417f;
+
 
         private:
             // * =================
@@ -141,9 +150,9 @@ namespace PhysicsHandler {
              * 
              * @param g (Vec3D) The force applied by gravity. Default of <0, 0, -9.8f>.
              * @param timeStep (float) The amount of time in seconds that must pass before the handler updates physics.
-             *                           Default speed of 60FPS.
+             *    Default speed of 60FPS. Anything above 60FPS is not recommended as it can cause lag in lower end hardware.
              */
-            Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = 0.0167f) : g(g), updateStep(timeStep) {
+            Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = FPS_60) : g(g), updateStep(timeStep) {
                 rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
                 rbs.capacity = startingSlots;
                 rbs.count = 0;
@@ -262,30 +271,34 @@ namespace PhysicsHandler {
             // * Main Physics Functions
             // * ============================
 
-            void update(float dt) {
-                // todo make it update multiple times potentially depending on the value of dt (or maybe this is handled in the rigidbody update already)
-
-                // Broad phase: collision detection
-                for (int i = 0; i < rbs.count - 1; i++) {
-                    for (int j = i + 1; j < rbs.count; j++) {
-                        Collisions::CollisionManifold result = Collisions::findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
-                        if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
+            // Update the physics.
+            // dt will be updated to the appropriate value after the updates run for you so DO NOT modify it yourself.
+            void update(float &dt) {
+                do {
+                    // Broad phase: collision detection
+                    for (int i = 0; i < rbs.count - 1; i++) {
+                        for (int j = i + 1; j < rbs.count; j++) {
+                            Collisions::CollisionManifold result = Collisions::findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
+                            if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
+                        }
                     }
-                }
 
-                // todo update to not be through iterative deepening -- look into this in the future
-                // todo use spacial partitioning
-                // Narrow phase: Impulse resolution
-                for (int k = 0; k < IMPULSE_ITERATIONS; k++) {
-                    for (int i = 0; i < colWrapper.count; i++) {
-                        applyImpulse(colWrapper.bodies1[i], colWrapper.bodies2[i], colWrapper.manifolds[i]);
+                    // todo update to not be through iterative deepening -- look into this in the future
+                    // todo use spacial partitioning
+                    // Narrow phase: Impulse resolution
+                    for (int k = 0; k < IMPULSE_ITERATIONS; k++) {
+                        for (int i = 0; i < colWrapper.count; i++) {
+                            applyImpulse(colWrapper.bodies1[i], colWrapper.bodies2[i], colWrapper.manifolds[i]);
+                        }
                     }
-                }
 
-                clearCollisions();
+                    clearCollisions();
 
-                // Update our rigidbodies
-                for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i]->update(g, dt, updateStep); }
+                    // Update our rigidbodies
+                    for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i]->update(g, updateStep); }
+
+                    dt -= updateStep;
+                } while (dt > updateStep);
             };
     };
 }
