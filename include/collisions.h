@@ -972,7 +972,7 @@ namespace Collisions {
             }
 
             case Primitives::RIGID_CUBE_COLLIDER: {
-                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) {
+                if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) {
                     CollisionManifold manifold = findCollisionFeatures(rb2->sphere, rb1->cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;

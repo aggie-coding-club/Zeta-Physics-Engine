@@ -489,6 +489,13 @@ namespace Collisions {
         return min2.x <= max1.x && min1.x <= max2.x && min2.y <= max1.y && min1.y <= max2.y && min2.z <= max1.z && min1.z <= max2.z;
     };
 
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool AABBAndAABB(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2, ZMath::Vec3D &normal) {
+        
+    };
+
     // Determine if an unrotated cube intersects a cube.
     bool AABBAndCube(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
         // ? Use the separating axis theorem to determine if there is an intersection between the AABB and cube.
@@ -517,7 +524,7 @@ namespace Collisions {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool AABBAndCube(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
+    bool AABBAndCube(Primitives::AABB const &aabb, Primitives::Cube const &cube, ZMath::Vec3D &normal) {
         // ? Use the separating axis theorem to determine if there is an intersection between the AABB and cube.
 
         // half size of the aabb and cube respectively (A = AABB, B = Cube)
@@ -538,8 +545,50 @@ namespace Collisions {
 
         // amount of penetration along B's axes
         ZMath::Vec3D faceB = ZMath::abs(dB) - hB - rotBT * hA;
-        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
-        return faceB.x <= 0 && faceB.y <= 0 && faceB.z < 0;
+        if (faceB.x > 0 || faceB.y > 0 || faceB.z > 0) { return 0; }
+        
+        // * Find the best axis (i.e. the axis with the least amount of penetration).
+
+        // Assume A's x-axis is the best axis first
+        float separation = faceA.x;
+        normal = dA.x > 0.0f ? ZMath::Vec3D(1, 0, 0) : ZMath::Vec3D(-1, 0, 0);
+
+        // tolerance values
+        float relativeTol = 0.95f;
+        float absoluteTol = 0.01f;
+
+        // ? check if there is another axis better than A's x axis by checking if the penetration along
+        // ?  the current axis being checked is greater than that of the current penetration
+        // ?  (as greater value = less negative = less penetration).
+
+        // A's remaining axes
+        if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
+            separation = faceA.y;
+            normal = dA.y > 0.0f ? ZMath::Vec3D(0, 1, 0) : ZMath::Vec3D(0, -1, 0);
+        }
+
+        if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
+            separation = faceA.z;
+            normal = dA.z > 0.0f ? ZMath::Vec3D(0, 0, 1) : ZMath::Vec3D(0, 0, -1);
+        }
+
+        // B's axes
+        if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
+            separation = faceB.x;
+            normal = dB.x > 0.0f ? cube.rot.c1 : -cube.rot.c1;
+        }
+
+        if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
+            separation = faceB.y;
+            normal = dB.y > 0.0f ? cube.rot.c2 : -cube.rot.c2;
+        }
+
+        if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
+            separation = faceB.z;
+            normal = dB.z > 0.0f ? cube.rot.c3 : -cube.rot.c3;
+        }
+
+        return 1;
     };
 
     // * ===================================
@@ -560,6 +609,15 @@ namespace Collisions {
 
     // Determine if a cube intersects an unrotated cube.
     bool CubeAndAABB(Primitives::Cube const &cube, Primitives::AABB const &aabb) { return AABBAndCube(aabb, cube); };
+
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool CubeAndAABB(Primitives::Cube const &cube, Primitives::AABB const &aabb, ZMath::Vec3D &normal) {
+        bool hit = AABBAndCube(aabb, cube, normal);
+        normal = -normal;
+        return hit;
+    };
 
     // Determine if a cube intersects another cube.
     bool CubeAndCube(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
