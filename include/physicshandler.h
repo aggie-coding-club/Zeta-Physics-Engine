@@ -135,7 +135,7 @@ namespace PhysicsHandler {
             // * ===================================
 
             // Make a physics handler with a default gravity of -9.8 and an update speed of 60FPS.
-            Handler() : g(ZMath::Vec3D(0, 0, -9.8f)), updateStep(0.0167f) {
+            Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = 0.0167f) : g(g), updateStep(timeStep) {
                 rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
                 rbs.capacity = startingSlots;
                 rbs.count = 0;
@@ -313,7 +313,7 @@ namespace PhysicsHandler {
                 clearCollisions();
 
                 // Update our rigidbodies
-                for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i]->update(g, dt); }
+                for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i]->update(g, dt, updateStep); }
             };
     };
 }

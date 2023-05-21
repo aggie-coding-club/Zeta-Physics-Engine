@@ -24,7 +24,25 @@ namespace Primitives {
     };
 
     struct RigidBody3D {
+        // todo add linear damping
+
+        // Remember to specify the necessary fields before using the RigidBody3D if using the default constructor.
+        // Consult documentation for those fields if needed.
         RigidBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
+
+        /**
+         * @brief Create a 3D RigidBody.
+         * 
+         * @param pos Centerpoint of the rigidbody.
+         * @param mass Mass of the rigidbody.
+         * @param cor The coefficient of restituion of the rigidbody. This represents a loss of kinetic energy due to heat and should be
+         *              between 0 and 1 inclusive with 1 being perfectly elastic.
+         * @param colliderType The type of collider attached to the rigidbody. This should be set to RIGID_NONE if there will not be one attached.
+         *                       Remember to manually assign a value to sphere, aabb, or cube depending on the collider type specified. DO NOT
+         *                       assign a value to a collider other than the one corresponding to the type specified.
+         */
+        RigidBody3D(ZMath::Vec3D pos, float mass, float cor, RigidBodyCollider colliderType) : pos(pos), mass(mass), invMass(1.0f/mass),
+                cor(cor), colliderType(colliderType) {};
 
         // * Handle and store the collider.
 
@@ -51,11 +69,9 @@ namespace Primitives {
         ZMath::Vec3D vel = ZMath::Vec3D(); // velocity of the rigidbody.
         ZMath::Vec3D netForce = ZMath::Vec3D(); // sum of all forces acting on the rigidbody.
 
-        // todo pass timeStep so that we can make it actually accurate
-        void update(ZMath::Vec3D const &g, float dt) {
-            // * Add code to update a rigidbody here.
+        void update(ZMath::Vec3D const &g, float dt, float timeStep) {
             // ? assuming g is gravity, and it is already negative
-            float t = (float)(int)(dt/0.0167f) * 0.0167f;
+            float t = (int)(dt/timeStep) * timeStep;
 
             netForce += g * mass;
             vel += (netForce * invMass) * t;
@@ -75,6 +91,7 @@ namespace Primitives {
     };
 
     struct StaticBody3D {
+        // todo setup a constructor
         StaticBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
 
         // * Information related to the static body.

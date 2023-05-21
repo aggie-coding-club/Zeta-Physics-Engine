@@ -99,7 +99,7 @@ namespace Primitives {
 
             // Get the vertices of the plane in terms of global coordinates.
             // Remember to use delete[] on the object you assign this to afterwards to free the memory.
-            ZMath::Vec3D* getVertices() const { // todo test to make sure I don't need to use the transpose
+            ZMath::Vec3D* getVertices() const {
                 ZMath::Vec3D* v = new ZMath::Vec3D[4]; // 4 as it is rectangular
 
                 v[0] = ZMath::Vec3D(-halfSize.x, -halfSize.y, pos.z);
@@ -195,7 +195,7 @@ namespace Primitives {
 
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
-            ZMath::Vec3D* getVertices() const { // todo test to make sure I don't need to use the transpose
+            ZMath::Vec3D* getVertices() const {
                 ZMath::Vec3D* v = new ZMath::Vec3D[8];
 
                 // todo reorder to match OpenGL bindings
