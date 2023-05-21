@@ -511,6 +511,34 @@ namespace Collisions {
 
         // amount of penetration along B's axes
         ZMath::Vec3D faceB = ZMath::abs(dB) - hB - rotBT * hA;
+        return faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0;
+    };
+
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool AABBAndCube(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
+        // ? Use the separating axis theorem to determine if there is an intersection between the AABB and cube.
+
+        // half size of the aabb and cube respectively (A = AABB, B = Cube)
+        ZMath::Vec3D hA = aabb.getHalfSize(), hB = cube.getHalfSize();
+
+        // rotate anything from global space to the cube's local space
+        ZMath::Mat3D rotBT = cube.rot.transpose();
+
+        // determine the distance between the positions
+        ZMath::Vec3D dA = cube.pos - aabb.pos; // global space is the AABB's local space
+        ZMath::Vec3D dB = rotBT * dA;
+
+        // * Check for intersection using the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - rotBT * hA;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
         return faceB.x <= 0 && faceB.y <= 0 && faceB.z < 0;
     };
 
@@ -608,7 +636,7 @@ namespace Collisions {
 
         // amount of penetration along B's axes
         ZMath::Vec3D faceB = ZMath::abs(dB) - hB - CT * hA;
-        if (faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0) { return 0; }
+        if (faceB.x > 0 || faceB.y > 0 || faceB.z > 0) { return 0; }
         
         // * Find the best axis (i.e. the axis with the least penetration).
 
