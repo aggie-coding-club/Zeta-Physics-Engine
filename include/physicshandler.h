@@ -4,6 +4,15 @@
 #include "collisions.h"
 
 namespace PhysicsHandler {
+    // * ====================================
+    // * Common Framerates for Handler
+    // * ====================================
+
+    #define FPS_24 0.0417f
+    #define FPS_30 0.0333f
+    #define FPS_50 0.02f
+    #define FPS_60 0.0167f
+
     // * =========================
     // * Impulse Resolution
     // * =========================
@@ -63,17 +72,6 @@ namespace PhysicsHandler {
     // * ========================
 
     class Handler {
-        public:
-            // * ==================================
-            // * Fields with Common Framerates
-            // * ==================================
-
-            static const float FPS_60 = 0.0167f;
-            static const float FPS_50 = 0.02f;
-            static const float FPS_30 = 0.0333f;
-            static const float FPS_24 = 0.0417f;
-
-
         private:
             // * =================
             // * Attributes

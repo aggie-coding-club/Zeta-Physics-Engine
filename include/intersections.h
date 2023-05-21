@@ -570,6 +570,89 @@ namespace Collisions {
         ZMath::Vec3D faceB = ZMath::abs(dB) - hB - CT * hA;
         return faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0;
     };
+
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool CubeAndCube(Primitives::Cube const &cube1, Primitives::Cube const &cube2, ZMath::Vec3D &normal) {
+        // ? Use the separating axis theorem to determine if there is an intersection between the cubes.
+
+        // half size of cube a and b respectively
+        ZMath::Vec3D hA = cube1.getHalfSize(), hB = cube2.getHalfSize();
+
+        // rotate anything from global space to A's local space
+        ZMath::Mat3D rotAT = cube1.rot.transpose();
+
+        // determine the difference between the positions
+        ZMath::Vec3D dP = cube2.pos - cube1.pos;
+        ZMath::Vec3D dA = rotAT * dP;
+        ZMath::Vec3D dB = cube2.rot.transpose() * dP;
+
+        // * rotation matrices for switching between local spaces
+        
+        // todo do the math to figure out if we actually need to do the abs
+        // todo not sure what math to do for this though
+        // ! When we have a proper scene to test, use that to check if the absolute value is necessary
+
+        // Rotate anything from B's local space into A's
+        ZMath::Mat3D C = ZMath::abs(rotAT * cube2.rot);
+
+        // Rotate anything from A's local space into B's
+        ZMath::Mat3D CT = C.transpose();
+
+        // * Check for intersections with the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - C * hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - CT * hA;
+        if (faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0) { return 0; }
+        
+        // * Find the best axis (i.e. the axis with the least penetration).
+
+        // Assume A's x-axis is the best axis first.
+        float separation = faceA.x;
+        normal = dA.x > 0.0f ? cube1.rot.c1 : -cube1.rot.c1;
+
+        // tolerance values
+        float relativeTol = 0.95f;
+        float absoluteTol = 0.01f;
+
+        // ? check if there is another axis better than A's x axis by checking if the penetration along
+        // ?  the current axis being checked is greater than that of the current penetration
+        // ?  (as greater value = less negative = less penetration).
+
+        // A's remaining axes
+        if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
+            separation = faceA.y;
+            normal = dA.y > 0.0f ? cube1.rot.c2 : -cube1.rot.c2;
+        }
+
+        if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
+            separation = faceA.z;
+            normal = dA.z > 0.0f ? cube1.rot.c3 : -cube1.rot.c3;
+        }
+
+        // B's axes
+        if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
+            separation = faceB.x;
+            normal = dB.x > 0.0f ? cube2.rot.c1 : -cube2.rot.c1;
+        }
+
+        if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
+            separation = faceB.y;
+            normal = dB.y > 0.0f ? cube2.rot.c2 : -cube2.rot.c2;
+        }
+
+        if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
+            separation = faceB.z;
+            normal = dB.z > 0.0f ? cube2.rot.c3 : -cube2.rot.c3;
+        }
+
+        return 1;
+    };
 }
 
 #endif // !INTERSECTIONS__H

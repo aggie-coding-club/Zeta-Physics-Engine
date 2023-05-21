@@ -745,7 +745,7 @@ namespace Collisions {
 
             // * Find the best axis (i.e. the axis with the least amount of penetration).
 
-            // Assume A's x-axis is the best axis first
+            // Assume A's x-axis is the best axis first.
             Axis axis = FACE_A_X;
             float separation = faceA.x;
             result.normal = dA.x > 0.0f ? cube1.rot.c1 : -cube1.rot.c1;
