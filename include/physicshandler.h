@@ -274,8 +274,11 @@ namespace PhysicsHandler {
 
             // Update the physics.
             // dt will be updated to the appropriate value after the updates run for you so DO NOT modify it yourself.
-            void update(float &dt) {
+            int update(float &dt) {
+                int updates_count = 0;
                 while (dt >= updateStep) {
+                    updates_count += 1;
+
                     // Broad phase: collision detection
                     for (int i = 0; i < rbs.count - 1; i++) {
                         for (int j = i + 1; j < rbs.count; j++) {
@@ -300,6 +303,8 @@ namespace PhysicsHandler {
 
                     dt -= updateStep;
                 }
+
+                return updates_count;
             };
     };
 }

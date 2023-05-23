@@ -436,6 +436,7 @@ namespace Collisions {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
+    #if 0
     bool SphereAndSphere(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
         CollisionManifold result;
 
@@ -447,6 +448,7 @@ namespace Collisions {
 
         return 1;
     };
+    #endif
 
     // Determine if a sphere intersects an unrotated cube.
     bool SphereAndAABB(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
