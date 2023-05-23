@@ -100,10 +100,10 @@ namespace Primitives {
             ZMath::Vec3D* getVertices() const {
                 ZMath::Vec3D* v = new ZMath::Vec3D[4]; // 4 as it is rectangular
 
-                v[0] = ZMath::Vec3D(-halfSize.x, -halfSize.y, pos.z);
-                v[1] = ZMath::Vec3D(-halfSize.x, halfSize.y, 0);
-                v[2] = ZMath::Vec3D(halfSize.x, halfSize.y, 0);
-                v[3] = ZMath::Vec3D(halfSize.x, -halfSize.y, 0);
+                v[0] = ZMath::Vec3D(-halfSize.x, -halfSize.y, 0.0f);
+                v[1] = ZMath::Vec3D(-halfSize.x, halfSize.y, 0.0f);
+                v[2] = ZMath::Vec3D(halfSize.x, halfSize.y, 0.0f);
+                v[3] = ZMath::Vec3D(halfSize.x, -halfSize.y, 0.0f);
 
                 // rotate each vertex
                 for (int i = 0; i < 4; i++) { v[i] = rot*v[i] + pos; }
@@ -197,14 +197,14 @@ namespace Primitives {
                 ZMath::Vec3D* v = new ZMath::Vec3D[8];
 
                 // todo reorder to match OpenGL bindings
-                v[0] = pos - halfSize;
+                v[0] = -halfSize;
                 v[1] = ZMath::Vec3D(-halfSize.x, -halfSize.y, halfSize.z);
                 v[2] = ZMath::Vec3D(halfSize.x, -halfSize.y, halfSize.z);
                 v[3] = ZMath::Vec3D(halfSize.x, -halfSize.y, -halfSize.z);
                 v[4] = ZMath::Vec3D(-halfSize.x, halfSize.y, halfSize.z);
                 v[5] = ZMath::Vec3D(-halfSize.x, halfSize.y, -halfSize.z);
                 v[6] = ZMath::Vec3D(halfSize.x, halfSize.y, -halfSize.z);
-                v[7] = pos + halfSize;
+                v[7] = halfSize;
 
                 // Rotate the vertices.
                 for (int i = 0; i < 8; i++) { v[i] = rot*v[i] + pos; }
