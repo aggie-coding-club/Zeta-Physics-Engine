@@ -49,46 +49,34 @@ namespace Primitives {
             float phi; // Angle rotated with respect to the XZ plane.
 
             /**
-             * @brief Create an unrotated plane.
-             * 
-             * @param min (Vec2D) The min vertex of the plane.
-             * @param max (Vec2D) The max vertex of the plane.
-             * @param z (float) The z-level the plane lies on.
-             */
-            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z) : halfSize((max - min) * 0.5f),
-                    pos(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z)), theta(0.0f), phi(0.0f) {
-                
-                ZMath::Vec3D v1 = ZMath::Vec3D(pos.x - halfSize.x, pos.y - halfSize.y, pos.z);
-                ZMath::Vec3D v2 = ZMath::Vec3D(pos.x + halfSize.x, pos.y - halfSize.y, pos.z);
-
-                normal = (v2 - pos).cross(v1 - pos);
-                rot = ZMath::Mat3D::identity(); // no rotation
-            };
-
-            /**
              * @brief Create a rotated plane.
              * 
              * @param min (Vec2D) The min vertex of the plane as if it was unrotated.
              * @param max (Vec2D) The max vertex of the plane as if it was unrotated.
              * @param z (float) The z-level the plane lies on.
-             * @param angXY (float) The angle, in degrees, the plane is rotated with respect to the XY plane.
-             * @param angXZ (float) The angle, in degrees, the plane is rotated with respect to the XZ plane.
+             * @param angXY (float) The angle, in degrees, the plane is rotated with respect to the XY plane. Default is 0 degrees.
+             * @param angXZ (float) The angle, in degrees, the plane is rotated with respect to the XZ plane. Default is 0 degrees.
              */
-            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY, float angXZ) : halfSize((max - min) * 0.5f),
-                    pos(ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z)), theta(angXY), phi(angXZ) {
+            Plane(ZMath::Vec2D const &min, ZMath::Vec2D const &max, float z, float angXY = 0.0f, float angXZ = 0.0f) {
+                halfSize = (max - min) * 0.5f;
+                pos = ZMath::Vec3D(min.x + halfSize.x, min.y + halfSize.y, z);
 
-                ZMath::Vec3D v1 = ZMath::Vec3D(pos.x - halfSize.x, pos.y - halfSize.y, pos.z);
-                ZMath::Vec3D v2 = ZMath::Vec3D(pos.x + halfSize.x, pos.y - halfSize.y, pos.z);
+                theta = angXY;
+                phi = angXZ;
+
+                ZMath::Vec3D v1 = ZMath::Vec3D(-halfSize.x, -halfSize.y, 0.0f);
+                ZMath::Vec3D v2 = ZMath::Vec3D(halfSize.x, -halfSize.y, 0.0f);
 
                 rot = ZMath::Mat3D::generateRotationMatrix(angXY, angXZ);
 
-                // rotate the points to find the normal
+                // Rotate the points to find the normal.
+                // We do not need to add back the positions as it would be subtracted again from both when taking the cross.
                 // // ZMath::Mat3D rotT = rot.transpose();
 
                 v1 = rot * v1;
                 v2 = rot * v2;
 
-                normal = (v2 - pos).cross(v1 - pos);
+                normal = v2.cross(v1);
             };
 
             ZMath::Vec2D getLocalMin() const { return ZMath::Vec2D(pos.x - halfSize.x, pos.y - halfSize.y); };
