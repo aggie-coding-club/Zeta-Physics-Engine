@@ -179,9 +179,14 @@ namespace Primitives {
             // @param max Max vertex of the cube as if it was not rotated.
             // @param angXY Angle the cube is rotated by with respect to the XY plane in degrees.
             // @param angXZ Angle the cube is rotated by with respect to the XZ plane in degrees.
-            Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ) : halfSize((max - min) * 0.5f),
-                    pos(min + halfSize), theta(angXY), phi(angXZ), rot(ZMath::Mat3D::generateRotationMatrix(theta, phi)) {};
-
+            Cube(ZMath::Vec3D const &min, ZMath::Vec3D const &max, float angXY, float angXZ){
+                halfSize = ((max - min) * 0.5f);
+                pos = min + halfSize;
+                theta = angXY;
+                phi = angXZ;
+                rot = ZMath::Mat3D::generateRotationMatrix(theta, phi);
+            }
+            
             // Get the min vertex in the cube's UVW coordinates.
             ZMath::Vec3D getLocalMin() const { return pos - halfSize; };
 
