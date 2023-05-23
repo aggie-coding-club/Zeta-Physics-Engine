@@ -143,7 +143,7 @@ bool testPointAndSphere() {
 
     // test 2
     point.set(1, 0, 0);
-    sphere.rb.pos.zero();
+    sphere.c.zero();
     sphere.r = 1.0f;
 
     if (UNIT_TEST("Point on Circumference of Sphere.", Collisions::PointAndSphere(point, sphere), 1)) { return 1; }
@@ -301,7 +301,7 @@ bool testLineAndSphere() {
 
     // test 2
     sphere.r = 5.0f;
-    sphere.rb.pos.set(0, 0, 0);
+    sphere.c.set(0, 0, 0);
     line.start.set(-6, 0, 0);
     line.end.set(-4, 0, 0);
 
@@ -326,7 +326,7 @@ bool testLineAndSphere() {
 
     // test 6
     sphere.r = 5;
-    sphere.rb.pos.set(-5, 0, 0);
+    sphere.c.set(-5, 0, 0);
     line.start.set(-6, 0, 0);
     line.end.set(-4, 0, 0);
 
@@ -430,20 +430,20 @@ bool testRaycastingVSSphere() {
 
     if (RAYCAST_TEST("Ray and Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 2.1324f)) { return 1; }
 
-    sphere.rb.pos.set(1, 1, 2);
+    sphere.c.set(1, 1, 2);
     sphere.r = 1.0f;
 
     if (RAYCAST_TEST("Ray and Circumference of Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 1.73205f)) { return 1; }
 
-    sphere.rb.pos.zero();
+    sphere.c.zero();
     
     if (RAYCAST_TEST("Ray starting in Sphere.", Collisions::raycast(sphere, ray, dist), 1, dist, 1.0f)) { return 1; }
 
-    sphere.rb.pos.set(-2);
+    sphere.c.set(-2);
 
     if (RAYCAST_TEST("Sphere behind Ray.", Collisions::raycast(sphere, ray, dist), 0, dist, -1.0f)) { return 1; }
 
-    sphere.rb.pos.set(3, -3, 4);
+    sphere.c.set(3, -3, 4);
 
     if (RAYCAST_TEST("Not Sphere and Ray.", Collisions::raycast(sphere, ray, dist), 0, dist, -1.0f)) { return 1; }
 
@@ -550,7 +550,7 @@ bool testSphereAndSphere() {
     // test 2
     sphere1.r = 1;
     sphere2.r = 1;
-    sphere2.rb.pos.set(2, 0, 0);
+    sphere2.c.set(2, 0, 0);
 
     if (UNIT_TEST("Sphere and Sphere on Circumference.", Collisions::SphereAndSphere(sphere1, sphere2), 1)) { return 1; }
 
@@ -586,7 +586,7 @@ bool testSphereAndAABB() {
     if (UNIT_TEST("Sphere inside AABB.", Collisions::SphereAndAABB(sphere, aabb3), 1)) { return 1; }
 
     // test 5
-    sphere.rb.pos.set(-7);
+    sphere.c.set(-7);
     sphere.r = 2.2f;
 
     if (UNIT_TEST("Not Sphere and AABB.", Collisions::SphereAndAABB(sphere, aabb3), 0)) { return 1; }
@@ -619,7 +619,7 @@ bool testSphereAndCube() {
     if (UNIT_TEST("Sphere inside Cube.", Collisions::SphereAndCube(sphere, cube3), 1)) { return 1; }
 
     // test 5
-    sphere.rb.pos.set(10, 3, 2);
+    sphere.c.set(10, 3, 2);
 
     if (UNIT_TEST("Not Sphere and Cube.", Collisions::SphereAndCube(sphere, cube2), 0)) { return 1; }
 
