@@ -436,19 +436,15 @@ namespace Collisions {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    #if 0
-    bool SphereAndSphere(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
-        CollisionManifold result;
-
+    bool SphereAndSphere(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2, ZMath::Vec3D &normal) {
         float r = sphere1.r + sphere2.r;
         ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
 
         if (sphereDiff.magSq() > r*r) { return 0; }
-        result.normal = sphereDiff.normalize();
+        normal = sphereDiff.normalize();
 
         return 1;
     };
-    #endif
 
     // Determine if a sphere intersects an unrotated cube.
     bool SphereAndAABB(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
