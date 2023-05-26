@@ -5,3 +5,6 @@ example/bin/*
 .DS_Store
 local_testing/
 test.cpp
+glfw-3.3.8/
+libs/*
+include/GLFW/*
