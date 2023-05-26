@@ -8,3 +8,5 @@ test.cpp
 glfw-3.3.8/
 libs/*
 include/GLFW/*
+demo/build/*
+demo/vendor/glfw3.dll
