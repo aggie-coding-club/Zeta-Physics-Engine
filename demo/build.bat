@@ -1,6 +1,6 @@
 @echo off
 
-set ENV=GNU
+set ENV= MSVC
 
 if not exist ".\build" (
     echo "Creating `.\build` directory"
@@ -19,11 +19,22 @@ if not exist "..\libs" (
 
 WHERE em++ /Q
 if ERRORLEVEL 1 (
-    call "E:\dev\learn_emsc\emsdk\emsdk_env.bat"
+    call ".\emsdk\emsdk_env.bat"
 )
 
-if exist ".\vendor\glfw3.dll"( GOTO skip_GLFW_build )
-if %ENV% == WEB ( GOTO skip_GLFW_build)
+set Skip= false
+
+if exist ".\vendor\glfw3.dll" (
+    set Skip= true
+)
+
+if %ENV% == WEB (
+    set Skip= true
+)
+
+if %Skip% == true (
+    GOTO skip_GLFW_build
+)
 
 echo Building GLFW
 copy ".\glfw_config.h" "..\glfw-3.3.8\src" >nul
@@ -69,9 +80,9 @@ for %%W in (%search_words%) do (
     )
 )
 
-set source_folder = 
-set destination_folder = 
-set search_words = 
+set source_folder= 
+set destination_folder= 
+set search_words= 
 
 popd
 

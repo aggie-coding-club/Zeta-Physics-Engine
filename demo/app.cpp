@@ -1005,7 +1005,7 @@ void app_update(float &time_step, float dt){
     transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{ground_entity->scale, ground_entity->scale, ground_entity->scale}));
     test_shader->LoadTransformationMatrix(transformation);
     test_shader->LoadColor(ground_entity->color);
-    // render(ground_entity);
+    render(ground_entity);
 
     transformation = HMM_Translate({dragon_entity->sb->pos.x, dragon_entity->sb->pos.y, dragon_entity->sb->pos.z});
     transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(dragon_entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
