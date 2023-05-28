@@ -27,6 +27,7 @@ class Entity{
 
     public:
         RawModel raw_model;
+        unsigned int def_texture;
         
         HMM_Vec4 color = {};
         float scale = 0.0f;
@@ -190,6 +191,82 @@ class Entity{
     
 };
 
+class TexturesManager{
+
+    public:
+        int textures_count = 0;
+        std::vector<Texture> textures;
+        
+        TexturesManager(){
+
+        }
+
+    public:
+        void AddTexture(std::string path, unsigned int def_name){
+            textures_count++;
+
+            Texture result = {};
+            result.file_path = path;
+            std::string texture_src = path;
+            std::string web_texture_src = "vendor/" + texture_src;
+
+            int width = 0;
+            int height = 0;
+            int nr_channels = 0;
+
+            // Note(Lenny) : might need to be flipped
+            #if __EMSCRIPTEN__
+            unsigned char *data = stbi_load(&web_texture_src[0], &width, &height, &nr_channels, 0);
+            #else
+            unsigned char *data = stbi_load(&texture_src[0], &width, &height, &nr_channels, 0);
+            #endif
+            if(data){
+                std::cout << "loaded png \n" << texture_src << std::endl;
+            } else {
+                std::cout << "failed to load png \n" << texture_src << std::endl;
+            }
+
+            glGenTextures(1, &result.id);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, result.id);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                GL_UNSIGNED_BYTE, data);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            stbi_image_free(data);
+
+            result.def_name = def_name;
+            textures.push_back(result);
+        }
+
+        // massive optimization to be done here
+        // perhaps use a fancy finding algorithm
+        unsigned int GetTextureIdentifier(unsigned int def_name){
+            unsigned int result = 0;
+            for(int i = 0; i < textures.size(); i++){
+                if(textures.at(i).def_name == def_name){
+                    result = textures.at(i).id;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        Texture GetTexture(unsigned int identifer){
+            Texture result = {};
+            for(int i = 0; i < textures.size(); i++){
+                if(textures.at(i).def_name == identifer){
+                    result = textures.at(i);
+                    break;
+                }
+            }
+            return result;
+        }
+};
+
 class Shader{
 
     public:
@@ -344,17 +421,12 @@ class Shader{
         }
 };
 
+
 Shader *test_shader = 0;
 
-
-struct Texture{
-    std::string file_path;
-    unsigned int id;
-};
-
-Texture test_texture = {};
-
-void LoadTextures(std::string filename){
+Texture LoadTextures(std::string filename){
+    Texture result = {};
+    result.file_path = filename;
     std::string texture_src = filename;
     std::string web_texture_src = "vendor/" + texture_src;
 
@@ -374,8 +446,8 @@ void LoadTextures(std::string filename){
         std::cout << "failed to load png \n" << texture_src << std::endl;
     }
 
-    glGenTextures(1, &test_texture.id);
-    glBindTexture(GL_TEXTURE_2D, test_texture.id);
+    glGenTextures(1, &result.id);
+    glBindTexture(GL_TEXTURE_2D, result.id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -384,6 +456,8 @@ void LoadTextures(std::string filename){
     glBindTexture(GL_TEXTURE_2D, 0);
 
     stbi_image_free(data);
+
+    return result;
 }
 
 template <typename Out>
@@ -621,7 +695,22 @@ void clean_up(){
     }
 }
 
-void render(Entity *entity){
+void render(Entity *entity, TexturesManager *textures_manager){
+    
+    HMM_Mat4 transformation;
+    if(entity->sb){
+        transformation = HMM_Translate({entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z});
+    } else {
+        transformation = HMM_Translate({entity->rb->pos.x, entity->rb->pos.y, entity->rb->pos.z});
+    }
+    
+    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
+    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
+    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
+    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{entity->scale, entity->scale, entity->scale}));
+    test_shader->LoadTransformationMatrix(transformation);
+    test_shader->LoadColor(entity->color);
+    
     glBindVertexArray(entity->raw_model.vao_ID);
 
     glEnableVertexAttribArray(0);
@@ -630,7 +719,7 @@ void render(Entity *entity){
     glEnableVertexAttribArray(3);    
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, test_texture.id);
+    glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->def_texture));
 
     glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
     
@@ -656,6 +745,7 @@ Entity *test_entity = 0;
 Entity *light_entity = 0;
 Entity *ground_entity = 0;
 Entity *dragon_entity = 0;
+Entity *stall_entity = 0;
 
 HMM_Mat4 projection;
 HMM_Mat4 view_matrix;
@@ -678,7 +768,7 @@ bool first_mouse = 1;
 float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
 
-
+TexturesManager textures_manager;
 void CreateViewMatrix(){
     view_matrix = HMM_LookAt_RH(camera.position, camera.position + camera_front, world_up);
 }
@@ -873,36 +963,12 @@ void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
 
 void app_start(){
     
-    printf("starting....\n");
+    printf("Program Started\n");
+    textures_manager = TexturesManager();
 
-    // ======================
-    test_entity = new Entity(HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER);
-    light_entity = new Entity(HMM_Vec3{6, -4, -20.0f}, 0.3f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
-    ground_entity = new Entity(HMM_Vec3{0, -4, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
-    dragon_entity = new Entity(HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
-    dragon_entity->color = {1.0f, 0.0f, 1.0f};
 
-    Primitives::Cube ground_cube({-30.0f, -1.0f, -30.0f}, {30.0f, 1.0f, 30.0f}, 0, 0);
-    ground_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
-
-    Primitives::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
-    test_entity->AddCollider(Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
-    light_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
-    dragon_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
-
-    test_entity->Init();
-    handler.addRigidBody(test_entity->rb);
-
-    light_entity->Init();
-    ground_entity->Init();
-
-    // model = load_obj_model("thin/dragon.obj");
-    // model = load_obj_model("cube.obj");
-    model = load_obj_model("thin/stall.obj");
-    dragon_entity->Init(model);
-
-    
-    // ====================
+    // Shader Stuff
+    // =====================================
 
     test_shader = new Shader("web_v_shader.glsl", "web_f_shader.glsl");
     glUseProgram(test_shader->program);
@@ -910,7 +976,11 @@ void app_start(){
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CW); 
-    LoadTextures("thin/stallTexture.png");
+
+    // >>>>>> Texture Stuff
+    textures_manager.AddTexture("white.png", TEXTURE_WHITE);
+    textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL);
+    
     // LoadTextures("white.png");
     // model = load_obj_model("thin/stall.obj");
     // model = load_obj_model("cube.obj");
@@ -927,6 +997,47 @@ void app_start(){
     glUseProgram(0);
 
     // ========================================
+
+    test_entity = new Entity(HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER);
+    test_entity->color = {1.0f, 0.3f, 0.3f};
+    test_entity->def_texture = TEXTURE_WHITE;
+
+    light_entity = new Entity(HMM_Vec3{6, -4, -20.0f}, 0.3f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    light_entity->color = {0.8f, 0.8f, 0.8f};
+    light_entity->def_texture = TEXTURE_WHITE;
+    
+    ground_entity = new Entity(HMM_Vec3{0, -4, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    ground_entity->color = {0.2f, 0.8f, 1.0f};
+    ground_entity->def_texture = TEXTURE_WHITE;
+    
+    dragon_entity = new Entity(HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    dragon_entity->color = {1.0f, 0.0f, 1.0f};
+    dragon_entity->def_texture = TEXTURE_WHITE;
+    
+    stall_entity = new Entity(HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    stall_entity->color = {1.0f, 1.0f, 1.0f};
+    stall_entity->def_texture = TEXTURE_STALL;
+
+    Primitives::Cube ground_cube({-30.0f, -1.0f, -30.0f}, {30.0f, 1.0f, 30.0f}, 0, 0);
+    ground_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
+
+    Primitives::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
+    test_entity->AddCollider(Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
+    light_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    dragon_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    stall_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+
+    test_entity->Init();
+    
+    handler.addRigidBody(test_entity->rb);
+
+    light_entity->Init();
+    ground_entity->Init();
+
+    RawModel dragon_model = load_obj_model("thin/dragon.obj");
+    RawModel stall_model = load_obj_model("thin/stall.obj");
+    dragon_entity->Init(dragon_model);
+    stall_entity->Init(stall_model);
 }
 
 float angle = 0.0f;
@@ -934,17 +1045,7 @@ void app_update(float &time_step, float dt){
     global_dt = dt;
     glUseProgram(test_shader->program);
 
-    float camera_radius = 10.0f;
-    // camera.position = HMM_Vec3({
-    //     camera.position.X + HMM_CosF(camera_pos_angle) * camera_radius,  
-    //     camera.position.Y, 
-    //     camera.position.Z + HMM_SinF(camera_pos_angle) * camera_radius});
-
-    // camera.yaw = camera_yaw;
-
     CreateViewMatrix();
-    // camera.position.X -= HMM_CosF(camera_pos_angle) * camera_radius;
-    // camera.position.Z -= HMM_SinF(camera_pos_angle) * camera_radius;
 
     CreateProjectionMatrix();
     test_shader->LoadProjectionMatrix(projection);
@@ -958,7 +1059,7 @@ void app_update(float &time_step, float dt){
     light_position.X += dragon_entity->sb->pos.x;
     light_position.Y += dragon_entity->sb->pos.y;
 
-    test_shader->LoadLight(light_position, {1.0f, 1.0f, 1.0f, 1.0f});
+    test_shader->LoadLight(light_position, {light_entity->color.X, light_entity->color.Y, light_entity->color.Z, 1.0f});
     
     // creating transformation matrix
     HMM_Mat4 transformation = HMM_Translate(light_position);
@@ -974,61 +1075,14 @@ void app_update(float &time_step, float dt){
 
     test_shader->LoadLight({light_pos.X, light_pos.Y, light_pos.Z}, {1.0f, 1.0f, 1.0f, 1.0f});
     
-    test_shader->LoadColor(HMM_Vec4{1.0f, 0.0f, 0.0f, 1.0f});
-    // light_entity->IncreasePosition(HMM_Vec3{0.001f, -0.000f, -0.0000f});
-    
-    render(light_entity);
-    
     // ************
-
-    // test_entity->position = {test_body_1->rb->pos.x, test_body_1->rb->pos.y, test_body_1->rb->pos.z};
-    
-    // creating transformation matrix
-    transformation = HMM_Translate({test_entity->rb->pos.x, test_entity->rb->pos.y, test_entity->rb->pos.z});
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(test_entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(test_entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(test_entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
-    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{test_entity->scale, test_entity->scale, test_entity->scale}));
-    test_shader->LoadTransformationMatrix(transformation);
-    test_shader->LoadColor(HMM_Vec4{0.0f, 1.0f, 0.0f, 1.0f});
-    render(test_entity);
-
-    // *************
-
-    // ground_entity->position = {ground_body->pos.x, ground_body->pos.y, ground_body->pos.z};
-
-     // creating transformation matrix
-    transformation = HMM_Translate({ground_entity->sb->pos.x, ground_entity->sb->pos.y, ground_entity->sb->pos.z});
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(ground_entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(ground_entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(ground_entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
-    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{ground_entity->scale, ground_entity->scale, ground_entity->scale}));
-    test_shader->LoadTransformationMatrix(transformation);
-    test_shader->LoadColor(ground_entity->color);
-    render(ground_entity);
-
-    transformation = HMM_Translate({dragon_entity->sb->pos.x, dragon_entity->sb->pos.y, dragon_entity->sb->pos.z});
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(dragon_entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(dragon_entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(dragon_entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
-    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{dragon_entity->scale, dragon_entity->scale, dragon_entity->scale}));
-    test_shader->LoadTransformationMatrix(transformation);
-    test_shader->LoadColor(dragon_entity->color);
-    render(dragon_entity);
+    render(light_entity, &textures_manager);    
+    render(test_entity, &textures_manager);
+    render(ground_entity, &textures_manager);
+    render(dragon_entity, &textures_manager);
+    render(stall_entity, &textures_manager);
     
     // **************
-
-    #if 0
-        transformation = HMM_Translate(test_entity->position);
-        transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(test_entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
-        transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(test_entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
-        transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(test_entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
-        transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{test_entity->scale, test_entity->scale, test_entity->scale}));
-        test_shader->LoadTransformationMatrix(transformation);
-        test_entity->IncreaseRotation(0.0001f * dt, 0, 0.000f);
-
-        render(test_entity)
-    #endif
     
     int physics_updates = handler.update(time_step);
     

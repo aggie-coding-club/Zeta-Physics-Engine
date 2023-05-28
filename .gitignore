@@ -11,3 +11,4 @@ include/GLFW/*
 demo/build/*
 demo/vendor/glfw3.dll
 emsdk/*
+.vs/*

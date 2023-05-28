@@ -15,6 +15,21 @@
 #define WINDOW_HEIGHT 480
 #define DEFAULT_FOV 70
 
+// Textures
+// ================
+
+#define TEXTURE_WHITE 1
+#define TEXTURE_STALL 2
+
+// ================
+
+
+struct Texture{
+    std::string file_path;
+    unsigned int def_name;
+    unsigned int id;
+};
+
 struct RawModel{
     unsigned int vao_ID;
     unsigned int vertex_count;
@@ -37,9 +52,7 @@ struct VertexData{
 
 #define Assert(expression) if(!(expression)) {*(int *)0 = 0;}
 
-// RawModel load_to_VAO(std::vector<float> positions, 
-//     std::vector<float> tex_coords, std::vector<float> normals, 
-//     std::vector<int> indices, std::vector<float> color);
+Texture LoadTextures(std::string filename);
 RawModel load_to_VAO(VertexData *vertex_data);
 void clean_up();
 
