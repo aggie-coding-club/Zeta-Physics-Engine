@@ -8,7 +8,7 @@ test.cpp
 glfw/
 libs/*
 include/GLFW/*
-demo/build/*
+demo/build/
 demo/vendor/glfw3.dll
 emsdk/*
 .vs/*

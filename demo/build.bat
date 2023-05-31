@@ -1,6 +1,8 @@
 @echo off
 
-set ENV= WEB
+
+@REM ENV can either be GNU, MSVC, or WEB
+set ENV= GNU
 
 if not exist ".\build" (
     echo "Creating `.\build` directory"
@@ -15,6 +17,28 @@ if not exist ".\build\vendor" (
 if not exist "..\libs" (
     echo "Creating `.\libs` directory"
     mkdir "..\libs"
+)
+
+@REM check if EMSDK folder is empty
+dir /b /s /a "..\emsdk\" | findstr . > nul || (
+    echo EMSDK Folder is empty
+    
+    pushd "../emsdk"
+    call git submodule init
+    call git submodule update
+    popd
+)
+
+
+@REM check if GLFW folder is empty
+dir /b /s /a "..\glfw\" | findstr . > nul || (
+    @REM The program should never really run this nest of commands
+    echo GLFW Folder is empty
+
+    pushd "../glfw"
+    call git submodule init
+    call git submodule update
+    popd
 )
 
 @REM start  em++
