@@ -41,15 +41,17 @@ dir /b /s /a "..\glfw\" | findstr . > nul || (
     popd
 )
 
-@REM start  em++
-WHERE em++ /Q
-if ERRORLEVEL 1 (
-    @REM how do I if this fails?
-    echo Starting EM++
-    echo NOTE : First time run may take some time
-    call ..\emsdk\emsdk install latest
-    call ..\emsdk\emsdk activate latest
-    call "..\emsdk\emsdk_env.bat"
+if %ENV% == WEB (
+    @REM start  em++
+    WHERE em++ /Q
+    if ERRORLEVEL 1 (
+        @REM how do I if this fails?
+        echo Starting EM++
+        echo NOTE : First time run may take some time
+        call ..\emsdk\emsdk install latest
+        call ..\emsdk\emsdk activate latest
+        call "..\emsdk\emsdk_env.bat"
+    )
 )
 
 set Skip= false
@@ -88,7 +90,7 @@ if not exist ".\temp" (
 
 @REM move files not related to windows to temporary directory
 set source_folder=.\
-set search_words=x11 wl linux cocoa glx xkb posix null
+set search_words=x11 wl linux cocoa glx xkb posix
 set destination_folder=.\temp
 
 for %%W in (%search_words%) do (
