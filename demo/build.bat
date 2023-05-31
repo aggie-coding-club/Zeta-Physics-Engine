@@ -45,8 +45,8 @@ if %Skip% == true (
 @REM --------- Start of GLFW Build ------------
 
 echo Building GLFW
-copy ".\glfw_config.h" "..\glfw-3.3.8\src" >nul
-pushd "../glfw-3.3.8/src"
+copy ".\glfw_config.h" "..\glfw\src" >nul
+pushd "../glfw/src"
 
 if not exist "..\..\include\GLFW" (
     robocopy ..\include\GLFW\ ..\..\include\GLFW  /E /NJH /NJS /NFL /NDL
