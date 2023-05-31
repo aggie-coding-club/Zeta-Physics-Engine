@@ -1,6 +1,6 @@
 @echo off
 
-set ENV= MSVC
+set ENV= WEB
 
 if not exist ".\build" (
     echo "Creating `.\build` directory"
@@ -17,9 +17,15 @@ if not exist "..\libs" (
     mkdir "..\libs"
 )
 
+@REM start  em++
 WHERE em++ /Q
 if ERRORLEVEL 1 (
-    call ".\emsdk\emsdk_env.bat"
+    @REM how do I if this fails?
+    echo Starting EM++
+    echo NOTE : First time run may take some time
+    call ..\emsdk\emsdk install latest
+    call ..\emsdk\emsdk activate latest
+    call "..\emsdk\emsdk_env.bat"
 )
 
 set Skip= false
@@ -35,6 +41,8 @@ if %ENV% == WEB (
 if %Skip% == true (
     GOTO skip_GLFW_build
 )
+
+@REM --------- Start of GLFW Build ------------
 
 echo Building GLFW
 copy ".\glfw_config.h" "..\glfw-3.3.8\src" >nul
@@ -66,7 +74,9 @@ for %%W in (%search_words%) do (
 )
 
 pushd "./build"
+    @REM (is building glfw with MSVC even neccessary?) 
     @REM cl /D_USRDLL /D_WINDLL -I../ -I../../deps ../*.c -D_GLFW_USE_CONFIG_H -D_GLFW_BUILD_DLL Gdi32.lib User32.lib Shell32.lib /link /DLL /OUT:glfw3.dll
+
     gcc -c ../*.c -I../../deps -D_GLFW_BUILD_DLL -D_GLFW_USE_CONFIG_H -lOpengl32 -lShell32 -lGdi32 -lUser32
     gcc -shared -o glfw3.dll *.o -Wl,--out-implib,libglfw3.a -lOpengl32 -lShell32 -lGdi32 -lUser32
     copy "glfw3.dll" "../../../demo/vendor" 
@@ -79,6 +89,8 @@ for %%W in (%search_words%) do (
         move "%%F" "%source_folder%" >nul
     )
 )
+
+@REM --------- End of GLFW Build ------------
 
 set source_folder= 
 set destination_folder= 
