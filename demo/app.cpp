@@ -746,6 +746,7 @@ Entity *light_entity = 0;
 Entity *ground_entity = 0;
 Entity *dragon_entity = 0;
 Entity *stall_entity = 0;
+Entity *test_cube_entity = 0;
 
 HMM_Mat4 projection;
 HMM_Mat4 view_matrix;
@@ -891,40 +892,40 @@ void AddVertexIndice(VertexData *vertex_data, int x, float y, float z){
 void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
 
     // TOP
-    AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z);
-    AddVertexPosition(vertex_data, zeta_verts[5].x, zeta_verts[5].y, zeta_verts[5].z);
-    AddVertexPosition(vertex_data, zeta_verts[6].x, zeta_verts[6].y, zeta_verts[6].z);
-    AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z);
-
-    // BOTTOM
-    AddVertexPosition(vertex_data, zeta_verts[0].x, zeta_verts[0].y, zeta_verts[0].z);
-    AddVertexPosition(vertex_data, zeta_verts[1].x, zeta_verts[1].y, zeta_verts[1].z);
-    AddVertexPosition(vertex_data, zeta_verts[2].x, zeta_verts[2].y, zeta_verts[2].z);
-    AddVertexPosition(vertex_data, zeta_verts[3].x, zeta_verts[3].y, zeta_verts[3].z);
-
-    // FRONT
-    AddVertexPosition(vertex_data, zeta_verts[1].x, zeta_verts[1].y, zeta_verts[1].z);
-    AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z);
-    AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z);
-    AddVertexPosition(vertex_data, zeta_verts[2].x, zeta_verts[2].y, zeta_verts[2].z);
-
-    // BACK
-    AddVertexPosition(vertex_data, zeta_verts[0].x, zeta_verts[0].y, zeta_verts[0].z); // back  bottom left
-    AddVertexPosition(vertex_data, zeta_verts[3].x, zeta_verts[3].y, zeta_verts[3].z); // back bottom right
+    AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z); // front top left
+    AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z); // front top right
     AddVertexPosition(vertex_data, zeta_verts[6].x, zeta_verts[6].y, zeta_verts[6].z); // back top right
     AddVertexPosition(vertex_data, zeta_verts[5].x, zeta_verts[5].y, zeta_verts[5].z); // back top left
 
+    // BOTTOM
+    AddVertexPosition(vertex_data, zeta_verts[0].x, zeta_verts[0].y, zeta_verts[0].z); // back  bottom left
+    AddVertexPosition(vertex_data, zeta_verts[3].x, zeta_verts[3].y, zeta_verts[3].z); // back bottom right
+    AddVertexPosition(vertex_data, zeta_verts[2].x, zeta_verts[2].y, zeta_verts[2].z); // front bottom right
+    AddVertexPosition(vertex_data, zeta_verts[1].x, zeta_verts[1].y, zeta_verts[1].z); // front bottom left
+
+    // FRONT
+    AddVertexPosition(vertex_data, zeta_verts[1].x, zeta_verts[1].y, zeta_verts[1].z); // front bottom left
+    AddVertexPosition(vertex_data, zeta_verts[2].x, zeta_verts[2].y, zeta_verts[2].z); // front bottom right
+    AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z); // front top right
+    AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z); // front top left
+
+    // BACK
+    AddVertexPosition(vertex_data, zeta_verts[3].x, zeta_verts[3].y, zeta_verts[3].z); // back bottom right
+    AddVertexPosition(vertex_data, zeta_verts[0].x, zeta_verts[0].y, zeta_verts[0].z); // back bottom left
+    AddVertexPosition(vertex_data, zeta_verts[5].x, zeta_verts[5].y, zeta_verts[5].z); // back top left
+    AddVertexPosition(vertex_data, zeta_verts[6].x, zeta_verts[6].y, zeta_verts[6].z); // back top right
+
     // RIGHT
-    AddVertexPosition(vertex_data, zeta_verts[3].x, zeta_verts[3].y, zeta_verts[3].z);
-    AddVertexPosition(vertex_data, zeta_verts[2].x, zeta_verts[2].y, zeta_verts[2].z);
-    AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z);
-    AddVertexPosition(vertex_data, zeta_verts[6].x, zeta_verts[6].y, zeta_verts[6].z);
+    AddVertexPosition(vertex_data, zeta_verts[3].x, zeta_verts[3].y, zeta_verts[3].z); // back bottom right
+    AddVertexPosition(vertex_data, zeta_verts[6].x, zeta_verts[6].y, zeta_verts[6].z); // back top right
+    AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z); // front top right
+    AddVertexPosition(vertex_data, zeta_verts[2].x, zeta_verts[2].y, zeta_verts[2].z); // front bottom right
 
     // LEFT
     AddVertexPosition(vertex_data, zeta_verts[0].x, zeta_verts[0].y, zeta_verts[0].z); // back bottom left
-    AddVertexPosition(vertex_data, zeta_verts[5].x, zeta_verts[5].y, zeta_verts[5].z); // back top left
-    AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z); // front top left
     AddVertexPosition(vertex_data, zeta_verts[1].x, zeta_verts[1].y, zeta_verts[1].z); // front bottom left
+    AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z); // front top left
+    AddVertexPosition(vertex_data, zeta_verts[5].x, zeta_verts[5].y, zeta_verts[5].z); // back top left
 
     vertex_data->index = 0;
     AddVertexIndice(vertex_data, 0, 1, 3);
@@ -975,7 +976,7 @@ void app_start(){
     
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    glFrontFace(GL_CW); 
+    glFrontFace(GL_CCW); 
 
     // >>>>>> Texture Stuff
     textures_manager.AddTexture("white.png", TEXTURE_WHITE);
@@ -1018,6 +1019,11 @@ void app_start(){
     stall_entity->color = {1.0f, 1.0f, 1.0f};
     stall_entity->def_texture = TEXTURE_STALL;
 
+    test_cube_entity = new Entity(HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    test_cube_entity->color = {1.0f, 1.0f, 1.0f};
+    test_cube_entity->def_texture = TEXTURE_WHITE;
+
+
     Primitives::Cube ground_cube({-30.0f, -1.0f, -30.0f}, {30.0f, 1.0f, 30.0f}, 0, 0);
     ground_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
 
@@ -1026,6 +1032,7 @@ void app_start(){
     light_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     dragon_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     stall_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    test_cube_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
 
     test_entity->Init();
     
@@ -1036,8 +1043,11 @@ void app_start(){
 
     RawModel dragon_model = load_obj_model("thin/dragon.obj");
     RawModel stall_model = load_obj_model("thin/stall.obj");
+    RawModel test_cube_model = load_obj_model("cube.obj");
     dragon_entity->Init(dragon_model);
     stall_entity->Init(stall_model);
+    // test_cube_entity->Init(test_cube_model);
+    test_cube_entity->Init();
 }
 
 float angle = 0.0f;
@@ -1081,6 +1091,7 @@ void app_update(float &time_step, float dt){
     render(ground_entity, &textures_manager);
     render(dragon_entity, &textures_manager);
     render(stall_entity, &textures_manager);
+    render(test_cube_entity, &textures_manager);
     
     // **************
     
