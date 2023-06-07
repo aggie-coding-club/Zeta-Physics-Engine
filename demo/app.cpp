@@ -489,16 +489,13 @@ void ProcessVertex(std::vector<std::string> vertexData, std::vector<int> *indice
     texturesArray->at(currentVertexPointer * 2 + 1) = 1 - currentTex.Y;
 
     HMM_Vec3 currentNormal = normals->at((int)std::stof(vertexData[2]) - 1);
-    // normalsArray->push_back(currentNormal.X);
-    // normalsArray->push_back(currentNormal.Y);
-    // normalsArray->push_back(currentNormal.Z);
 
     normalsArray->at(currentVertexPointer * 3) = currentNormal.X;
     normalsArray->at(currentVertexPointer * 3 + 1) = currentNormal.Y;
     normalsArray->at(currentVertexPointer * 3 + 2) = currentNormal.Z;
 }
 
-RawModel load_obj_model(std::string fileName){
+RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
     // NOTE (Lenny) : Check for invalid files
 
     #if __EMSCRIPTEN__
@@ -524,6 +521,7 @@ RawModel load_obj_model(std::string fileName){
     std::vector<float> texturesArray;
     std::vector<float> colorsArray;
 
+    int index = 0;
     // Use a while loop together with the getline() function to read the file line by  line
     while (std::getline (objFile, objLine)) {
         std::vector<std::string> s = SplitString(objLine, ' ');
@@ -545,8 +543,14 @@ RawModel load_obj_model(std::string fileName){
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
-            HMM_Vec3 normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            // HMM_Vec3 normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            HMM_Vec3 normal = {};
+
+            normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            // normal = {1.0f, 0.0f, 0.0f};
+
             normals.push_back(normal);
+            index++;
             // printf("x : %f, y : %f, z : %f", normal.x, normal.y, normal.z);
         
         } else if(s[0] == "f"){ // indicies
@@ -566,38 +570,18 @@ RawModel load_obj_model(std::string fileName){
         }
     };
 
-    // Indices
-    // while (std::getline (objFile, objLine)) {
-    //     std::vector<std::string> s = SplitString(objLine, ' ');
-    //     // printf("-> %s \n", &objLine[0]);
-    //     // std::cout << s[1] + s[2] + s[3] << std::endl;
-
-    //     if(s[0] == "f"){ // indicies
-         
-    //         std::vector<std::string> vertex1 = SplitString(s[1], '/');
-    //         std::vector<std::string> vertex2 = SplitString(s[2], '/');
-    //         std::vector<std::string> vertex3 = SplitString(s[3], '/');
-
-    //         ProcessVertex(vertex1, &indicesArray, &textures, &normals, &texturesArray, &normalsArray);
-    //         ProcessVertex(vertex2, &indicesArray, &textures, &normals, &texturesArray, &normalsArray);
-    //         ProcessVertex(vertex3, &indicesArray, &textures, &normals, &texturesArray, &normalsArray);
-    //     }
-    // }    
-
     // Close the file
     objFile.close();
-    
 
-    // int vertexPointer = 0;
+    index = 0;
     for(HMM_Vec3 vertex:vertices){
         verticesArray.push_back(vertex.X);
         verticesArray.push_back(vertex.Y);
         verticesArray.push_back(vertex.Z);
 
-        colorsArray.push_back(1.0f);
-        colorsArray.push_back(0.0f);
-        colorsArray.push_back(1.0f);
-        // colorsArray.push_back(1.0f);
+        colorsArray.push_back(color.X);
+        colorsArray.push_back(color.Y);
+        colorsArray.push_back(color.Z);
     }
 
     VertexData vertexData = {};
@@ -946,20 +930,23 @@ void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
     AddVertexIndice(vertex_data, 20, 21, 23);
     AddVertexIndice(vertex_data, 23, 21, 22);
 
+
+    // NOTE(Lenny): Calculations may not work for other shapes besides prisms
     vertex_data->index = 0;
     float *positions = vertex_data->positions;
     for(int i = 0; i < 6; i++){
-        HMM_Vec3 v1 = {positions[i * 3 * 4 + 0], positions[i * 3 * 4 + 1], positions[i * 3 * 4 + 2]};
-        HMM_Vec3 v2 = {positions[i * 3 * 4 + 3], positions[i * 3 * 4 + 4], positions[i * 3 * 4 + 5]};
-        HMM_Vec3 v3 = {positions[i * 3 * 4 + 6], positions[i * 3 * 4 + 7], positions[i * 3 * 4 + 8]};
-        HMM_Vec3 v4 = {positions[i * 3 * 4 + 9], positions[i * 3 * 4 + 10], positions[i * 3 * 4 + 11]};
+        HMM_Vec3 v1 = {positions[i * 3 * 4 + 0], positions[i * 3 * 4 + 1], positions[i * 3 * 4 + 2]}; // back  bottom left
+        HMM_Vec3 v2 = {positions[i * 3 * 4 + 3], positions[i * 3 * 4 + 4], positions[i * 3 * 4 + 5]}; // back bottom right
+        HMM_Vec3 v3 = {positions[i * 3 * 4 + 6], positions[i * 3 * 4 + 7], positions[i * 3 * 4 + 8]}; // front bottom right
+        HMM_Vec3 v4 = {positions[i * 3 * 4 + 9], positions[i * 3 * 4 + 10], positions[i * 3 * 4 + 11]}; // front bottom left
 
         HMM_Vec3 norm = HMM_Cross(v2 - v1, v4 - v1) * (-1);
-        AddVertexNormal(vertex_data, norm.X, norm.Y, norm.Z);
-        AddVertexNormal(vertex_data, norm.X, norm.Y, norm.Z);
-        AddVertexNormal(vertex_data, norm.X, norm.Y, norm.Z);
-        AddVertexNormal(vertex_data, norm.X, norm.Y, norm.Z);
+        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
+        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
+        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
+        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
     }
+    vertex_data->index = 0;
 }
 
 void app_start(){
@@ -986,10 +973,11 @@ void app_start(){
     // model = load_obj_model("thin/stall.obj");
     // model = load_obj_model("cube.obj");
     
-    camera.position.Y = 10.0f;
-    camera.position.Z = 20.0f;
-    camera.pitch = 25.0f;
-    camera.yaw = 0.0f;
+    camera.position.X = 10.0f;
+    camera.position.Y = 50.0f;
+    camera.position.Z = 10.0f;
+    camera.pitch = -60.0f;
+    camera.yaw = -60.0f;
     camera.speed = 10000.0f;
 
     CreateProjectionMatrix();
@@ -1003,7 +991,7 @@ void app_start(){
     test_entity->color = {1.0f, 0.3f, 0.3f};
     test_entity->def_texture = TEXTURE_WHITE;
 
-    light_entity = new Entity(HMM_Vec3{6, -4, -20.0f}, 0.3f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    light_entity = new Entity(HMM_Vec3{17, 16, -3.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
@@ -1020,7 +1008,7 @@ void app_start(){
     stall_entity->def_texture = TEXTURE_STALL;
 
     test_cube_entity = new Entity(HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
-    test_cube_entity->color = {1.0f, 1.0f, 1.0f};
+    test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
 
@@ -1038,16 +1026,17 @@ void app_start(){
     
     handler.addRigidBody(test_entity->rb);
 
-    light_entity->Init();
-    ground_entity->Init();
 
-    RawModel dragon_model = load_obj_model("thin/dragon.obj");
-    RawModel stall_model = load_obj_model("thin/stall.obj");
-    RawModel test_cube_model = load_obj_model("cube.obj");
+    RawModel dragon_model = load_obj_model("thin/dragon.obj", dragon_entity->color);
+    RawModel stall_model = load_obj_model("thin/stall.obj", stall_entity->color);
+    RawModel test_cube_model = load_obj_model("cube.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     dragon_entity->Init(dragon_model);
     stall_entity->Init(stall_model);
+
+    light_entity->Init(test_cube_model);
+    test_cube_entity->Init(test_cube_model);
+    ground_entity->Init();
     // test_cube_entity->Init(test_cube_model);
-    test_cube_entity->Init();
 }
 
 float angle = 0.0f;
@@ -1062,14 +1051,16 @@ void app_update(float &time_step, float dt){
     test_shader->LoadViewMatrix(view_matrix);    
 
     // *************
-    float radius = 20.0f;
+    float radius = 10.0f;
     angle += 1.0f * dt;
 
-    HMM_Vec3 light_position = HMM_Vec3{HMM_CosF(angle) * radius, HMM_SinF(angle)  * radius, dragon_entity->sb->pos.z};
-    light_position.X += dragon_entity->sb->pos.x;
-    light_position.Y += dragon_entity->sb->pos.y;
+    HMM_Vec3 light_position = HMM_Vec3{test_cube_entity->sb->pos.x + HMM_CosF(angle) * radius, test_cube_entity->sb->pos.y, test_cube_entity->sb->pos.z + HMM_SinF(angle)  * radius};
+    light_entity->sb->pos = {light_position.X, light_position.Y, light_position.Z};
 
-    test_shader->LoadLight(light_position, {light_entity->color.X, light_entity->color.Y, light_entity->color.Z, 1.0f});
+    // HMM_Vec3 light_position = HMM_Vec3{light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
+    // test_cube_entity->rotation_y = angle;
+
+    // test_shader->LoadLight(light_position, {light_entity->color.X, light_entity->color.Y, light_entity->color.Z, 1.0f});
     
     // creating transformation matrix
     HMM_Mat4 transformation = HMM_Translate(light_position);
@@ -1077,20 +1068,16 @@ void app_update(float &time_step, float dt){
     transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(light_entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
     transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(light_entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
     transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{light_entity->scale, light_entity->scale, light_entity->scale}));
-    test_shader->LoadTransformationMatrix(transformation);
+    // test_shader->LoadTransformationMatrix(transformation);
 
-    
-    HMM_Vec4 light_pos = {light_position.X, light_position.Y, light_position.Z, 1.0f};
-    light_pos = transformation * light_pos;
-
-    test_shader->LoadLight({light_pos.X, light_pos.Y, light_pos.Z}, {1.0f, 1.0f, 1.0f, 1.0f});
+    test_shader->LoadLight({light_position.X, light_position.Y, light_position.Z}, {1.0f, 0.0f, 0.0f, 1.0f});
     
     // ************
     render(light_entity, &textures_manager);    
-    render(test_entity, &textures_manager);
-    render(ground_entity, &textures_manager);
-    render(dragon_entity, &textures_manager);
-    render(stall_entity, &textures_manager);
+    // render(test_entity, &textures_manager);
+    // render(ground_entity, &textures_manager);
+    // render(dragon_entity, &textures_manager);
+    // render(stall_entity, &textures_manager);
     render(test_cube_entity, &textures_manager);
     
     // **************
