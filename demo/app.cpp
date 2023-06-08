@@ -92,7 +92,7 @@ class Entity{
                 1,0
             };
 
-            HMM_Vec4 color = {1.0f, 0.0f, 0.0f, 1.0f};
+            HMM_Vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
             std::vector<float> cube_colors = {
                 // TOP
                 color.X, color.Y, color.Z,
@@ -132,10 +132,10 @@ class Entity{
             };
 
             VertexData vertex_data = {};
-            vertex_data.positions = new float[3 * 4 * 6 * sizeof(float)];
-            vertex_data.normals = new float[3 * 4 * 6 * sizeof(float)];
-            vertex_data.colors = new float[3 * 4 * 6 * sizeof(float)];
-            vertex_data.indices = new int[3 * 2 * 6 * sizeof(int)];
+            vertex_data.positions = new float[3 * 4 * 6 * sizeof(float)]();
+            vertex_data.normals = new float[3 * 4 * 6 * sizeof(float)]();
+            vertex_data.colors = new float[3 * 4 * 6 * sizeof(float)]();
+            vertex_data.indices = new int[3 * 2 * 6 * sizeof(int)]();
 
             vertex_data.tex_coords = new float[2 * 4 * 6 * sizeof(float)];
             vertex_data.len_tex_coords = 2 * 4 * 6;
@@ -643,19 +643,12 @@ void createIndicesBuffer(int indices[], int indices_size){
 }
 
 RawModel load_to_VAO(VertexData *vertex_data){
-// RawModel load_to_VAO(std::vector<float> positions, std::vector<float> tex_coords, std::vector<float> normals, std::vector<int> indices, std::vector<float> color){
     RawModel result = {};
     result.vao_ID = create_VAO();
-    // result.vertex_count = (int)(indices.size());
     result.vertex_count = vertex_data->len_indices;
 
-    // createIndicesBuffer(&indices[0], indices.size() * sizeof(int));
     createIndicesBuffer(vertex_data->indices, vertex_data->len_indices * sizeof(int));
 
-    // store_data_in_attribute_list(0, &positions[0], 3, positions.size() * sizeof(float));
-    // store_data_in_attribute_list(1, &tex_coords[0], 2, tex_coords.size() * sizeof(float));
-    // store_data_in_attribute_list(2, &normals[0], 3, normals.size() * sizeof(float));
-    // store_data_in_attribute_list(3, &color[0], 3, color.size() * sizeof(float));
     store_data_in_attribute_list(0, vertex_data->positions, 3, vertex_data->len_positions * sizeof(float));
     store_data_in_attribute_list(1, vertex_data->tex_coords, 2, vertex_data->len_tex_coords * sizeof(float));
     store_data_in_attribute_list(2, vertex_data->normals, 3, vertex_data->len_normals * sizeof(float));
@@ -912,40 +905,64 @@ void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
     AddVertexPosition(vertex_data, zeta_verts[5].x, zeta_verts[5].y, zeta_verts[5].z); // back top left
 
     vertex_data->index = 0;
-    AddVertexIndice(vertex_data, 0, 1, 3);
-    AddVertexIndice(vertex_data, 3, 1, 2);
+    // TOP
+    AddVertexIndice(vertex_data, 0, 1, 2);
+    AddVertexIndice(vertex_data, 2, 3, 0);
 
-    AddVertexIndice(vertex_data, 4, 5, 7);
-    AddVertexIndice(vertex_data, 7, 5, 6);
+    // BOTTOM
+    AddVertexIndice(vertex_data, 4, 5, 6);
+    AddVertexIndice(vertex_data, 6, 7, 4);
 
-    AddVertexIndice(vertex_data, 8, 9, 11);
-    AddVertexIndice(vertex_data, 11, 9, 10);
+    // FRONT
+    AddVertexIndice(vertex_data, 8, 9, 10);
+    AddVertexIndice(vertex_data, 10, 11, 8);
 
-    AddVertexIndice(vertex_data, 12, 13, 15);
-    AddVertexIndice(vertex_data, 15, 13, 14);
+    // BACK
+    AddVertexIndice(vertex_data, 12, 13, 14);
+    AddVertexIndice(vertex_data, 14, 15, 12);
 
-    AddVertexIndice(vertex_data, 16, 17, 19);
-    AddVertexIndice(vertex_data, 19, 17, 18);
+    // RIGHT
+    AddVertexIndice(vertex_data, 16, 17, 18);
+    AddVertexIndice(vertex_data, 18, 19, 16);
 
-    AddVertexIndice(vertex_data, 20, 21, 23);
-    AddVertexIndice(vertex_data, 23, 21, 22);
+    // LEFT
+    AddVertexIndice(vertex_data, 20, 21, 22);
+    AddVertexIndice(vertex_data, 22, 23, 20);
 
-
-    // NOTE(Lenny): Calculations may not work for other shapes besides prisms
-    vertex_data->index = 0;
+    // NOTE(Lenny): Calculations may not work for other shapes besides prisms :(
+    // vertex_data->index = 0;
     float *positions = vertex_data->positions;
-    for(int i = 0; i < 6; i++){
-        HMM_Vec3 v1 = {positions[i * 3 * 4 + 0], positions[i * 3 * 4 + 1], positions[i * 3 * 4 + 2]}; // back  bottom left
-        HMM_Vec3 v2 = {positions[i * 3 * 4 + 3], positions[i * 3 * 4 + 4], positions[i * 3 * 4 + 5]}; // back bottom right
-        HMM_Vec3 v3 = {positions[i * 3 * 4 + 6], positions[i * 3 * 4 + 7], positions[i * 3 * 4 + 8]}; // front bottom right
-        HMM_Vec3 v4 = {positions[i * 3 * 4 + 9], positions[i * 3 * 4 + 10], positions[i * 3 * 4 + 11]}; // front bottom left
+    vertex_data->len_normals = vertex_data->len_positions;
+   
+    for (int i = 0; i < vertex_data->len_indices; i += 3) {
+        int index_1 = vertex_data->indices[i];
+        int index_2 = vertex_data->indices[i + 1];
+        int index_3 = vertex_data->indices[i + 2];
 
-        HMM_Vec3 norm = HMM_Cross(v2 - v1, v4 - v1) * (-1);
-        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
-        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
-        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
-        AddVertexNormal(vertex_data, norm.X, norm.Y * (1), norm.Z);
+        HMM_Vec3 pos_1 = {positions[index_1 * 3], positions[index_1 * 3 + 1], positions[index_1 * 3 + 2]};
+        HMM_Vec3 pos_2 = {positions[index_2 * 3], positions[index_2 * 3 + 1], positions[index_2 * 3 + 2]};
+        HMM_Vec3 pos_3 = {positions[index_3 * 3], positions[index_3 * 3 + 1], positions[index_3 * 3 + 2]};
+
+        HMM_Vec3 normal = HMM_Cross(pos_2 - pos_1, pos_3 - pos_1);
+        normal = HMM_NormV3(normal);
+
+        vertex_data->normals[index_1 * 3] += normal.X;
+        vertex_data->normals[index_1 * 3 + 1] += normal.Y;
+        vertex_data->normals[index_1 * 3 + 2] += normal.Z;
+        
+        
+        vertex_data->normals[index_2 * 3] += normal.X;
+        vertex_data->normals[index_2 * 3 + 1] += normal.Y;
+        vertex_data->normals[index_2 * 3  + 2] += normal.Z;
+        
+        
+        vertex_data->normals[index_3 * 3] += normal.X;
+        vertex_data->normals[index_3 * 3 + 1] += normal.Y;
+        vertex_data->normals[index_3 * 3 + 2] += normal.Z;
+
+        int x = 0;
     }
+
     vertex_data->index = 0;
 }
 
@@ -973,11 +990,11 @@ void app_start(){
     // model = load_obj_model("thin/stall.obj");
     // model = load_obj_model("cube.obj");
     
-    camera.position.X = 10.0f;
+    camera.position.X = 1.0f;
     camera.position.Y = 50.0f;
     camera.position.Z = 10.0f;
     camera.pitch = -60.0f;
-    camera.yaw = -60.0f;
+    camera.yaw = -90.0f;
     camera.speed = 10000.0f;
 
     CreateProjectionMatrix();
@@ -988,7 +1005,7 @@ void app_start(){
     // ========================================
 
     test_entity = new Entity(HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER);
-    test_entity->color = {1.0f, 0.3f, 0.3f};
+    test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
     light_entity = new Entity(HMM_Vec3{17, 16, -3.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
@@ -1012,7 +1029,8 @@ void app_start(){
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
 
-    Primitives::Cube ground_cube({-30.0f, -1.0f, -30.0f}, {30.0f, 1.0f, 30.0f}, 0, 0);
+    // Primitives::Cube ground_cube({-30.0f, -1.0f, -30.0f}, {30.0f, 1.0f, 30.0f}, 0, 0);
+    Primitives::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
     ground_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
 
     Primitives::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
@@ -1051,10 +1069,10 @@ void app_update(float &time_step, float dt){
     test_shader->LoadViewMatrix(view_matrix);    
 
     // *************
-    float radius = 10.0f;
+    float radius = 40.0f;
     angle += 1.0f * dt;
 
-    HMM_Vec3 light_position = HMM_Vec3{test_cube_entity->sb->pos.x + HMM_CosF(angle) * radius, test_cube_entity->sb->pos.y, test_cube_entity->sb->pos.z + HMM_SinF(angle)  * radius};
+    HMM_Vec3 light_position = HMM_Vec3{ground_entity->sb->pos.x + HMM_CosF(angle) * radius, ground_entity->sb->pos.y + HMM_SinF(angle) * radius, -20.0f};
     light_entity->sb->pos = {light_position.X, light_position.Y, light_position.Z};
 
     // HMM_Vec3 light_position = HMM_Vec3{light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
@@ -1074,10 +1092,10 @@ void app_update(float &time_step, float dt){
     
     // ************
     render(light_entity, &textures_manager);    
-    // render(test_entity, &textures_manager);
-    // render(ground_entity, &textures_manager);
-    // render(dragon_entity, &textures_manager);
-    // render(stall_entity, &textures_manager);
+    render(test_entity, &textures_manager);
+    render(ground_entity, &textures_manager);
+    render(dragon_entity, &textures_manager);
+    render(stall_entity, &textures_manager);
     render(test_cube_entity, &textures_manager);
     
     // **************

@@ -23,22 +23,5 @@ void main(void){
     float dot1 = dot(unit_normal, light_direction);
     float diffuse = max(dot1, 0.3);
 
-    // out_color = vec4(f_color.xyz, 1.0) * texture(tex_sampler, f_tex_coords) * diffuse;
-    out_color = vec4(f_color.xyz, 1.0) * diffuse;
-
-    // vec3 surface_normal = unit_normal;
-
-    // if(surface_normal.r < 0.0){
-    //     surface_normal.r = 0.3;
-    // }
-
-    // if(surface_normal.g < 0.0){
-    //     surface_normal.g = 0.3;
-    // }
-    
-    // if(surface_normal.b < 0.0){
-    //     surface_normal.b = 0.3;
-    // }
-
-    // out_color = vec4(abs(surface_normal.r), abs(surface_normal.g), abs(surface_normal.b), 1.0);
+    out_color = vec4(f_color.xyz, 1.0) * texture(tex_sampler, f_tex_coords) * diffuse;
 }
