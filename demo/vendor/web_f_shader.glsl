@@ -14,14 +14,24 @@ out vec4 out_color;
 uniform sampler2D tex_sampler;
 uniform vec3 light_color;
 uniform vec3 light_position;
+uniform vec3 camera_position;
+
+uniform float specular_strength;
+uniform float reflectivity;
 
 void main(void){
 
     vec3 unit_normal = normalize(f_surface_normal);
-    vec3 light_direction = normalize(light_position - f_current_position);
+    vec3 light_dir = normalize(light_position - f_current_position);
 
-    float dot1 = dot(unit_normal, light_direction);
-    float diffuse = max(dot1, 0.3);
+    float dot1 = dot(unit_normal, light_dir);
+    vec3 diffuse = light_color * max(dot1, 0.3);
 
-    out_color = vec4(f_color.xyz, 1.0) * texture(tex_sampler, f_tex_coords) * diffuse;
+    vec3 camera_dir = -normalize(camera_position - f_current_position);
+    vec3 reflect_dir = reflect(light_dir, unit_normal);
+
+    float spec = pow(max(dot(camera_dir, reflect_dir), 0.0), reflectivity);
+    vec3 specular = specular_strength * spec * light_color.xyz; 
+
+    out_color = (vec4(diffuse + specular, 1.0)) * vec4(f_color, 1.0) * texture(tex_sampler, f_tex_coords);
 }

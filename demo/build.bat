@@ -145,7 +145,7 @@ if %ENV% == WEB (
      --preload-file ./vendor/web_v_shader.glsl --preload-file ./vendor/web_f_shader.glsl^
      --preload-file ./vendor/checker_board.png --preload-file ./vendor/thin/stall.obj^
      --preload-file ./vendor/thin/stallTexture.png --preload-file ./vendor/thin/dragon.obj^
-     --preload-file ./vendor/white.png^
+     --preload-file ./vendor/white.png --preload-file ./vendor/cube.obj^
      
     popd
 )

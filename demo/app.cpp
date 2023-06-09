@@ -274,9 +274,10 @@ class Shader{
         unsigned int u_transform_matrix = 0;
         unsigned int u_projection_matrix = 0;
         unsigned int u_view_matrix = 0;
+        unsigned int u_camera_position = 0;
         unsigned int u_light_position = 0;
         unsigned int u_light_color = 0;
-        unsigned int u_shine_damper = 0;
+        unsigned int u_specular_strength = 0;
         unsigned int u_reflectivity = 0;
         unsigned int u_color = 0;
 
@@ -358,9 +359,11 @@ class Shader{
             u_transform_matrix = GetUniformLocation("transformation_matrix");
             u_projection_matrix = GetUniformLocation("projection_matrix");
             u_view_matrix = GetUniformLocation("view_matrix");
+            u_camera_position = GetUniformLocation("camera_position");
+
             u_light_position = GetUniformLocation("light_position");
             u_light_color = GetUniformLocation("light_color");
-            u_shine_damper = GetUniformLocation("shine_damper");
+            u_specular_strength = GetUniformLocation("specular_strength");
             u_reflectivity = GetUniformLocation("reflectivity");
             u_color = GetUniformLocation("u_color");
             
@@ -386,8 +389,12 @@ class Shader{
             LoadVec3f(u_light_color, HMM_Vec3{color.X, color.Y, color.Z});
         }
 
-        void LoadShineVariables(float shine_damper, float reflectivity){
-            LoadFloat(u_shine_damper, shine_damper);
+        void LoadCameraPosition(HMM_Vec3 position){
+            LoadVec3f(u_camera_position, position);
+        }
+
+        void LoadShineVariables(float specular_strength, float reflectivity){
+            LoadFloat(u_specular_strength, specular_strength);
             LoadFloat(u_reflectivity, reflectivity);
         }
 
@@ -798,6 +805,7 @@ void SetCursorPosition(float x, float y){
     camera_direction.Z = HMM_SinF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
 
     camera_front = HMM_Norm(camera_direction);
+    // camera_front = {0.0f, 0.0f, -1.0f};
 }
 
 void SetScroll(float x_offset, float y_offset){
@@ -998,7 +1006,7 @@ void app_start(){
     camera.speed = 10000.0f;
 
     CreateProjectionMatrix();
-    test_shader->LoadShineVariables(1.0f, 1.0f);
+    test_shader->LoadShineVariables(0.25f, 64.0f);
 
     glUseProgram(0);
 
@@ -1008,7 +1016,7 @@ void app_start(){
     test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
-    light_entity = new Entity(HMM_Vec3{17, 16, -3.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    light_entity = new Entity(HMM_Vec3{13, 13, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
@@ -1067,28 +1075,8 @@ void app_update(float &time_step, float dt){
     CreateProjectionMatrix();
     test_shader->LoadProjectionMatrix(projection);
     test_shader->LoadViewMatrix(view_matrix);    
-
-    // *************
-    float radius = 40.0f;
-    angle += 1.0f * dt;
-
-    HMM_Vec3 light_position = HMM_Vec3{ground_entity->sb->pos.x + HMM_CosF(angle) * radius, ground_entity->sb->pos.y + HMM_SinF(angle) * radius, -20.0f};
-    light_entity->sb->pos = {light_position.X, light_position.Y, light_position.Z};
-
-    // HMM_Vec3 light_position = HMM_Vec3{light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
-    // test_cube_entity->rotation_y = angle;
-
-    // test_shader->LoadLight(light_position, {light_entity->color.X, light_entity->color.Y, light_entity->color.Z, 1.0f});
-    
-    // creating transformation matrix
-    HMM_Mat4 transformation = HMM_Translate(light_position);
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(light_entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(light_entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(light_entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
-    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{light_entity->scale, light_entity->scale, light_entity->scale}));
-    // test_shader->LoadTransformationMatrix(transformation);
-
-    test_shader->LoadLight({light_position.X, light_position.Y, light_position.Z}, {1.0f, 0.0f, 0.0f, 1.0f});
+    test_shader->LoadCameraPosition(camera.position);
+    test_shader->LoadLight({light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z}, {1.0f, 1.0f, 1.0f, 1.0f});
     
     // ************
     render(light_entity, &textures_manager);    

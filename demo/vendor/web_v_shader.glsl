@@ -1,5 +1,4 @@
 #version 300 es
-
 in vec3 position;
 in vec2 tex_coords;
 in vec3 normal;
