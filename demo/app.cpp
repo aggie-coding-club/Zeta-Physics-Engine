@@ -4,6 +4,7 @@
 #endif
 
 #include "app.h"
+#include "text.cpp"
 #include <GLFW/glfw3.h>
 #include <zeta/physicshandler.h>
 
