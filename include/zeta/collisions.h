@@ -384,11 +384,11 @@ namespace Collisions {
 
             // * Compute the clipping lines and line segment to be clipped
 
-            // todo in the switch, add sideNormal assignments
-
             switch(axis) {
                 case FACE_A_X: {
                     front = aabb1.pos * result.normal + hA.x;
+                    sideNormal1 = ZMath::Vec3D(0, 1, 0); // yNormal
+                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
 
                     negSide1 = aabb1.pos.y - hA.y; // negSideY
                     posSide1 = aabb1.pos.y + hA.y; // posSideY
@@ -401,6 +401,8 @@ namespace Collisions {
 
                 case FACE_A_Y: {
                     front = aabb1.pos * result.normal + hA.y;
+                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
+                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
 
                     negSide1 = aabb1.pos.x - hA.x; // negSideX
                     posSide1 = aabb1.pos.x + hA.x; // posSideX
@@ -413,6 +415,8 @@ namespace Collisions {
 
                 case FACE_A_Z: {
                     front = aabb1.pos * result.normal + hA.z;
+                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
+                    sideNormal2 = ZMath::Vec3D(0, 1, 0); // yNormal
 
                     negSide1 = aabb1.pos.x - hA.x; // negSideX
                     posSide1 = aabb1.pos.x + hA.x; // posSideX
@@ -568,6 +572,8 @@ namespace Collisions {
             switch(axis) {
                 case FACE_A_X: {
                     front = aabb.pos * result.normal + hA.x;
+                    sideNormal1 = ZMath::Vec3D(0, 1, 0); // yNormal
+                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
 
                     negSide1 = aabb.pos.y - hA.y; // negSideY
                     posSide1 = aabb.pos.y + hA.y; // posSideY
@@ -580,6 +586,8 @@ namespace Collisions {
 
                 case FACE_A_Y: {
                     front = aabb.pos * result.normal + hA.y;
+                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
+                    sideNormal2 = ZMath::Vec3D(0, 0, 1); // zNormal
 
                     negSide1 = aabb.pos.x - hA.x; // negSideX
                     posSide1 = aabb.pos.x + hA.x; // posSideX
@@ -592,6 +600,8 @@ namespace Collisions {
 
                 case FACE_A_Z: {
                     front = aabb.pos * result.normal + hA.z;
+                    sideNormal1 = ZMath::Vec3D(1, 0, 0); // xNormal
+                    sideNormal2 = ZMath::Vec3D(0, 1, 0); // yNormal
 
                     negSide1 = aabb.pos.x - hA.x; // negSideX
                     posSide1 = aabb.pos.x + hA.x; // posSideX
