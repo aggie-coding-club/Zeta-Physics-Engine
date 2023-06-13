@@ -39,7 +39,7 @@
 })
 
 // Run a function of unit tests.
-bool testCases(std::string test, bool (*func)()) {
+bool testCases(std::string const &test, bool (*func)()) {
     std::cout << "================== " << test << " Tests. ==================\n\n";
 
     if (func()) {

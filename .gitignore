@@ -5,3 +5,10 @@ example/bin/*
 .DS_Store
 local_testing/
 test.cpp
+glfw/
+libs/*
+include/GLFW/*
+demo/build/*
+demo/vendor/glfw3.dll
+emsdk/*
+.vs/*
