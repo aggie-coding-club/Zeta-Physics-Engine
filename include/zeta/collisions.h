@@ -567,8 +567,6 @@ namespace Collisions {
 
             // * Compute the clipping lines and line segment to be clipped
 
-            // todo in the AABB cases (FACE_A) add sideNormal calculations
-
             switch(axis) {
                 case FACE_A_X: {
                     front = aabb.pos * result.normal + hA.x;
