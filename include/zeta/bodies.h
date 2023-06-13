@@ -78,10 +78,6 @@ namespace Primitives {
             pos += vel * dt;
             netForce = ZMath::Vec3D();
 
-            // todo refactor so that we can store the colliders inside the bodies without having to update the 
-            // todo    positions of the colliders and bodies separately.
-            // ! temporary solution to test out the new architecture
-
             // Update the pos of the collider.
             // If statements are more readable than a switch here.
             if      (colliderType == RIGID_SPHERE_COLLIDER) { sphere.c = pos; }
