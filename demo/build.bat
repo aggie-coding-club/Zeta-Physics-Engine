@@ -1,8 +1,8 @@
 @echo off
 
 
-@REM ENV can either be GNU, MSVC, or WEB
-set ENV= GNU
+@REM ENV (environment) can either be GNU, MSVC, or WEB
+set ENV= MSVC
 
 if not exist ".\build" (
     echo "Creating `.\build` directory"
@@ -30,7 +30,7 @@ dir /b /s /a "..\emsdk\" | findstr . > nul || (
 )
 
 
-@REM check if GLFW folder is empty
+@REM check if GLFW folder is empty and if so Initialize and Update
 dir /b /s /a "..\glfw\" | findstr . > nul || (
     @REM The program should never really run this nest of commands
     echo GLFW Folder is empty
@@ -145,7 +145,7 @@ if %ENV% == WEB (
      --preload-file ./vendor/web_v_shader.glsl --preload-file ./vendor/web_f_shader.glsl^
      --preload-file ./vendor/checker_board.png --preload-file ./vendor/thin/stall.obj^
      --preload-file ./vendor/thin/stallTexture.png --preload-file ./vendor/thin/dragon.obj^
-     --preload-file ./vendor/white.png^
+     --preload-file ./vendor/white.png --preload-file ./vendor/cube.obj^
      
     popd
 )

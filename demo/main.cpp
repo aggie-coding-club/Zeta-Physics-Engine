@@ -10,6 +10,8 @@
 #include "glad.c"
 #endif
 
+#define CLEAR_COLOR 0.2f, 0.2f, 0.2f, 1.0f
+
 #include <stdio.h>
 #include <string>
 #include <fstream>
@@ -48,7 +50,7 @@ void RunApp(void* arg){
 
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(1,0.2,0.7,1);
+    glClearColor(CLEAR_COLOR);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     app_update(time_step, dt);
@@ -119,7 +121,7 @@ int main(void)
 
         /* Render here */
         glEnable(GL_DEPTH_TEST);
-        glClearColor(0.0f, 0.0f,0.0f,1);
+        glClearColor(CLEAR_COLOR);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         app_update(time_step, dt);
