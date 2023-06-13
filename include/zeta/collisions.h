@@ -293,6 +293,8 @@ namespace Collisions {
             // ? If the points are outside the reference cube's clipping plane (more or less inside the cube), add them as clipping points.
             // ? Otherwise, check if the vertices are separated by the edge of the reference cube used for this clipping plane.
             
+            // todo cahce the interploation values for efficiency
+
             // first input point
             if (d0 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[0]; }
             else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * (d0/(d1 + d0)) + (vIn[3] - vIn[0]) * (d2/(d3 + d2)); }
@@ -380,6 +382,8 @@ namespace Collisions {
             float front, negSide1, negSide2, posSide1, posSide2;
 
             // * Compute the clipping lines and line segment to be clipped
+
+            // todo in the switch, add sideNormal assignments
 
             switch(axis) {
                 case FACE_A_X: {
@@ -557,6 +561,8 @@ namespace Collisions {
             float front, negSide1, negSide2, posSide1, posSide2;
 
             // * Compute the clipping lines and line segment to be clipped
+
+            // todo in the AABB cases (FACE_A) add sideNormal calculations
 
             switch(axis) {
                 case FACE_A_X: {
@@ -995,6 +1001,6 @@ namespace Collisions {
 
         return {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
     };
-};
+}
 
 #endif // !COLLISIONS_H

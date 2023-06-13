@@ -4,7 +4,7 @@
 // todo any of these involving planes may have issues regarding the z in the local coords. Remember to use Compare to the z value the plane is at in local coords.
 
 #include "bodies.h"
-#include <iostream> // ! for debugging
+// #include <iostream> // ! for debugging
 
 namespace Collisions {
     // * ===================================
@@ -188,6 +188,7 @@ namespace Collisions {
     };
 
     // Determine if a line intersects an unrotated cube.
+    // todo this might not work
     bool LineAndAABB(Primitives::Line3D const &line, Primitives::AABB const &aabb) {
         // ? Check if the line has any point within the AABB's bounds.
 
@@ -198,6 +199,7 @@ namespace Collisions {
     };
 
     // Determine if a line intersects a cube.
+    // todo this might not work
     bool LineAndCube(Primitives::Line3D const &line, Primitives::Cube const &cube) {
         // ? Rotate into the Cube's UVW coordinates.
         // ? Check to see if the line is within the cube's bounds.

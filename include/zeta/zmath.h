@@ -14,8 +14,8 @@ namespace ZMath {
     // * Default tolerance value for a floating point comparison
     #define EPSILON 0.0005
 
-    // * Get the sign of a number.
-    inline float signOf(float n) { return n < 0.0f ? -1.0f : 1.0f; };
+    // * Macro to get the sign of a number.
+    #define SIGNOF(num)( num < 0 ? -1 : 1 )
 
 
     // * Class modeling a 2D Vector.
@@ -153,7 +153,7 @@ namespace ZMath {
             };
 
             // * Get the sign of each entry.
-            inline Vec2D getSigns() const { return Vec2D(signOf(x), signOf(y)); };
+            inline Vec2D getSigns() const { return Vec2D(SIGNOF(x), SIGNOF(y)); };
     };
 
 
@@ -302,7 +302,7 @@ namespace ZMath {
             };
 
             // * Get a vector with the sign of each entry.
-            inline Vec3D getSigns() const { return Vec3D(signOf(x), signOf(y), signOf(z)); };
+            inline Vec3D getSigns() const { return Vec3D(SIGNOF(x), SIGNOF(y), SIGNOF(z)); };
     };
 
 
@@ -361,9 +361,9 @@ namespace ZMath {
     // * If no epsilon is specified, the default of 5 * 10^-4 will be used.
     inline bool compare(float a, float b, float epsilon = EPSILON) { return std::fabs(a - b) <= epsilon; };
 
-    // * Handler tolerance for 3D vectors of floating point numbers.
+    // * Handle tolerance for 3D vectors of floating point numbers.
     // * If no epsilon is specified, the default of 5 * 10^-4 will be used.
-    inline bool compare(Vec3D u, Vec3D v, float epsilon = EPSILON) { return std::fabs(u.x - v.x) <= epsilon && std::fabs(u.y - v.y) <= epsilon && std::fabs(u.z - v.z) <= epsilon; };
+    inline bool compare(Vec3D const &u, Vec3D const &v, float epsilon = EPSILON) { return std::fabs(u.x - v.x) <= epsilon && std::fabs(u.y - v.y) <= epsilon && std::fabs(u.z - v.z) <= epsilon; };
 
     // * Clamp a float between a min and max.
     inline float clamp(float n, float min, float max) { return ZMath::max(ZMath::min(n, max), min); };

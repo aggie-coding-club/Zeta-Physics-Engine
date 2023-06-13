@@ -2,6 +2,9 @@
 #define PHYSICS_HANDLER_H
 
 #include "collisions.h"
+#include <stdexcept>
+
+// todo memory leak caused by not deleting the pointer arrays from the collision manifolds inside the pointer lists
 
 namespace PhysicsHandler {
     // * ====================================
@@ -30,8 +33,6 @@ namespace PhysicsHandler {
         // It's opposite for one of the two objects.
 
         float J = ((ZMath::abs(rb1->vel - rb2->vel) * -(1 + rb1->cor * rb2->cor)) * manifold.normal)/(rb1->invMass + rb2->invMass);
-        // ! only add the commented line if we end up finding this is insufficient for impulse resolution
-        // J /= manifold.numPoints; // we know the numPoints must be at least 1 for a collision to have occurred
 
         rb1->vel -= manifold.normal * (rb1->invMass * J);
         rb2->vel += manifold.normal * (rb2->invMass * J);

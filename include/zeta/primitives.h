@@ -27,10 +27,10 @@ namespace Primitives {
             Line3D(ZMath::Vec3D const &p1, ZMath::Vec3D const &p2) : start(p1), end(p2) {};
 
             // A vector with the lowest value of x, y, and z the line segment reaches.
-            ZMath::Vec3D getMin() const { return ZMath::Vec3D(ZMath::min(start.x, end.x), ZMath::min(start.y, end.y), ZMath::min(start.z, end.z)); };
+            inline ZMath::Vec3D getMin() const { return ZMath::Vec3D(ZMath::min(start.x, end.x), ZMath::min(start.y, end.y), ZMath::min(start.z, end.z)); };
 
             // A vector with greatest value of x, y, and z the line segment reaches.
-            ZMath::Vec3D getMax() const { return ZMath::Vec3D(ZMath::max(start.x, end.x), ZMath::max(start.y, end.y), ZMath::max(start.z, end.z)); };
+            inline ZMath::Vec3D getMax() const { return ZMath::Vec3D(ZMath::max(start.x, end.x), ZMath::max(start.y, end.y), ZMath::max(start.z, end.z)); };
     };
 
     // Models a rectangular, finite plane in 3D space.
@@ -127,9 +127,9 @@ namespace Primitives {
              */
             AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) : halfSize((max - min) * 0.5f), pos(min + halfSize) {};
 
-            ZMath::Vec3D getMin() const { return pos - halfSize; };
-            ZMath::Vec3D getMax() const { return pos + halfSize; };
-            ZMath::Vec3D getHalfSize() const { return halfSize; };
+            inline ZMath::Vec3D getMin() const { return pos - halfSize; };
+            inline ZMath::Vec3D getMax() const { return pos + halfSize; };
+            inline ZMath::Vec3D getHalfSize() const { return halfSize; };
 
             ZMath::Vec3D* getVertices() const{
                 ZMath::Vec3D* vertices = new ZMath::Vec3D[8];
@@ -176,13 +176,13 @@ namespace Primitives {
             }
             
             // Get the min vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMin() const { return pos - halfSize; };
+            inline ZMath::Vec3D getLocalMin() const { return pos - halfSize; };
 
             // Get the max vertex in the cube's UVW coordinates.
-            ZMath::Vec3D getLocalMax() const { return pos + halfSize; };
+            inline ZMath::Vec3D getLocalMax() const { return pos + halfSize; };
 
             // Get half the distance between the cube's min and max vertices.
-            ZMath::Vec3D getHalfSize() const { return halfSize; };
+            inline ZMath::Vec3D getHalfSize() const { return halfSize; };
 
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
