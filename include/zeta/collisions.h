@@ -13,9 +13,6 @@ namespace Collisions {
 
     // ? Note: if we have objects A and B colliding, the collison normal will point towards B and away from A.
 
-    // todo maybe make the contactPoints list an array of 4 as that's the max number
-    // this would allow for more efficiency in cube v cube manifolds
-
     struct CollisionManifold {
         ZMath::Vec3D normal; // collision normal
         ZMath::Vec3D* contactPoints; // contact points of the collision

@@ -4,8 +4,6 @@
 #include "collisions.h"
 #include <stdexcept>
 
-// todo memory leak caused by not deleting the pointer arrays from the collision manifolds inside the pointer lists
-
 namespace PhysicsHandler {
     // * ====================================
     // * Common Framerates for Handler
@@ -90,7 +88,7 @@ namespace PhysicsHandler {
             // * ==============================
 
             inline void addCollision(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2, Collisions::CollisionManifold const &manifold) {
-                if (colWrapper.count == colWrapper.capacity) {
+                if (colWrapper.count == colWrapper.capacity) { // 99.9% of the time this part of the code will not execute. This is for an edge case.
                     colWrapper.capacity *= 2;
 
                     Primitives::RigidBody3D** temp1 = new Primitives::RigidBody3D*[colWrapper.capacity];
@@ -119,16 +117,21 @@ namespace PhysicsHandler {
             };
 
             inline void clearCollisions() {
-                // todo could refactor to base this around the current count of rigidbodies
+                // ? We do not need to check for nullptrs because if this function is reached it is guarenteed none of the pointers inside of here will be NULL
+
+                int halfRbs = rbs.capacity/2;
+
                 delete[] colWrapper.bodies1;
                 delete[] colWrapper.bodies2;
+
+                for (int i = 0; i < colWrapper.count; ++i) { delete[] colWrapper.manifolds[i].contactPoints; }
                 delete[] colWrapper.manifolds;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
+                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfRbs];
+                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfRbs];
+                colWrapper.manifolds = new Collisions::CollisionManifold[halfRbs];
 
-                colWrapper.capacity = halfSlots;
+                colWrapper.capacity = halfRbs;
                 colWrapper.count = 0;
             };
 
@@ -166,63 +169,13 @@ namespace PhysicsHandler {
                 colWrapper.count = 0;
             };
 
-            /**
-             * @brief Make a physics handler from an exisiting handler.
-             * 
-             * @param handler (Handler) The physics handler to copy.
-             */
-            Handler(Handler const &handler) : g(handler.g), updateStep(handler.updateStep) {
-                rbs.capacity = handler.rbs.capacity;
-                rbs.count = handler.rbs.count;
-                rbs.rigidBodies = new Primitives::RigidBody3D*[rbs.capacity];
-
-                for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i] = handler.rbs.rigidBodies[i]; }
-
-                // ==================================================================================
-
-                colWrapper.capacity = handler.colWrapper.capacity;
-                colWrapper.count = handler.colWrapper.count;
-                colWrapper.bodies1 = new Primitives::RigidBody3D*[colWrapper.capacity];
-                colWrapper.bodies2 = new Primitives::RigidBody3D*[colWrapper.capacity];
-                colWrapper.manifolds = new Collisions::CollisionManifold[colWrapper.capacity];
-
-                for (int i = 0; i < colWrapper.count; i++) {
-                    colWrapper.bodies1[i] = handler.colWrapper.bodies1[i];
-                    colWrapper.bodies2[i] = handler.colWrapper.bodies2[i];
-                    colWrapper.manifolds[i] = handler.colWrapper.manifolds[i];
-                }
-            };
-
-            /**
-             * @brief Make a physics handler from an existing handler.
-             * 
-             * @param handler (Handler) The physics handler to move.
-             */
-            Handler(Handler&& handler) : g(handler.g), updateStep(handler.updateStep) {
-                rbs.rigidBodies = handler.rbs.rigidBodies;
-                rbs.capacity = handler.rbs.capacity;
-                rbs.count = handler.rbs.count;
-
-                colWrapper.bodies1 = handler.colWrapper.bodies1;
-                colWrapper.bodies2 = handler.colWrapper.bodies2;
-                colWrapper.manifolds = handler.colWrapper.manifolds;
-                colWrapper.capacity = handler.colWrapper.capacity;
-                colWrapper.count = handler.colWrapper.count;
-
-                handler.rbs.rigidBodies = nullptr;
-                handler.colWrapper.bodies1 = nullptr;
-                handler.colWrapper.bodies2 = nullptr;
-                handler.colWrapper.manifolds = nullptr;
-
-                handler.rbs.capacity = 0;
-                handler.rbs.count = 0;
-                handler.colWrapper.capacity = 0;
-                handler.colWrapper.count = 0;
-            };
+            // Do not allow for construction from an existing physics handler.
+            Handler(Handler const &handler) { throw std::runtime_error("PhysicsHandler object CANNOT be constructed from another PhysicsHandler."); };
+            Handler(Handler&& handler) { throw std::runtime_error("PhysicsHandler object CANNOT be constructed from another PhysicsHandler."); };
 
             // The physics handler cannot be reassigned.
-            Handler& operator = (Handler const &handler) { throw std::runtime_error("PhysicsHandler instance cannot be reassigned."); };
-            Handler& operator = (Handler&& handler) { throw std::runtime_error("PhysicsHandler instance cannot be reassigned."); };
+            Handler& operator = (Handler const &handler) { throw std::runtime_error("PhysicsHandler object CANNOT be reassigned to another PhysicsHandler."); };
+            Handler& operator = (Handler&& handler) { throw std::runtime_error("PhysicsHandler object CANNOT be reassigned to another PhysicsHandler."); };
 
             ~Handler() {
                 // If one of the pointers is not NULL, none of them are.
@@ -230,13 +183,13 @@ namespace PhysicsHandler {
                     for (int i = 0; i < rbs.count; ++i) { delete rbs.rigidBodies[i]; }
                     delete[] rbs.rigidBodies;
 
-                    for (int i = 0; i < colWrapper.count; ++i) {
-                        delete colWrapper.bodies1[i];
-                        delete colWrapper.bodies2[i];
-                    }
-
+                    // ? Note: we do not need to delete each RigidBody pointer in bodies1 and bodies2 as the main rigidBodies list
+                    // ?       is guarenteed to contain those same pointers.
                     delete[] colWrapper.bodies1;
                     delete[] colWrapper.bodies2;
+
+                    // ? We do not need to check for nullptr for contactPoints as if colWrapper.count > 0, it is guarenteed manifolds[i].contactPoints != nullptr.
+                    for (int i = 0; i < colWrapper.count; ++i) { delete[] colWrapper.manifolds[i].contactPoints; }
                     delete[] colWrapper.manifolds;
                 }
             };
