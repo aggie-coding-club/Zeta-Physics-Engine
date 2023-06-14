@@ -42,10 +42,9 @@ namespace PhysicsHandler {
     // * ==============
 
     namespace { // make this struct private to this file
-        // todo rename to something better
         // these are also likely just placeholders until we can find a good value
         static const int startingSlots = 64;
-        static const int halfSlots = 32;
+        static const int halfStartingSlots = 32;
 
         // ? For now, default to allocating 64 slots for Objects. Probably up once we start implementing more stuff.
 
@@ -55,7 +54,6 @@ namespace PhysicsHandler {
             int count; // number of rigid bodies 
         };
 
-        // todo rename to something better
         struct CollisionWrapper {
             Primitives::RigidBody3D** bodies1 = nullptr; // list of colliding bodies (Object A)
             Primitives::RigidBody3D** bodies2 = nullptr; // list of colliding bodies (Object B)
@@ -162,10 +160,10 @@ namespace PhysicsHandler {
                 rbs.capacity = startingSlots;
                 rbs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfSlots];
-                colWrapper.manifolds = new Collisions::CollisionManifold[halfSlots];
-                colWrapper.capacity = halfSlots;
+                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfStartingSlots];
+                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfStartingSlots];
+                colWrapper.manifolds = new Collisions::CollisionManifold[halfStartingSlots];
+                colWrapper.capacity = halfStartingSlots;
                 colWrapper.count = 0;
             };
 

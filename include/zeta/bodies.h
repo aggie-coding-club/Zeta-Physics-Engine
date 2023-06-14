@@ -76,6 +76,8 @@ namespace Primitives {
             netForce += g * mass;
             vel += (netForce * invMass) * dt;
             pos += vel * dt;
+
+            vel *= linearDamping;
             netForce = ZMath::Vec3D();
 
             // Update the pos of the collider.
