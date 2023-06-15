@@ -964,40 +964,40 @@ namespace Collisions {
     CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2) {
         switch (rb1->colliderType) {
             case Primitives::RIGID_SPHERE_COLLIDER: {
-                if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->sphere, rb2->sphere); }
-                if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->sphere, rb2->aabb); }
-                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->sphere, rb2->cube); }
+                if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.sphere); }
+                if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.aabb); }
+                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.cube); }
 
                 break;
             }
 
             case Primitives::RIGID_AABB_COLLIDER: {
                 if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->sphere, rb1->aabb);
+                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.aabb);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->aabb, rb2->aabb); }
-                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->aabb, rb2->cube); }
+                if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.aabb); }
+                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.cube); }
 
                 break;
             }
 
             case Primitives::RIGID_CUBE_COLLIDER: {
                 if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->sphere, rb1->cube);
+                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
                 if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->aabb, rb1->cube);
+                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.aabb, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->cube, rb2->cube); }
+                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.cube, rb2->collider.cube); }
 
                 break;
             }

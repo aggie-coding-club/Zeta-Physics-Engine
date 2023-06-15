@@ -212,11 +212,20 @@ namespace PhysicsHandler {
                 rbs.rigidBodies[rbs.count++] = rb;
             };
 
-            // Remove a rigid body at the given index.
-            void removeRigidBody(int index) {
-                delete rbs.rigidBodies[index];
-                for (int i = index; i < rbs.count; ++i) { rbs.rigidBodies[i] = rbs.rigidBodies[i + 1]; }
-                rbs.count--;
+            // Remove a rigid body.
+            // This returns 1 if the rigid body is found and removed and 0 if it was not found.
+            // If the rigid body is found, the data pointed to by rb gets deleted by this function.
+            bool removeRigidBody(Primitives::RigidBody3D* rb) {
+                for (int i = rbs.count; i >= 0; --i) {
+                    if (rbs.rigidBodies[i] == rb) {
+                        delete rb;
+                        for (int j = i; j < rbs.count - 1; ++j) { rbs.rigidBodies[j] = rbs.rigidBodies[j + 1]; }
+                        rbs.count--;
+                        return 1;
+                    }
+                }
+
+                return 0;
             };
 
 
