@@ -5,7 +5,7 @@ struct String{
     unsigned int length;
 };
 
-unsigned int chars_length(char *val){
+unsigned int chars_length(const char *val){
     unsigned int result = 0;
     
     // TODO: Safeguard for overflow
@@ -21,7 +21,7 @@ unsigned int chars_length(char *val){
 }
 
 // null terminated string
-struct String Create_String(char *val){
+struct String Create_String(const char *val){
     struct String result = {0};
 
     result.length = chars_length(val);
@@ -34,7 +34,7 @@ struct String Create_String(char *val){
     return result;
 }
 
-void AddCharsToString(struct String *string, char *val){
+void AddCharsToString(struct String *string, const char *val){
     unsigned int chars_to_add_len = chars_length(val);
     
     char *temp = string->val;

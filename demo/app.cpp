@@ -666,20 +666,6 @@ RawModel load_to_VAO(VertexData *vertex_data){
     return result;
 }
 
-void clean_up(){
-    for(unsigned int vao:vaos){
-        glDeleteVertexArrays(1, &vao);
-    }
-    
-    for(unsigned int vbo:vbos){
-        glDeleteBuffers(1, &vbo);
-    }
-    
-    for(unsigned int texture:textures){
-        glDeleteTextures(1, &texture);
-    }
-}
-
 void render(Entity *entity, TexturesManager *textures_manager){
     
     HMM_Mat4 transformation;
@@ -1110,3 +1096,19 @@ void app_update(float &time_step, float dt){
     
     glUseProgram(0);
 }
+
+void clean_up() {
+	CleanTextRenderer(&trm);
+	for (unsigned int vao : vaos) {
+		glDeleteVertexArrays(1, &vao);
+	}
+
+	for (unsigned int vbo : vbos) {
+		glDeleteBuffers(1, &vbo);
+	}
+
+	for (unsigned int texture : textures) {
+		glDeleteTextures(1, &texture);
+	}
+}
+

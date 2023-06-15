@@ -128,6 +128,10 @@ popd
 :skip_GLFW_build
 
 @REM ---------Start of FreeType Build ----------------
+if exist "..\libs\freetype.lib" (
+    GOTO skip_FREETYPE_build
+)
+
 @REM will require make
 echo building FreeType
 pushd "../freetype"
@@ -135,6 +139,7 @@ pushd "../freetype"
 @REM using only version 2.10 of freetype
 call git checkout fbbcf50
 
+call mingw32-make setup visualc
 call mingw32-make
 call mingw32-make
 @REM call dir
@@ -145,6 +150,8 @@ popd
 
 @REM ---------End of FreeType Build ----------------
 
+:skip_FREETYPE_build
+
 pushd "./build"
 
 if %ENV% == GNU (
@@ -154,7 +161,7 @@ if %ENV% == GNU (
 
 if %ENV% == MSVC (
     @REM Compiling with MSVC
-    cl /std:c++17 ..\main.cpp ..\app.cpp /EHsc /Zi /I../../include /link /LIBPATH:../../libs libfreetype.a libglfw3.a Opengl32.lib 
+    cl /std:c++17 ..\main.cpp ..\app.cpp /EHsc /Zi /I../../include /link /LIBPATH:../../libs freetype.lib libglfw3.a Opengl32.lib 
 )
 
 if %ENV% == WEB (
