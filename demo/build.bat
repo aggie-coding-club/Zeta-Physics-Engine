@@ -139,8 +139,8 @@ call mingw32-make
 call mingw32-make
 @REM call dir
 
+xcopy ".\include\" "..\include" /E /Y
 copy ".\objs\freetype.a" "..\libs\libfreetype.a"
-echo WTF
 popd
 
 @REM ---------End of FreeType Build ----------------
