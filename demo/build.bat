@@ -2,7 +2,7 @@
 
 
 @REM ENV (environment) can either be GNU, MSVC, or WEB
-set ENV= MSVC
+set ENV= GNU
 
 if not exist ".\build" (
     echo "Creating `.\build` directory"
@@ -118,6 +118,7 @@ for %%W in (%search_words%) do (
 
 @REM --------- End of GLFW Build ------------
 
+
 set source_folder= 
 set destination_folder= 
 set search_words= 
@@ -125,16 +126,35 @@ set search_words=
 popd
 
 :skip_GLFW_build
+
+@REM ---------Start of FreeType Build ----------------
+@REM will require make
+echo building FreeType
+pushd "../freetype"
+
+@REM using only version 2.10 of freetype
+call git checkout fbbcf50
+
+call mingw32-make
+call mingw32-make
+@REM call dir
+
+copy ".\objs\freetype.a" "..\libs\libfreetype.a"
+echo WTF
+popd
+
+@REM ---------End of FreeType Build ----------------
+
 pushd "./build"
 
 if %ENV% == GNU (
     @REM Compiling with g++
-    g++ -g -std=c++14 ..\main.cpp ..\app.cpp -o app -I..\..\include -L..\..\libs -l:libglfw3.a -lOpengl32
+    g++ -g -std=c++14 ..\main.cpp ..\app.cpp -o app -I..\..\include -L..\..\libs -l:libglfw3.a -l:libfreetype.a -lOpengl32
 )
 
 if %ENV% == MSVC (
     @REM Compiling with MSVC
-    cl /std:c++17 ..\main.cpp ..\app.cpp /EHsc /Zi /I../../include /link /LIBPATH:../../libs libglfw3.a Opengl32.lib 
+    cl /std:c++17 ..\main.cpp ..\app.cpp /EHsc /Zi /I../../include /link /LIBPATH:../../libs libfreetype.a libglfw3.a Opengl32.lib 
 )
 
 if %ENV% == WEB (
@@ -145,7 +165,7 @@ if %ENV% == WEB (
      --preload-file ./vendor/web_v_shader.glsl --preload-file ./vendor/web_f_shader.glsl^
      --preload-file ./vendor/checker_board.png --preload-file ./vendor/thin/stall.obj^
      --preload-file ./vendor/thin/stallTexture.png --preload-file ./vendor/thin/dragon.obj^
-     --preload-file ./vendor/white.png --preload-file ./vendor/cube.obj^
+     --preload-file ./vendor/white.png --preload-file ./vendor/cube.obj
      
     popd
 )

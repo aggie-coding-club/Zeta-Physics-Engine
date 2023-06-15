@@ -755,6 +755,7 @@ float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
 
 TexturesManager textures_manager;
+TextRendererManager trm = {};
 void CreateViewMatrix(){
     view_matrix = HMM_LookAt_RH(camera.position, camera.position + camera_front, world_up);
 }
@@ -1063,6 +1064,8 @@ void app_start(){
     light_entity->Init(test_cube_model);
     test_cube_entity->Init(test_cube_model);
     ground_entity->Init();
+
+    SetupTextRenderer(&trm);
     // test_cube_entity->Init(test_cube_model);
 }
 

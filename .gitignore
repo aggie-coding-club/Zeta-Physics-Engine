@@ -12,3 +12,6 @@ demo/build/*
 demo/vendor/glfw3.dll
 emsdk/*
 .vs/*
+freetype
+include/freetype/*
+include/ft2build.h
