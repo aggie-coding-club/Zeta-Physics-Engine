@@ -75,6 +75,13 @@ void AddString(struct String *string_one, struct String *string_two){
     free(temp);
 }
 
+// Add float to string
+void AddString(struct String *string, float val){
+    char tempChar[8] = {};
+    snprintf(tempChar, 8, "%f", val);
+    AddCharsToString(string, tempChar);
+}
+
 
 #define STRING_H
 #endif

@@ -4,7 +4,9 @@
 #endif
 
 #include "app.h"
+#include "shader.cpp"
 #include "text.cpp"
+
 #include <GLFW/glfw3.h>
 #include <zeta/physicshandler.h>
 
@@ -430,6 +432,7 @@ class Shader{
 };
 
 
+
 Shader *test_shader = 0;
 
 Texture LoadTextures(std::string filename){
@@ -746,7 +749,6 @@ void CreateViewMatrix(){
     view_matrix = HMM_LookAt_RH(camera.position, camera.position + camera_front, world_up);
 }
 
-
 void CreateProjectionMatrix(){
     float near_plane = 0.1f;
     float far_plane = 1000.0f;
@@ -1056,6 +1058,9 @@ void app_start(){
 }
 
 float angle = 0.0f;
+float dt_accum = 0.0f;
+float dt_avg = 1.0f;
+int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
     glUseProgram(test_shader->program);
@@ -1094,7 +1099,22 @@ void app_update(float &time_step, float dt){
         ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
     }
     
+    dt_ticks++;
+    dt_accum += dt;
+    if(dt_ticks >= 1000){
+        dt_accum /= dt_ticks;  
+        dt_avg = dt_accum;
+
+        dt_accum = 0.0f;
+        dt_ticks = 0;
+    }
+    
     glUseProgram(0);
+    String dt_string = Create_String("dt : ");
+    AddString(&dt_string, dt_avg);
+    RenderText(&trm, Create_String("Zeta Has Text Now!!! Gig'em"), HMM_Vec3{255.0f, 0.0f, 0.0f}, HMM_Vec2{50.0f, 100.0f});
+    RenderText(&trm, Create_String("MORE TEXT. very good."), HMM_Vec3{195.0f, 155.0f, 55.0f}, HMM_Vec2{50.0f, 50.0f});
+    RenderText(&trm, dt_string, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{WINDOW_WIDTH - 450.0f, WINDOW_HEIGHT - 75.0f});
 }
 
 void clean_up() {
