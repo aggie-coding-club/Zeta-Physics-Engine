@@ -49,7 +49,7 @@ namespace Primitives {
                 // * User defined colliders go here.
             }
 
-            if (collider) { delete collider; }
+            // if (collider) { delete collider; }
         };
 
         // * Handle and store the collider.
@@ -121,7 +121,7 @@ namespace Primitives {
                 // * User defined colliders go here.
             }
 
-            if (collider) { delete collider; }
+            // if (collider) { delete collider; }
         };
 
         // * Information related to the static body.

@@ -127,7 +127,7 @@ int main(void)
 
     float dt = 1;
     float time_step = 0;
-    app_start();
+    app_start(window);
     float previous_time = glfwGetTime();
     #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(RunApp, &window, 0, 1);

@@ -64,4 +64,4 @@ void SetCursorPosition(float x, float y);
 void SetScroll(float x_offset, float y_offset);
 
 void app_update(float &time_step, float dt);
-void app_start();
+void app_start(void *window);

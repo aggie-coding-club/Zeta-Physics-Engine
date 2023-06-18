@@ -1,6 +1,7 @@
 #ifndef UI_H
 #include "text.cpp"
 #include "shader.cpp"
+#include <GLFW/glfw3.h>
 
 #if 0 
 // Note ( Lenny ) - good idea?
@@ -15,6 +16,7 @@ struct UI_attribs{
 struct InputManager{
     float cursorX;
     float cursorY;
+    GLFWwindow *window;
 };
 
 Shader2 basic_2d_shader = {};
@@ -84,6 +86,12 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
 
     if(im->cursorX >= xpos && im->cursorX <= xpos + width 
         && (WINDOW_HEIGHT - im->cursorY) >= ypos && (WINDOW_HEIGHT - im->cursorY) <= ypos + height){
+
+        int state = glfwGetMouseButton(im->window, GLFW_MOUSE_BUTTON_LEFT);
+        if (state == GLFW_PRESS){
+            color.r = 1.0f;
+        }
+            
         color.a = 0.5f;
     }
 
