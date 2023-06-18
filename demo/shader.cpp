@@ -116,7 +116,5 @@ unsigned int LoadShaders(std::string v_shader_path, std::string f_shader_path){
     return result;
 }
 
-
-
 #define SHADER_H
 #endif

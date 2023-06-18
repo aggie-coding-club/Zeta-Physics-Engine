@@ -1,9 +1,13 @@
+#ifndef TEXT_H
+
 #include "str.c"
 #include "HandmadeMath.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "shader.cpp"
 #include <string>
+
+#define DEFAULT_TEXT_PIXEL_HEIGHT 48
 
 struct Character{
     unsigned int textureID;
@@ -66,7 +70,7 @@ void AddFontFace(TextRendererManager *trm, const char* ttfFilePath){
 
         newFace = &trm->faces[trm->facesIndex - 1];
     }
-    FT_Set_Pixel_Sizes(newFace[0], 0, 48);
+    FT_Set_Pixel_Sizes(newFace[0], 0, DEFAULT_TEXT_PIXEL_HEIGHT);
 }
 
 void DrawText(String string, float fontSize, HMM_Vec3 position){
@@ -79,7 +83,7 @@ void SetupTextRenderer(TextRendererManager *trm){
         printf("ERROR: failed to initialize freetype\n");
     }
 
-    trm->projection_ortho = HMM_Orthographic_RH_ZO(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, -2.0f, 2.0f);
+    trm->projection_ortho = HMM_Orthographic_RH_ZO(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, 0.0f, 1.0f);
 
     trm->facesIndex = 0;
     trm->facesCount = 4;
@@ -166,16 +170,17 @@ void SetupTextRenderer(TextRendererManager *trm){
     int eof = 0;
 }
 
-void RenderText(TextRendererManager *trm, String text, HMM_Vec3 color, HMM_Vec2 position){
+void RenderText(TextRendererManager *trm, String text, float scale, HMM_Vec3 color, HMM_Vec2 position){
     glUseProgram(trm->shader.program);
     SetUniformValue(trm->u_text_color, color);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+    glDisable(GL_DEPTH_TEST);
 
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(trm->vao);
-    float scale = 1.0f;
 
     // iterate through all characters
     std::string::const_iterator c;
@@ -211,9 +216,8 @@ void RenderText(TextRendererManager *trm, String text, HMM_Vec3 color, HMM_Vec2 
     }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-
-
     glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
     glUseProgram(0);
 }
 
@@ -227,3 +231,6 @@ void CleanTextRenderer(TextRendererManager *trm){
     free(trm->cts);
     free(trm->ctsCount);
 }
+
+#define TEXT_H
+#endif

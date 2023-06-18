@@ -58,7 +58,7 @@ void AddCharsToString(struct String *string, const char *val){
 }
 
 // Adds string_two to string_two
-void AddString(struct String *string_one, struct String *string_two){
+void AddToString(struct String *string_one, struct String *string_two){
     char *temp = string_one->val;
     string_one->val = (char *)calloc(string_one->length + string_two->length, sizeof(char));
 
@@ -76,7 +76,7 @@ void AddString(struct String *string_one, struct String *string_two){
 }
 
 // Add float to string
-void AddString(struct String *string, float val){
+void AddToString(struct String *string, float val){
     char tempChar[8] = {};
     snprintf(tempChar, 8, "%f", val);
     AddCharsToString(string, tempChar);

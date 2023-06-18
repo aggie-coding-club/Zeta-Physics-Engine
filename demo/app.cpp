@@ -6,6 +6,7 @@
 #include "app.h"
 #include "shader.cpp"
 #include "text.cpp"
+#include "ui.cpp"
 
 #include <GLFW/glfw3.h>
 #include <zeta/physicshandler.h>
@@ -432,7 +433,6 @@ class Shader{
 };
 
 
-
 Shader *test_shader = 0;
 
 Texture LoadTextures(std::string filename){
@@ -742,9 +742,12 @@ HMM_Vec3 camera_front = {0.0f, 0.0f, -1.0f};
 bool first_mouse = 1;
 float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
+float editor_mode = 0;
 
 TexturesManager textures_manager;
 TextRendererManager trm = {};
+InputManager im = {};
+
 void CreateViewMatrix(){
     view_matrix = HMM_LookAt_RH(camera.position, camera.position + camera_front, world_up);
 }
@@ -760,41 +763,45 @@ void CreateProjectionMatrix(){
 void SetCursorPosition(float x, float y){
     cursor_position.X = x;
     cursor_position.Y = y;
+    im.cursorX = x;
+    im.cursorY = y;
 
-    if(first_mouse){
+    if(!editor_mode){
+        if(first_mouse){
+            last_mouse_x = cursor_position.X;
+            last_mouse_y = cursor_position.Y;
+            first_mouse = false;
+        }
+
+        float x_offset = cursor_position.X - last_mouse_x;
+        float y_offset = cursor_position.Y - last_mouse_y;
+
         last_mouse_x = cursor_position.X;
         last_mouse_y = cursor_position.Y;
-        first_mouse = false;
+
+        float sensitivity = 0.1f;
+        x_offset *= sensitivity;
+        y_offset *= sensitivity;
+
+        camera.yaw += x_offset;
+        camera.pitch -= y_offset;
+        
+        // prevent vertical flipping
+        if(camera.pitch > 89.0f){
+            camera.pitch = 89.0f;
+        }
+
+        if(camera.pitch < -89.0f){
+            camera.pitch = -89.0f;
+        }
+
+        HMM_Vec3 camera_direction = {};
+        camera_direction.X = HMM_CosF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
+        camera_direction.Y =  HMM_SinF(HMM_DegToRad * camera.pitch);
+        camera_direction.Z = HMM_SinF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
+
+        camera_front = HMM_Norm(camera_direction);
     }
-
-    float x_offset = cursor_position.X - last_mouse_x;
-    float y_offset = cursor_position.Y - last_mouse_y;
-
-    last_mouse_x = cursor_position.X;
-    last_mouse_y = cursor_position.Y;
-
-    float sensitivity = 0.1f;
-    x_offset *= sensitivity;
-    y_offset *= sensitivity;
-
-    camera.yaw += x_offset;
-    camera.pitch -= y_offset;
-    
-    // prevent vertical flipping
-    if(camera.pitch > 89.0f){
-        camera.pitch = 89.0f;
-    }
-
-    if(camera.pitch < -89.0f){
-        camera.pitch = -89.0f;
-    }
-
-    HMM_Vec3 camera_direction = {};
-    camera_direction.X = HMM_CosF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
-    camera_direction.Y =  HMM_SinF(HMM_DegToRad * camera.pitch);
-    camera_direction.Z = HMM_SinF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
-
-    camera_front = HMM_Norm(camera_direction);
     // camera_front = {0.0f, 0.0f, -1.0f};
 }
 
@@ -810,12 +817,25 @@ void SetScroll(float x_offset, float y_offset){
 }
 
 // TODO: not smooth
-void MoveCamera(int key, int state){
+void GameInputCamera(int key, int state){
 
     float temp_speed = camera.speed * global_dt;
     if(state != GLFW_PRESS)
         return;
-    #if 1
+
+    if (key == GLFW_KEY_ESCAPE){
+        printf("escaping\n");
+        editor_mode = !editor_mode;
+
+        if(editor_mode){
+            ShowCursor(last_mouse_x, last_mouse_y);
+        }else{
+            HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+        }
+    }
+    
+    if(!editor_mode){  
+        // hide cursor
         if (key == GLFW_KEY_D){
             camera.position += HMM_Norm(HMM_Cross(camera_front, world_up)) * temp_speed;
         }
@@ -831,9 +851,7 @@ void MoveCamera(int key, int state){
         if (key == GLFW_KEY_S){
             camera.position -= camera_front * temp_speed;
         }
-    #endif
-
-    
+    }
 }
 
 
@@ -1054,6 +1072,8 @@ void app_start(){
     ground_entity->Init();
 
     SetupTextRenderer(&trm);
+    Setup2dRendering(&trm);
+    
     // test_cube_entity->Init(test_cube_model);
 }
 
@@ -1063,6 +1083,7 @@ float dt_avg = 1.0f;
 int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
+#if 1
     glUseProgram(test_shader->program);
 
     CreateViewMatrix();
@@ -1092,7 +1113,6 @@ void app_update(float &time_step, float dt){
         for(int i = 0; i < physics_updates; i++){
             test_entity->rb->vel = 0;
             test_entity->rb->netForce -= handler.g * test_entity->rb->mass;
-            // printf("updates :: %i\n", i + 1);
         }
         ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
     }else{
@@ -1111,10 +1131,14 @@ void app_update(float &time_step, float dt){
     
     glUseProgram(0);
     String dt_string = Create_String("dt : ");
-    AddString(&dt_string, dt_avg);
-    RenderText(&trm, Create_String("Zeta Has Text Now!!! Gig'em"), HMM_Vec3{255.0f, 0.0f, 0.0f}, HMM_Vec2{50.0f, 100.0f});
-    RenderText(&trm, Create_String("MORE TEXT. very good."), HMM_Vec3{195.0f, 155.0f, 55.0f}, HMM_Vec2{50.0f, 50.0f});
-    RenderText(&trm, dt_string, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{WINDOW_WIDTH - 450.0f, WINDOW_HEIGHT - 75.0f});
+    AddToString(&dt_string, dt_avg);
+    // RenderText(&trm, Create_String("Zeta Has Text Now!!! Gig'em"), HMM_Vec3{255.0f, 0.0f, 0.0f}, HMM_Vec2{50.0f, 100.0f});
+    // RenderText(&trm, Create_String("MORE TEXT. very good."), HMM_Vec3{195.0f, 155.0f, 55.0f}, HMM_Vec2{50.0f, 50.0f});
+    // RenderText(&trm, dt_string, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{WINDOW_WIDTH - 450.0f, WINDOW_HEIGHT - 75.0f});
+#endif
+
+    Button(&angle, &im, &trm,  Create_String("Quit"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 50.0f, {0.3f, 0.3f, 0.3f, 1.0f});
+    Button(&angle, &im, &trm,  Create_String("Settings"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f});
 }
 
 void clean_up() {
