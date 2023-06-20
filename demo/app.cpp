@@ -1133,8 +1133,15 @@ void app_update(float &time_step, float dt){
     // RenderText(&trm, dt_string, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{WINDOW_WIDTH - 450.0f, WINDOW_HEIGHT - 75.0f});
 #endif
 
-    Button(&angle, &im, &trm,  Create_String("Quit"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 50.0f, {0.3f, 0.3f, 0.3f, 1.0f});
-    Button(&angle, &im, &trm,  Create_String("Settings"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f});
+
+    if(Button(app_update, &im, &trm,  Create_String("Settings"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Settings!\n");
+    }
+
+    if(Button(&angle, &im, &trm,  Create_String("Quit"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 50.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Quit!\n");
+        glfwSetWindowShouldClose(im.window, GLFW_TRUE);
+    }
 }
 
 void clean_up() {

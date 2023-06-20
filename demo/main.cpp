@@ -52,7 +52,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     SetCursorPosition((float)xpos, (float)ypos);
-    printf("Cursor Pos : x %f, y %f\n", (float)xpos, (float)ypos);
 }
 
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
