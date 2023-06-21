@@ -4,3 +4,6 @@
 [submodule "glfw"]
 	path = glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "freetype"]
+	path = freetype
+	url = https://github.com/freetype/freetype.git

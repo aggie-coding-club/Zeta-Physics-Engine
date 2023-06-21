@@ -25,11 +25,28 @@ struct FileData{
     unsigned char *fileData;
 };
 
+GLFWwindow* window;
+
+void ShowCursor(float x, float y){
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetCursorPos(window, x, y);
+}
+
+void HideCursor(float x, float y){
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(window, x, y);
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if ((key == GLFW_KEY_D || key == GLFW_KEY_A 
-        || key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_Z || key == GLFW_KEY_X || key == GLFW_KEY_R) && (action == GLFW_REPEAT || action == GLFW_PRESS))
-        MoveCamera(key, GLFW_PRESS);
+        || key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_Z 
+        || key == GLFW_KEY_X || key == GLFW_KEY_R || key == GLFW_KEY_ESCAPE) 
+            && (action == GLFW_REPEAT || action == GLFW_PRESS)){
+
+        GameInputCamera(key, GLFW_PRESS);
+    }
+
 }
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
@@ -69,7 +86,6 @@ void RunApp(void* arg){
 
 int main(void)
 {
-    GLFWwindow* window;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -110,7 +126,7 @@ int main(void)
 
     float dt = 1;
     float time_step = 0;
-    app_start();
+    app_start(window);
     float previous_time = glfwGetTime();
     #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(RunApp, &window, 0, 1);

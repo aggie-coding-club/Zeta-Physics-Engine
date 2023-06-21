@@ -4,6 +4,10 @@
 #endif
 
 #include "app.h"
+#include "shader.cpp"
+#include "text.cpp"
+#include "ui.cpp"
+
 #include <GLFW/glfw3.h>
 #include <zeta/physicshandler.h>
 
@@ -39,7 +43,7 @@ class Entity{
         Primitives::StaticBody3D *sb = 0;
     
         Entity(HMM_Vec3 position, float scale, 
-            float rotation_x, float rotation_y, float rotation_z, Primitives::RigidBodyCollider colliderType){
+            float rotation_x, float rotation_y, float rotation_z, Primitives::RigidBodyCollider colliderType, void *collider){
             this->scale = scale;
             this->rotation_x = rotation_x;
             this->rotation_y = rotation_y;
@@ -47,11 +51,11 @@ class Entity{
 
             this->rb = new Primitives::RigidBody3D(
                 {position.X, position.Y, position.Z}, 
-                100.0f, 0.1f, 1.0f, colliderType);
+                100.0f, 0.1f, 1.0f, colliderType, collider);
         }
 
         Entity(HMM_Vec3 position, float scale, 
-            float rotation_x, float rotation_y, float rotation_z,  Primitives::StaticBodyCollider colliderType){
+            float rotation_x, float rotation_y, float rotation_z,  Primitives::StaticBodyCollider colliderType, void *collider){
             this->scale = scale;
             this->rotation_x = rotation_x;
             this->rotation_y = rotation_y;
@@ -59,7 +63,7 @@ class Entity{
 
             this->sb = new Primitives::StaticBody3D(
             {position.X, position.Y, position.Z}, 
-            colliderType);   
+            colliderType, collider);   
         }
 
         // call after `AddCollider()`
@@ -141,9 +145,9 @@ class Entity{
             vertex_data.len_tex_coords = 2 * 4 * 6;
 
             if(sb){
-                ZetaVertsToEq(sb->cube.getVertices(), &vertex_data);
+                ZetaVertsToEq(sb->collider.cube.getVertices(), &vertex_data);
             }else if(rb){
-                ZetaVertsToEq(rb->cube.getVertices(), &vertex_data);
+                ZetaVertsToEq(rb->collider.cube.getVertices(), &vertex_data);
             }else{
                 Assert(!"No RigidBody or StaticBody Attached");
             }
@@ -154,9 +158,9 @@ class Entity{
             vertex_data.len_tex_coords = 48;
 
             if(sb){
-                sb->cube.pos = sb->pos;
+                sb->collider.cube.pos = sb->pos;
             }else if(rb){
-                rb->cube.pos = rb->pos;
+                rb->collider.cube.pos = rb->pos;
             }
 
             raw_model = load_to_VAO(&vertex_data);
@@ -171,7 +175,7 @@ class Entity{
                 Primitives::Cube *cube = (Primitives::Cube *)collider;
 
                 // cube->pos = rb->pos;
-                rb->cube = *cube;
+                rb->collider.cube = *cube;
             }
         }
 
@@ -179,7 +183,7 @@ class Entity{
             if(colliderType == Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER){
                 Primitives::Cube *cube = (Primitives::Cube *)collider;
 
-                sb->cube = *cube;
+                sb->collider.cube = *cube;
             }
         }
 
@@ -665,20 +669,6 @@ RawModel load_to_VAO(VertexData *vertex_data){
     return result;
 }
 
-void clean_up(){
-    for(unsigned int vao:vaos){
-        glDeleteVertexArrays(1, &vao);
-    }
-    
-    for(unsigned int vbo:vbos){
-        glDeleteBuffers(1, &vbo);
-    }
-    
-    for(unsigned int texture:textures){
-        glDeleteTextures(1, &texture);
-    }
-}
-
 void render(Entity *entity, TexturesManager *textures_manager){
     
     HMM_Mat4 transformation;
@@ -752,12 +742,15 @@ HMM_Vec3 camera_front = {0.0f, 0.0f, -1.0f};
 bool first_mouse = 1;
 float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
+float editor_mode = 0;
 
 TexturesManager textures_manager;
+TextRendererManager trm = {};
+InputManager im = {};
+
 void CreateViewMatrix(){
     view_matrix = HMM_LookAt_RH(camera.position, camera.position + camera_front, world_up);
 }
-
 
 void CreateProjectionMatrix(){
     float near_plane = 0.1f;
@@ -770,41 +763,45 @@ void CreateProjectionMatrix(){
 void SetCursorPosition(float x, float y){
     cursor_position.X = x;
     cursor_position.Y = y;
+    im.cursorX = x;
+    im.cursorY = y;
 
-    if(first_mouse){
+    if(!editor_mode){
+        if(first_mouse){
+            last_mouse_x = cursor_position.X;
+            last_mouse_y = cursor_position.Y;
+            first_mouse = false;
+        }
+
+        float x_offset = cursor_position.X - last_mouse_x;
+        float y_offset = cursor_position.Y - last_mouse_y;
+
         last_mouse_x = cursor_position.X;
         last_mouse_y = cursor_position.Y;
-        first_mouse = false;
+
+        float sensitivity = 0.1f;
+        x_offset *= sensitivity;
+        y_offset *= sensitivity;
+
+        camera.yaw += x_offset;
+        camera.pitch -= y_offset;
+        
+        // prevent vertical flipping
+        if(camera.pitch > 89.0f){
+            camera.pitch = 89.0f;
+        }
+
+        if(camera.pitch < -89.0f){
+            camera.pitch = -89.0f;
+        }
+
+        HMM_Vec3 camera_direction = {};
+        camera_direction.X = HMM_CosF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
+        camera_direction.Y =  HMM_SinF(HMM_DegToRad * camera.pitch);
+        camera_direction.Z = HMM_SinF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
+
+        camera_front = HMM_Norm(camera_direction);
     }
-
-    float x_offset = cursor_position.X - last_mouse_x;
-    float y_offset = cursor_position.Y - last_mouse_y;
-
-    last_mouse_x = cursor_position.X;
-    last_mouse_y = cursor_position.Y;
-
-    float sensitivity = 0.1f;
-    x_offset *= sensitivity;
-    y_offset *= sensitivity;
-
-    camera.yaw += x_offset;
-    camera.pitch -= y_offset;
-    
-    // prevent vertical flipping
-    if(camera.pitch > 89.0f){
-        camera.pitch = 89.0f;
-    }
-
-    if(camera.pitch < -89.0f){
-        camera.pitch = -89.0f;
-    }
-
-    HMM_Vec3 camera_direction = {};
-    camera_direction.X = HMM_CosF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
-    camera_direction.Y =  HMM_SinF(HMM_DegToRad * camera.pitch);
-    camera_direction.Z = HMM_SinF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
-
-    camera_front = HMM_Norm(camera_direction);
     // camera_front = {0.0f, 0.0f, -1.0f};
 }
 
@@ -820,12 +817,25 @@ void SetScroll(float x_offset, float y_offset){
 }
 
 // TODO: not smooth
-void MoveCamera(int key, int state){
+void GameInputCamera(int key, int state){
 
     float temp_speed = camera.speed * global_dt;
     if(state != GLFW_PRESS)
         return;
-    #if 1
+
+    if (key == GLFW_KEY_ESCAPE){
+        printf("escaping\n");
+        editor_mode = !editor_mode;
+
+        if(editor_mode){
+            ShowCursor(last_mouse_x, last_mouse_y);
+        }else{
+            HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+        }
+    }
+    
+    if(!editor_mode){  
+        // hide cursor
         if (key == GLFW_KEY_D){
             camera.position += HMM_Norm(HMM_Cross(camera_front, world_up)) * temp_speed;
         }
@@ -841,9 +851,7 @@ void MoveCamera(int key, int state){
         if (key == GLFW_KEY_S){
             camera.position -= camera_front * temp_speed;
         }
-    #endif
-
-    
+    }
 }
 
 
@@ -974,7 +982,7 @@ void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
     vertex_data->index = 0;
 }
 
-void app_start(){
+void app_start(void *window){
     
     printf("Program Started\n");
     textures_manager = TexturesManager();
@@ -1011,47 +1019,42 @@ void app_start(){
     glUseProgram(0);
 
     // ========================================
+    Primitives::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
+    Primitives::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
 
-    test_entity = new Entity(HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER);
+    test_entity = new Entity(HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
     test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
-    light_entity = new Entity(HMM_Vec3{13, 13, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    light_entity = new Entity(HMM_Vec3{13, 13, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
+        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
-    ground_entity = new Entity(HMM_Vec3{0, -4, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    ground_entity = new Entity(HMM_Vec3{0, -4, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
+        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
-    dragon_entity = new Entity(HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    dragon_entity = new Entity(HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     dragon_entity->color = {1.0f, 0.0f, 1.0f};
     dragon_entity->def_texture = TEXTURE_WHITE;
     
-    stall_entity = new Entity(HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    stall_entity = new Entity(HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     stall_entity->color = {1.0f, 1.0f, 1.0f};
     stall_entity->def_texture = TEXTURE_STALL;
 
-    test_cube_entity = new Entity(HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER);
+    test_cube_entity = new Entity(HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
-
-
-    // Primitives::Cube ground_cube({-30.0f, -1.0f, -30.0f}, {30.0f, 1.0f, 30.0f}, 0, 0);
-    Primitives::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
-    ground_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
-
-    Primitives::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
-    test_entity->AddCollider(Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
-    light_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
-    dragon_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
-    stall_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
-    test_cube_entity->AddCollider(Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
 
     test_entity->Init();
     
     handler.addRigidBody(test_entity->rb);
-
 
     RawModel dragon_model = load_obj_model("thin/dragon.obj", dragon_entity->color);
     RawModel stall_model = load_obj_model("thin/stall.obj", stall_entity->color);
@@ -1062,12 +1065,21 @@ void app_start(){
     light_entity->Init(test_cube_model);
     test_cube_entity->Init(test_cube_model);
     ground_entity->Init();
+
+    SetupTextRenderer(&trm);
+    Setup2dRendering(&trm);
+    im.window = (GLFWwindow *)window;
+    
     // test_cube_entity->Init(test_cube_model);
 }
 
 float angle = 0.0f;
+float dt_accum = 0.0f;
+float dt_avg = 1.0f;
+int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
+#if 1
     glUseProgram(test_shader->program);
 
     CreateViewMatrix();
@@ -1091,18 +1103,59 @@ void app_update(float &time_step, float dt){
     int physics_updates = handler.update(time_step);
     
     ZMath::Vec3D normal = {};
-    float ground_cube_colliding = Collisions::CubeAndCube(test_entity->rb->cube, ground_entity->sb->cube, normal);
+    float ground_cube_colliding = Collisions::CubeAndCube(test_entity->rb->collider.cube, ground_entity->sb->collider.cube, normal);
     
     if(ground_cube_colliding){
         for(int i = 0; i < physics_updates; i++){
             test_entity->rb->vel = 0;
             test_entity->rb->netForce -= handler.g * test_entity->rb->mass;
-            // printf("updates :: %i\n", i + 1);
         }
         ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
     }else{
         ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
     }
     
+    dt_ticks++;
+    dt_accum += dt;
+    if(dt_ticks >= 1000){
+        dt_accum /= dt_ticks;  
+        dt_avg = dt_accum;
+
+        dt_accum = 0.0f;
+        dt_ticks = 0;
+    }
+    
     glUseProgram(0);
+    String dt_string = Create_String("dt : ");
+    AddToString(&dt_string, dt_avg);
+    // RenderText(&trm, Create_String("Zeta Has Text Now!!! Gig'em"), HMM_Vec3{255.0f, 0.0f, 0.0f}, HMM_Vec2{50.0f, 100.0f});
+    // RenderText(&trm, Create_String("MORE TEXT. very good."), HMM_Vec3{195.0f, 155.0f, 55.0f}, HMM_Vec2{50.0f, 50.0f});
+    // RenderText(&trm, dt_string, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{WINDOW_WIDTH - 450.0f, WINDOW_HEIGHT - 75.0f});
+#endif
+
+
+    if(Button(app_update, &im, &trm,  Create_String("Settings"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Settings!\n");
+    }
+
+    if(Button(&angle, &im, &trm,  Create_String("Quit"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 50.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Quit!\n");
+        glfwSetWindowShouldClose(im.window, GLFW_TRUE);
+    }
 }
+
+void clean_up() {
+	CleanTextRenderer(&trm);
+	for (unsigned int vao : vaos) {
+		glDeleteVertexArrays(1, &vao);
+	}
+
+	for (unsigned int vbo : vbos) {
+		glDeleteBuffers(1, &vbo);
+	}
+
+	for (unsigned int texture : textures) {
+		glDeleteTextures(1, &texture);
+	}
+}
+

@@ -56,10 +56,12 @@ Texture LoadTextures(std::string filename);
 RawModel load_to_VAO(VertexData *vertex_data);
 void clean_up();
 
+void ShowCursor(float x, float y);
+void HideCursor(float x, float y);
 
-void MoveCamera(int key, int state);
+void GameInputCamera(int key, int state);
 void SetCursorPosition(float x, float y);
 void SetScroll(float x_offset, float y_offset);
 
 void app_update(float &time_step, float dt);
-void app_start();
+void app_start(void *window);
