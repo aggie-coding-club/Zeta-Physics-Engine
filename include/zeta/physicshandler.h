@@ -36,6 +36,13 @@ namespace PhysicsHandler {
         rb2->vel += manifold.normal * (rb2->invMass * J);
     };
 
+    // todo test if this is reasonable for the impulse resolution
+    // Resolve a collision between a rigidbody and a staticbody.
+    void applyImpulse(Primitives::RigidBody3D* rb, Primitives::StaticBody3D* sb, Collisions::CollisionManifold const &manifold) {
+        float J = ((ZMath::abs(rb->vel) * -(1 + rb->cor)) * manifold.normal)/rb->invMass;
+        rb->vel -= manifold.normal * (rb->invMass * J);
+    };
+
 
     // * ==============
     // * Wrappers
