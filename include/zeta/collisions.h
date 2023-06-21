@@ -26,6 +26,16 @@ namespace Collisions {
         // * Collision Manifold Calculators
         // * ===================================
 
+        // ? Normal points towards B away from A.
+        
+        // todo create these plane manifold functions
+
+        CollisionManifold findCollisionFeatures(Primitives::Plane const &plane, Primitives::Sphere const &sphere);
+
+        CollisionManifold findCollisionFeatures(Primitives::Plane const &plane, Primitives::AABB const &aabb);
+
+        CollisionManifold findCollisionFeatures(Primitives::Plane const &plane, Primitives::Cube const &cube);
+
         CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
             CollisionManifold result;
 
@@ -709,7 +719,7 @@ namespace Collisions {
             return result;
         };
 
-        // ? Normal points towards B and away from A
+        // ? Normal points towards B and away from A.
 
         CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
             CollisionManifold result;
@@ -960,7 +970,7 @@ namespace Collisions {
         };
     }
 
-    // Find the collision features and resolve the impulse between two arbitrary primitives.
+    // Find the collision features and resolve the impulse between two rigidbodies.
     CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2) {
         switch (rb1->colliderType) {
             case Primitives::RIGID_SPHERE_COLLIDER: {
@@ -1002,10 +1012,73 @@ namespace Collisions {
                 break;
             }
 
-            default: {
-                // * User defined types go here.
+            // * User defined types go here.
+        }
+
+        return {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
+    };
+
+    // todo create another function so that we can get the opposite direction
+
+    // Find the collision features and resolve the impulse between a rigidbody and a staticbody.
+    CollisionManifold findCollisionFeatures(Primitives::StaticBody3D* sb, Primitives::RigidBody3D* rb) {
+        switch (sb->colliderType) {
+            case Primitives::STATIC_PLANE_COLLIDER: {
+                switch (rb->colliderType) {
+                    case Primitives::RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.sphere); }
+                    case Primitives::RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.aabb); }
+                    case Primitives::RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.cube); }
+                }
+
                 break;
             }
+
+            case Primitives::STATIC_SPHERE_COLLIDER: {
+                switch (rb->colliderType) {
+                    case Primitives::RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.sphere); }
+                    case Primitives::RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.aabb); }
+                    case Primitives::RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.cube); }
+                }
+
+                break;
+            }
+
+            case Primitives::STATIC_AABB_COLLIDER: {
+                switch (rb->colliderType) {
+                    case Primitives::RIGID_SPHERE_COLLIDER: {
+                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.aabb);
+                        manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
+                        return manifold;
+                    }
+
+                    case Primitives::RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.aabb, rb->collider.aabb); }
+                    case Primitives::RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.aabb, rb->collider.cube); }
+                }
+
+                break;
+            }
+
+            case Primitives::STATIC_CUBE_COLLIDER: {
+                switch (rb->colliderType) {
+                    case Primitives::RIGID_SPHERE_COLLIDER: {
+                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.cube);
+                        manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
+                        return manifold;
+                    }
+
+                    case Primitives::RIGID_AABB_COLLIDER: {
+                        CollisionManifold manifold = findCollisionFeatures(rb->collider.aabb, sb->collider.cube);
+                        manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
+                        return manifold;
+                    }
+
+                    case Primitives::RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.cube, rb->collider.cube); }
+                }
+
+                break;
+            }
+
+            // * User defined types go here.
         }
 
         return {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
