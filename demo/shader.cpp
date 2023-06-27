@@ -22,6 +22,10 @@ void SetUniformValue(unsigned int uniform_location, HMM_Vec3 value){
         glUniform3f(uniform_location, value.X, value.Y, value.Z);
 }
 
+void SetUniformValue(unsigned int uniform_location, HMM_Vec2 value){
+        glUniform2f(uniform_location, value.X, value.Y);
+}
+
 void BindLocation(Shader2 *shader, unsigned int location, char *value){
     glBindAttribLocation(shader->program, location, value);
 }

@@ -1134,14 +1134,29 @@ void app_update(float &time_step, float dt){
 #endif
 
 
-    if(Button(app_update, &im, &trm,  Create_String("Settings"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+    static float x = 0;
+    x += 35.0f * dt;
+    if(x >= 360.0f){
+        x = 0.0f;
+    }
+
+    // float xpos = HMM_CosF(x * HMM_DegToRad) * 250.0f; 
+    // float xpos = 50.0f; 
+    // float ypos = HMM_SinF(x * HMM_DegToRad) * 250.0f; 
+    // float ypos = 50.0f;
+
+    UI_Begin(&im, {WINDOW_WIDTH / 2.0f - 150.0f, (WINDOW_HEIGHT / 2.0f) - 50.0f});
+    Text(&trm, &im, 1.0f, Create_String("OPTIONS"), {0.0f, 100.0f},  {255.0f, 255.0f, 0.0f});
+    if(Button(app_update, &im, &trm,  Create_String("Settings"), 
+        HMM_Vec2{0.0f, 0.0f}, {0.3f, 0.3f, 0.3f, 1.0f})){
         printf("Settings!\n");
     }
 
-    if(Button(&angle, &im, &trm,  Create_String("Quit"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 50.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+    if(Button(&angle, &im, &trm,  Create_String("Quit"), HMM_Vec2{0.0f, 50.0f}, {0.3f, 0.3f, 0.3f, 1.0f})){
         printf("Quit!\n");
         glfwSetWindowShouldClose(im.window, GLFW_TRUE);
     }
+    UI_End(&im);
 }
 
 void clean_up() {
