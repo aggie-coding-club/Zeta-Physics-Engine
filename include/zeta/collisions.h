@@ -30,7 +30,39 @@ namespace Collisions {
         
         // todo create these plane manifold functions
 
-        CollisionManifold findCollisionFeatures(Primitives::Plane const &plane, Primitives::Sphere const &sphere);
+        CollisionManifold findCollisionFeatures(Primitives::Plane const &plane, Primitives::Sphere const &sphere) {
+            CollisionManifold result;
+
+            ZMath::Vec3D closest = sphere.c - plane.pos;
+            ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
+
+            // rotate the center of the sphere into the plane's local coords
+            closest = plane.rot * closest + plane.pos;
+
+            closest.x = ZMath::clamp(closest.x, min.x, max.x);
+            closest.y = ZMath::clamp(closest.y, min.y, max.y);
+            closest.z = plane.pos.z;
+
+            result.hit = closest.distSq(sphere.c) <= sphere.r*sphere.r;
+
+            if (!result.hit) { return result; }
+
+            // The closest point to the sphere's center will be our contact point.
+            // Therefore, we just set our contact point to closest.
+
+            result.numPoints = 1;
+            result.contactPoints = new ZMath::Vec3D[1];
+            result.contactPoints[0] = closest;
+
+            // determine the penetration distance and collision normal
+
+            ZMath::Vec3D diff = closest - sphere.c;
+            float d = diff.mag(); // allows us to only take the sqrt once
+            result.pDist = sphere.r - d;
+            result.normal = diff * (1.0f/d);
+
+            return result;
+        };
 
         CollisionManifold findCollisionFeatures(Primitives::Plane const &plane, Primitives::AABB const &aabb);
 
