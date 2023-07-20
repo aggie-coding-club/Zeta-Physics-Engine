@@ -4,7 +4,7 @@
 #include "HandmadeMath.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include "shader.cpp"
+#include "shader.h"
 #include <string>
 
 #define DEFAULT_TEXT_PIXEL_HEIGHT 48
@@ -34,7 +34,7 @@ struct TextRendererManager{
     CharacterTable *cts; // [""]
     unsigned int *ctsCount;
 
-    Shader2 shader; 
+    Shader shader; 
     unsigned int u_projection_matrix;
     unsigned int u_text_color;
     HMM_Mat4 projection_ortho;

@@ -1,6 +1,6 @@
 #ifndef UI_H
 #include "text.cpp"
-#include "shader.cpp"
+#include "shader.h"
 #include <GLFW/glfw3.h>
 
 /** Note (Lenny) : IMGUI by Casey Muratori Notes
@@ -90,7 +90,7 @@ struct Color{
     };
 };
 
-Shader2 basic_2d_shader = {};
+Shader basic_2d_shader = {};
 unsigned int vao2d = 0;
 unsigned int vbo2d = 0;
 

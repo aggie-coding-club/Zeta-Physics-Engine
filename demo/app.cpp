@@ -1,18 +1,14 @@
-#ifdef __EMSCRIPTEN__
-#else
-#include <glad/glad.h>
-#endif
-
+// #include <zeta/physicshandler.h>
 #include "app.h"
-#include "shader.cpp"
 #include "text.cpp"
 #include "ui.cpp"
 
 #include <GLFW/glfw3.h>
-#include <zeta/physicshandler.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "shader.h"
+#include "entity.h"
 
 std::vector<unsigned int> vaos;
 std::vector<unsigned int> vbos;
@@ -20,13 +16,13 @@ std::vector<unsigned int> textures;
 float global_dt = 0.0f;
 HMM_Vec3 cursor_position = {};
 
-void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
-
 void PrintGLError(){
     int gl_error = glGetError(); 
     printf("GL Error %i \n", gl_error);
 }
 
+
+#if 1
 class Entity{
 
     public:
@@ -145,9 +141,9 @@ class Entity{
             vertex_data.len_tex_coords = 2 * 4 * 6;
 
             if(sb){
-                ZetaVertsToEq(sb->collider.cube.getVertices(), &vertex_data);
+                E_::ZetaVertsToEq(sb->collider.cube.getVertices(), &vertex_data);
             }else if(rb){
-                ZetaVertsToEq(rb->collider.cube.getVertices(), &vertex_data);
+                E_::ZetaVertsToEq(rb->collider.cube.getVertices(), &vertex_data);
             }else{
                 Assert(!"No RigidBody or StaticBody Attached");
             }
@@ -194,6 +190,8 @@ class Entity{
         }
     
 };
+
+#endif
 
 class TexturesManager{
 
@@ -271,169 +269,7 @@ class TexturesManager{
         }
 };
 
-class Shader{
-
-    public:
-        unsigned int program = 0;
-        unsigned int u_transform_matrix = 0;
-        unsigned int u_projection_matrix = 0;
-        unsigned int u_view_matrix = 0;
-        unsigned int u_camera_position = 0;
-        unsigned int u_light_position = 0;
-        unsigned int u_light_color = 0;
-        unsigned int u_specular_strength = 0;
-        unsigned int u_reflectivity = 0;
-        unsigned int u_color = 0;
-
-    private:
-        unsigned int LoadShader(GLenum shaderType, std::string path){
-
-            #ifdef __EMSCRIPTEN__
-            std::fstream shader_file("vendor/" + path);
-            #else
-            std::fstream shader_file(path);
-            #endif
-
-            if(!shader_file){
-                std::cout << "Error loading shader file -- " << path << std::endl;
-            }else{
-                std::cout << "Successfully loaded shader " << path  << std::endl;
-            }
-
-            std::string shader_src;
-
-            std::string temp_line;
-            while(std::getline(shader_file, temp_line)){
-                shader_src += temp_line + "\n";
-            }
-
-            unsigned int result = glCreateShader(shaderType);
-
-            const char *shader_src_address =  &shader_src[0];
-            glShaderSource(result, 1, &shader_src_address, 0);
-            glCompileShader(result);
-
-            int shader_compiled;
-            glGetShaderiv(result, GL_COMPILE_STATUS, &shader_compiled);
-            if (shader_compiled != GL_TRUE)
-            {
-                GLsizei log_length = 0;
-                GLchar message[1024];
-                glGetShaderInfoLog(result, 1024, &log_length, message);
-                // Write the error to a log
-                std::cout << (message)  << std::endl;
-            }
-            
-            shader_file.close(); 
-
-            return result;
-        }
-
-    public:
-        Shader(std::string v_shader_path, std::string f_shader_path){
-            unsigned int v_shader = LoadShader(GL_VERTEX_SHADER, v_shader_path);
-            unsigned int f_shader = LoadShader(GL_FRAGMENT_SHADER, f_shader_path);
-
-            // shader program
-            program = glCreateProgram();
-            glAttachShader(program, v_shader);
-            glAttachShader(program, f_shader);
-
-            glBindAttribLocation(program, 0, "position");
-            glBindAttribLocation(program, 1, "tex_coords");
-            glBindAttribLocation(program, 2, "normal");
-            glBindAttribLocation(program, 3, "color");
-
-            glLinkProgram(program);
-
-            int program_linked = 0;
-            glGetProgramiv(program, GL_LINK_STATUS, &program_linked);
-            if (program_linked != GL_TRUE)
-            {
-                GLsizei log_length = 0;
-                GLchar message[1024];
-                glGetProgramInfoLog(program, 1024, &log_length, message);
-                // Write the error to a log
-            }
-        
-            glDeleteShader(v_shader);
-            glDeleteShader(f_shader);
-            
-            glUseProgram(program);
-            u_transform_matrix = GetUniformLocation("transformation_matrix");
-            u_projection_matrix = GetUniformLocation("projection_matrix");
-            u_view_matrix = GetUniformLocation("view_matrix");
-            u_camera_position = GetUniformLocation("camera_position");
-
-            u_light_position = GetUniformLocation("light_position");
-            u_light_color = GetUniformLocation("light_color");
-            u_specular_strength = GetUniformLocation("specular_strength");
-            u_reflectivity = GetUniformLocation("reflectivity");
-            u_color = GetUniformLocation("u_color");
-            
-            // HMM_Mat4 transformation = HMM_M4D(1.0f);
-
-            glUseProgram(0);
-        }
-
-        void LoadTransformationMatrix(HMM_Mat4 transformation){
-            LoadMatrix4f(u_transform_matrix, transformation);
-        }
-
-        void LoadProjectionMatrix(HMM_Mat4 projection){
-            LoadMatrix4f(u_projection_matrix, projection);
-        }
-
-        void LoadViewMatrix(HMM_Mat4 view){
-            LoadMatrix4f(u_view_matrix, view);
-        }
-
-        void LoadLight(HMM_Vec3 position, HMM_Vec4 color){
-            LoadVec3f(u_light_position, position);
-            LoadVec3f(u_light_color, HMM_Vec3{color.X, color.Y, color.Z});
-        }
-
-        void LoadCameraPosition(HMM_Vec3 position){
-            LoadVec3f(u_camera_position, position);
-        }
-
-        void LoadShineVariables(float specular_strength, float reflectivity){
-            LoadFloat(u_specular_strength, specular_strength);
-            LoadFloat(u_reflectivity, reflectivity);
-        }
-
-        unsigned int GetUniformLocation(char *name){
-            unsigned int result = 0;
-            result = glGetUniformLocation(program, name);
-            if(result == -1){
-                printf("Failed to Get Uniform Location -> %s \n ", name);
-            }
-            return result;
-        }
-
-        void LoadColor(HMM_Vec4 color){
-            LoadVec4f(u_color, color);
-        }
-
-        void LoadFloat(unsigned int location, float value){
-            glUniform1f(location, value);
-        }
-
-        void LoadVec3f(unsigned int location, HMM_Vec3 vec3){
-            glUniform3f(location, vec3.X, vec3.Y, vec3.Z);
-        }
-
-        void LoadVec4f(unsigned int location, HMM_Vec4 vec4){
-            glUniform4f(location, vec4.X, vec4.Y, vec4.Z, vec4.W);
-        }
-
-        void LoadMatrix4f(unsigned int location, HMM_Mat4 matrix){
-            glUniformMatrix4fv(location, 1, false, &matrix[0][0]);
-        }
-};
-
-
-Shader *test_shader = 0;
+Shader test_shader = {};
 
 Texture LoadTextures(std::string filename){
     Texture result = {};
@@ -677,14 +513,23 @@ void render(Entity *entity, TexturesManager *textures_manager){
     } else {
         transformation = HMM_Translate({entity->rb->pos.x, entity->rb->pos.y, entity->rb->pos.z});
     }
+
+    // u_transform_matrix = GetUniformLocation("transformation_matrix");
+    // u_projection_matrix = GetUniformLocation("projection_matrix");
+    // u_view_matrix = GetUniformLocation("view_matrix");
+    // u_camera_position = GetUniformLocation("camera_position");
     
     transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
     transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
     transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
     transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{entity->scale, entity->scale, entity->scale}));
-    test_shader->LoadTransformationMatrix(transformation);
-    test_shader->LoadColor(entity->color);
-    
+    unsigned int u_transform_matrix = GetUniformLocation(&test_shader, "transformation_matrix");
+    SetUniformValue(u_transform_matrix, transformation);
+    // test_shader->LoadTransformationMatrix(transformation);
+    // test_shader->LoadColor(entity->color);
+    unsigned int u_entity_color = GetUniformLocation(&test_shader, "u_color");
+    SetUniformValue(u_entity_color, entity->color);
+
     glBindVertexArray(entity->raw_model.vao_ID);
 
     glEnableVertexAttribArray(0);
@@ -854,34 +699,7 @@ void GameInputCamera(int key, int state){
     }
 }
 
-
-void AddVertexPosition(VertexData *vertex_data, float x, float y, float z){
-    vertex_data->positions[vertex_data->index] = x; 
-    vertex_data->positions[vertex_data->index + 1] = y;
-    vertex_data->positions[vertex_data->index + 2] = z;
-    vertex_data->len_positions += 3;
-    vertex_data->index += 3;
-}
-
-void AddVertexNormal(VertexData *vertex_data, float x, float y, float z){
-    vertex_data->normals[vertex_data->index] = x;
-    vertex_data->normals[vertex_data->index + 1] = y;
-    vertex_data->normals[vertex_data->index + 2] = z;
-    vertex_data->len_normals += 3;
-    vertex_data->index += 3;
-}
-
-void AddVertexIndice(VertexData *vertex_data, int x, float y, float z){
-    
-    // indices->insert(indices->end(), {0,1,3});	
-    // indices->insert(indices->end(), {3,1,2});
-    vertex_data->indices[vertex_data->index] = x;
-    vertex_data->indices[vertex_data->index  + 1] = y;
-    vertex_data->indices[vertex_data->index  + 2] = z;
-    vertex_data->len_indices += 3;
-    vertex_data->index += 3;
-}
-
+#if 0
 void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
 
     // TOP
@@ -982,6 +800,8 @@ void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
     vertex_data->index = 0;
 }
 
+#endif
+
 void app_start(void *window){
     
     printf("Program Started\n");
@@ -991,8 +811,9 @@ void app_start(void *window){
     // Shader Stuff
     // =====================================
 
-    test_shader = new Shader("web_v_shader.glsl", "web_f_shader.glsl");
-    glUseProgram(test_shader->program);
+    // test_shader = new Shader("web_v_shader.glsl", "web_f_shader.glsl");
+    test_shader.program = LoadShaders("web_v_shader.glsl", "web_f_shader.glsl");
+    glUseProgram(test_shader.program);
     
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -1014,7 +835,16 @@ void app_start(void *window){
     camera.speed = 10000.0f;
 
     CreateProjectionMatrix();
-    test_shader->LoadShineVariables(0.25f, 64.0f);
+
+    // u_light_position = GetUniformLocation("light_position");
+    // u_light_color = GetUniformLocation("light_color");
+    unsigned int u_specular_strength = GetUniformLocation(&test_shader, "specular_strength");
+    unsigned int u_reflectivity = GetUniformLocation(&test_shader, "reflectivity");
+    // u_color = GetUniformLocation("u_color");
+
+    // test_shader->LoadShineVariables(0.25f, 64.0f);
+    SetUniformValue(u_specular_strength, 0.25f);
+    SetUniformValue(u_reflectivity, 64.0f);
 
     glUseProgram(0);
 
@@ -1080,15 +910,27 @@ int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
 #if 1
-    glUseProgram(test_shader->program);
+    glUseProgram(test_shader.program);
 
     CreateViewMatrix();
 
     CreateProjectionMatrix();
-    test_shader->LoadProjectionMatrix(projection);
-    test_shader->LoadViewMatrix(view_matrix);    
-    test_shader->LoadCameraPosition(camera.position);
-    test_shader->LoadLight({light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z}, {1.0f, 1.0f, 1.0f, 1.0f});
+    // test_shader->LoadProjectionMatrix(projection);
+    unsigned int u_projection_matrix = GetUniformLocation(&test_shader, "projection_matrix");
+    SetUniformValue(u_projection_matrix, projection);
+    // test_shader->LoadViewMatrix(view_matrix);    
+    unsigned int u_view_matrix = GetUniformLocation(&test_shader, "view_matrix");
+    SetUniformValue(u_view_matrix, view_matrix);
+    // test_shader->LoadCameraPosition(camera.position);
+    // test_shader->LoadLight({light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z}, {1.0f, 1.0f, 1.0f, 1.0f});
+    unsigned int u_camera_position = GetUniformLocation(&test_shader, "camera_position");
+    SetUniformValue(u_camera_position, camera.position);
+    
+    unsigned int u_light_position = GetUniformLocation(&test_shader, "light_position");
+    SetUniformValue(u_light_position, HMM_Vec3{light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z});
+    
+    unsigned int u_light_color = GetUniformLocation(&test_shader, "light_color");
+    SetUniformValue(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
     
     // ************
     render(light_entity, &textures_manager);    
