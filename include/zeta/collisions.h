@@ -26,7 +26,7 @@ namespace Collisions {
         // * Collision Manifold Calculators
         // * ===================================
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
+        static CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
             CollisionManifold result;
 
             float r = sphere1.r + sphere2.r;
@@ -49,7 +49,7 @@ namespace Collisions {
             return result;
         };
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
+        static CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
             CollisionManifold result;
 
             // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
@@ -82,7 +82,7 @@ namespace Collisions {
             return result;
         };
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
+        static CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
             CollisionManifold result;
 
             ZMath::Vec3D closest = sphere.c - cube.pos;
@@ -325,7 +325,7 @@ namespace Collisions {
 
         // ? Normal points towards B and away from A
 
-        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
+        static CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
             CollisionManifold result;
 
             // half size of AABB a and b respectively
@@ -480,7 +480,7 @@ namespace Collisions {
 
         // ? Normal points towards B and away from A
 
-        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
+        static CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
             CollisionManifold result;
 
             // half size of a and b respectively
@@ -711,7 +711,7 @@ namespace Collisions {
 
         // ? Normal points towards B and away from A
 
-        CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
+        static CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
             CollisionManifold result;
 
             // half size of cube a and b respectively
@@ -961,7 +961,7 @@ namespace Collisions {
     }
 
     // Find the collision features and resolve the impulse between two arbitrary primitives.
-    CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2) {
+    static CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2) {
         switch (rb1->colliderType) {
             case Primitives::RIGID_SPHERE_COLLIDER: {
                 if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.sphere); }

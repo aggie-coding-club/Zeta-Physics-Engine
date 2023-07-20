@@ -20,7 +20,7 @@ namespace PhysicsHandler {
     // * =========================
 
     // Resolve a collision between two rigidbodies.
-    void applyImpulse(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2, Collisions::CollisionManifold const &manifold) {
+    static void applyImpulse(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2, Collisions::CollisionManifold const &manifold) {
         // delta v = J/m
         // For this calculation we need to acocunt for the relative velocity between the two objects
         // v_r = v_1 - v_2
