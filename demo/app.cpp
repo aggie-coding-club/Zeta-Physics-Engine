@@ -21,7 +21,6 @@ void PrintGLError(){
     printf("GL Error %i \n", gl_error);
 }
 
-
 #if 1
 class Entity{
 
