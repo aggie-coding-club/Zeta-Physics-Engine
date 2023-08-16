@@ -127,13 +127,13 @@ void Setup2dRendering(TextRendererManager *trm){
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(2 * sizeof(float)));
     
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(4 * sizeof(float)));
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
     
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(5 * sizeof(float)));
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(7 * sizeof(float)));
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(7 * sizeof(float)));
+    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(9 * sizeof(float)));
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -163,12 +163,12 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
         textWidth += (ch.advance >> 6) * scale;
     }
 
-    float textXPos = xpos;
-    // float width = textWidth;
-    // float height = DEFAULT_TEXT_PIXEL_HEIGHT;
+    float width = textWidth + 30.0f;
+    float height = DEFAULT_TEXT_PIXEL_HEIGHT + 20.0f;
 
-    float width = 250.0f;
-    float height = 100.0f;
+    float textXPos = xpos + width / 2.0f - textWidth / 2.0f;
+    // float width = 250.0f;
+    // float height = 100.0f;
 
     int state = glfwGetMouseButton(im->window, GLFW_MOUSE_BUTTON_LEFT);
 
@@ -230,10 +230,10 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
 
     glBindVertexArray(vao2d);
     
-    Color tl_color = {1.0f, 0.0f, 0.0f, 1.0f};
-    Color tr_color = {1.0f, 0.0f, 0.0f, 1.0f};
-    Color bl_color = {0.0f, 1.0f, 0.0f, 1.0f};
-    Color br_color = {0.0f, 1.0f, 0.0f, 1.0f};
+    Color tl_color = color;
+    Color tr_color = color;
+    Color bl_color = color;
+    Color br_color = color;
 
     HMM_Vec2 half_size = {width / 2.0f, height / 2.0f};
     HMM_Vec2 center = {xpos + width / 2.0f, ypos + height / 2.0f};
@@ -259,7 +259,7 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     glUseProgram(0);
     
     unsigned int error = glGetError();
-    // RenderText(trm, label, scale, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{textXPos, textYPos});
+    RenderText(trm, label, scale, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{textXPos, textYPos});
     error = glGetError();
     return result;
 }

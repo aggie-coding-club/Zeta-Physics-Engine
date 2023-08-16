@@ -1162,7 +1162,7 @@ void app_update(float &time_step, float dt){
     
     // rad += 10 * dt;
     
-    if(Button(app_update, &im, &trm,  Create_String("BUTTON 1"), x_pos, y_pos, 50.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+    if(Button(app_update, &im, &trm,  Create_String("BUTTON 1"), x_pos, y_pos, 30.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
         printf("Button 1!\n");
     }
 
