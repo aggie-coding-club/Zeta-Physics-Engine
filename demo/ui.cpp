@@ -1,6 +1,6 @@
 #ifndef UI_H
 #include "text.cpp"
-#include "shader.cpp"
+#include "shader.h"
 #include <GLFW/glfw3.h>
 
 /** Note (Lenny) : IMGUI by Casey Muratori Notes
@@ -55,7 +55,12 @@ bool DoButton(UI_id, text, pos, ...) {
 // to cater to introspection, use the idea of render pass and 
  layout pass or just accept one frame of lag
 
+
 */
+#define BUTTON_NORMAL_COLOR {255.0f / 255.0f, 12.0f / 255.0f, 12.0f / 255.0f, 1.0f} // #0c0c0c
+// #define BUTTON_NORMAL_COLOR {12.0f / 255.0f, 12.0f / 255.0f, 12.0f / 255.0f, 1.0f} // #0c0c0c
+#define BUTTON_HOT_COLOR {47.0f / 255.0f, 36.0f / 255.0f, 36.0f / 255.0f, 1.0f} // #252424
+#define BUTTON_ACTIVE_COLOR {82.0f / 255.0f, 60.0f / 255.0f, 60.0f / 255.0f, 1.0f} // #3e3c3c
 
 struct InputManager{
     float cursorX;
@@ -66,6 +71,12 @@ struct InputManager{
 
     void *active_ui;
     void *hot_ui;
+
+    /** layouting
+        does not allow for panels inside panels yet
+    */ 
+    
+    HMM_Vec2 parent_pos;
 };
 
 struct Color{
@@ -81,7 +92,7 @@ struct Color{
     };
 };
 
-Shader2 basic_2d_shader = {};
+Shader basic_2d_shader = {};
 unsigned int vao2d = 0;
 unsigned int vbo2d = 0;
 
@@ -106,9 +117,12 @@ void Setup2dRendering(TextRendererManager *trm){
     basic_2d_shader.program = LoadShaders("basic_2d_shader_vs.glsl", "basic_2d_shader_fs.glsl");
     glUseProgram(basic_2d_shader.program);
     BindLocation(&basic_2d_shader, 0, "position");
-    // BindLocation(&basic_2d_shader, 1, "color");
+    BindLocation(&basic_2d_shader, 1, "color");
+    BindLocation(&basic_2d_shader, 2, "quad_size");
+    BindLocation(&basic_2d_shader, 3, "quad_position");
+    BindLocation(&basic_2d_shader, 4, "outline_width");
 
-    unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "projection_matrix");
+    unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "u_projection_matrix");
     SetUniformValue(u_projection_matrix, trm->projection_ortho);
 
     unsigned int u_resolution = GetUniformLocation(&basic_2d_shader, "u_resolution");
@@ -119,8 +133,11 @@ void Setup2dRendering(TextRendererManager *trm){
     glBindVertexArray(vao2d);
     glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 11 * 6, NULL,  GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 11 * 6, NULL,  GL_DYNAMIC_DRAW);
     
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), 0);
+    
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), 0);
     
     glEnableVertexAttribArray(1);
@@ -141,6 +158,64 @@ void Setup2dRendering(TextRendererManager *trm){
     glUseProgram(0);
 
     int eof = 0;
+}
+
+void DrawRect(TextRendererManager *trm, HMM_Vec2 pos, float width, float height, Color color){
+    // draw rect
+    glUseProgram(basic_2d_shader.program);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+
+    glDisable(GL_DEPTH_TEST);
+
+    unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "u_projection_matrix");
+    SetUniformValue(u_projection_matrix, trm->projection_ortho);
+
+    glBindVertexArray(vao2d);
+    
+    float outline_width = 1.0f;
+    HMM_Vec2 center_pos = {pos.X + width / 2.0f, pos.Y + height / 2.0f};
+
+    float vertices[6][11] = {
+        {pos.X, pos.Y, color.r, color.g, color.b, color.a, 
+            width, height, center_pos.X, center_pos.Y, outline_width},
+        {pos.X + width, pos.Y, color.r, color.g, color.b, color.a, 
+            width, height, center_pos.X, center_pos.Y, outline_width},
+        {pos.X + width, pos.Y + height, color.r, color.g, color.b, color.a, 
+            width, height, center_pos.X, center_pos.Y, outline_width},
+
+        {pos.X + width, pos.Y + height, color.r, color.g, color.b, color.a, 
+            width, height, center_pos.X, center_pos.Y, outline_width},
+        {pos.X, pos.Y + height, color.r, color.g, color.b, color.a, 
+            width, height, center_pos.X, center_pos.Y, outline_width},
+        {pos.X, pos.Y, color.r, color.g, color.b, color.a, 
+            width, height, center_pos.X, center_pos.Y, outline_width},
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glUseProgram(0);
+}
+
+// NOTE (Lenny) : ui will be draw relative to the bottom left of this panel
+unsigned int UI_Begin(InputManager *im, HMM_Vec2 pos){
+
+    im->parent_pos = pos;
+
+    return true;
+}
+
+unsigned int UI_End(InputManager *im){
+
+    im->parent_pos = {};
+    return true;
 }
 
 #define BUTTON_PADDING 5.0f;
@@ -169,11 +244,11 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     float textXPos = xpos + width / 2.0f - textWidth / 2.0f;
     // float width = 250.0f;
     // float height = 100.0f;
-
+    HMM_Vec2 pos = {xpos, ypos};
     int state = glfwGetMouseButton(im->window, GLFW_MOUSE_BUTTON_LEFT);
 
-    if(im->cursorX >= xpos && im->cursorX <= xpos + width 
-        && (WINDOW_HEIGHT - im->cursorY) >= ypos && (WINDOW_HEIGHT - im->cursorY) <= ypos + height){
+    if(im->cursorX >= pos.X && im->cursorX <= pos.X + width 
+        && (WINDOW_HEIGHT - im->cursorY) >= pos.Y && (WINDOW_HEIGHT - im->cursorY) <= pos.Y + height){
 
         if(!im->active_ui){
             SetHot(im, id);
@@ -202,17 +277,18 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
         }
     }
 
+    color = BUTTON_NORMAL_COLOR;
     if(im->hot_ui == id){
-        color.r = 1.0f;
-        color.a = 0.5f;
+        color = BUTTON_HOT_COLOR;
     }
 
     if(im->active_ui == id){
-        color.g = 1.0f;
-        color.a = 0.5f;
+        color = BUTTON_ACTIVE_COLOR;
     }
 
     float textYPos = ypos + (height / 2.0f) - (tallest.size.Y / 2.0f);
+
+    HMM_Vec2 textPos = {textXPos, textYPos};
 
     // draw rect
     glUseProgram(basic_2d_shader.program);
@@ -259,9 +335,16 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     glUseProgram(0);
     
     unsigned int error = glGetError();
-    RenderText(trm, label, scale, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{textXPos, textYPos});
+    RenderText(trm, label, scale, HMM_Vec3{255.0f / 255.0f, 231.0f / 255.0f, 147.0f / 255.0f}, HMM_Vec2{textPos.X, textPos.Y});
     error = glGetError();
     return result;
+}
+
+unsigned int Text(TextRendererManager *trm, InputManager *im, float scale, String label, HMM_Vec2 pos,  HMM_Vec3 color){
+    pos += im->parent_pos;
+    pos.Y += DEFAULT_TEXT_PIXEL_HEIGHT * scale;
+    RenderText(trm, label, scale, color / 255.0f, pos);
+    return true;
 }
 
 #define UI_H

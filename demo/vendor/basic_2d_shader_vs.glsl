@@ -14,10 +14,15 @@ out float f_roundness;
 out vec2 f_half_size;
 out vec2 f_center;
 
-uniform mat4 projection_matrix;
+out vec2 f_position;
+out vec2 f_quad_size;
+out vec2 f_quad_position;
+out float f_outline_width;
+
+uniform mat4 u_projection_matrix;
 
 void main(){
-    gl_Position = projection_matrix * vec4(position.x, position.y, 1.0, 1.0);
+    gl_Position = u_projection_matrix * vec4(position.x, position.y, 1.0, 1.0);
     f_world_pos = gl_Position.xy;
     f_color = color;
 
