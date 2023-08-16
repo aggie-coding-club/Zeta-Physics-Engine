@@ -586,7 +586,7 @@ HMM_Vec3 camera_front = {0.0f, 0.0f, -1.0f};
 bool first_mouse = 1;
 float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
-float editor_mode = 0;
+float g_editor_mode = 0;
 
 TexturesManager textures_manager;
 TextRendererManager trm = {};
@@ -610,7 +610,7 @@ void SetCursorPosition(float x, float y){
     im.cursorX = x;
     im.cursorY = y;
 
-    if(!editor_mode){
+    if(!g_editor_mode){
         if(first_mouse){
             last_mouse_x = cursor_position.X;
             last_mouse_y = cursor_position.Y;
@@ -660,6 +660,16 @@ void SetScroll(float x_offset, float y_offset){
     }
 }
 
+void SetEditMode(int mode){
+    g_editor_mode = mode;
+
+    if(g_editor_mode){
+        ShowCursor(last_mouse_x, last_mouse_y);
+    }else{
+        HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+    }   
+}
+
 // TODO: not smooth
 void GameInputCamera(int key, int state){
 
@@ -669,16 +679,10 @@ void GameInputCamera(int key, int state){
 
     if (key == GLFW_KEY_ESCAPE){
         printf("escaping\n");
-        editor_mode = !editor_mode;
-
-        if(editor_mode){
-            ShowCursor(last_mouse_x, last_mouse_y);
-        }else{
-            HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
-        }
+        SetEditMode(!g_editor_mode);
     }
     
-    if(!editor_mode){  
+    if(!g_editor_mode){  
         // hide cursor
         if (key == GLFW_KEY_D){
             camera.position += HMM_Norm(HMM_Cross(camera_front, world_up)) * temp_speed;
@@ -802,7 +806,8 @@ void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
 #endif
 
 void app_start(void *window){
-    
+    SetEditMode(1);
+
     printf("Program Started\n");
     textures_manager = TexturesManager();
 
@@ -885,7 +890,7 @@ void app_start(void *window){
     
     handler.addRigidBody(test_entity->rb);
 
-    RawModel dragon_model = load_obj_model("thin/dragon.obj", dragon_entity->color);
+    RawModel dragon_model = load_obj_model("thin/stall.obj", dragon_entity->color);
     RawModel stall_model = load_obj_model("thin/stall.obj", stall_entity->color);
     RawModel test_cube_model = load_obj_model("cube.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     dragon_entity->Init(dragon_model);
@@ -908,6 +913,7 @@ float dt_avg = 1.0f;
 int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
+    im.dt += 1 * dt;
 #if 1
     glUseProgram(test_shader.program);
 
@@ -974,22 +980,8 @@ void app_update(float &time_step, float dt){
     // RenderText(&trm, dt_string, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{WINDOW_WIDTH - 450.0f, WINDOW_HEIGHT - 75.0f});
 #endif
 
-
-    static float x = 0;
-    x += 35.0f * dt;
-    if(x >= 360.0f){
-        x = 0.0f;
-    }
-
-    // float xpos = HMM_CosF(x * HMM_DegToRad) * 250.0f; 
-    // float xpos = 50.0f; 
-    // float ypos = HMM_SinF(x * HMM_DegToRad) * 250.0f; 
-    // float ypos = 50.0f;
-
-    UI_Begin(&im, {WINDOW_WIDTH / 2.0f - 150.0f, (WINDOW_HEIGHT / 2.0f) - 50.0f});
-    Text(&trm, &im, 1.0f, Create_String("OPTIONS"), {0.0f, 100.0f},  {255.0f, 255.0f, 0.0f});
-    if(Button(app_update, &im, &trm,  Create_String("Settings"), 
-        HMM_Vec2{0.0f, 0.0f}, {0.3f, 0.3f, 0.3f, 1.0f})){
+#if 0
+    if(Button(app_update, &im, &trm,  Create_String("Settings"), WINDOW_WIDTH / 2.0f, (WINDOW_HEIGHT / 2.0f) + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
         printf("Settings!\n");
     }
 
@@ -997,7 +989,36 @@ void app_update(float &time_step, float dt){
         printf("Quit!\n");
         glfwSetWindowShouldClose(im.window, GLFW_TRUE);
     }
-    UI_End(&im);
+#endif
+
+    float x_pos = 0.0f;
+    float y_pos = 0.0f;
+    static float rad = 50.0f;
+
+    // x_pos = 200 + HMM_SinF(rad) * 20;
+    // y_pos = 100 + HMM_SinF(rad) * 20;
+    
+    x_pos = 25;
+    y_pos = 100;
+    
+    // rad += 10 * dt;
+    
+    if(Button(app_update, &im, &trm,  Create_String("BUTTON 1"), x_pos, y_pos, 30.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Button 1!\n");
+    }
+
+    if(Button(app_update, &im, &trm,  Create_String("BUTTON 2"), x_pos + 320.0f, y_pos, 25.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Button 2!\n");
+    }
+
+    if(Button(app_update, &im, &trm,  Create_String("BUTTON 3"), x_pos, y_pos + 200.0f, 0.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Button 3!\n");
+    }
+
+    if(Button(app_update, &im, &trm,  Create_String("BUTTON 3"), x_pos + 320.0f, y_pos + 200.0f, 5.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+        printf("Button 3!\n");
+    }
+
 }
 
 void clean_up() {
