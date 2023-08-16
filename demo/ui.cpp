@@ -5,7 +5,7 @@
 
 /** Note (Lenny) : IMGUI by Casey Muratori Notes
 
-Traditionally, callbacks and mesages procs are get messy, because data 
+Traditionally, callbacks and mesages procs get messy, because data 
  is too intermingled and wrangled.
 
 In IMGUI, there is no state, and functions like immidiate mode graphics
@@ -62,6 +62,8 @@ struct InputManager{
     float cursorY;
     GLFWwindow *window;
 
+    float dt;
+
     void *active_ui;
     void *hot_ui;
 };
@@ -109,16 +111,29 @@ void Setup2dRendering(TextRendererManager *trm){
     unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "projection_matrix");
     SetUniformValue(u_projection_matrix, trm->projection_ortho);
 
+    unsigned int u_resolution = GetUniformLocation(&basic_2d_shader, "u_resolution");
+    SetUniformValue(u_resolution, HMM_Vec2{WINDOW_WIDTH, WINDOW_HEIGHT});
+
     glGenVertexArrays(1, &vao2d);
     glGenBuffers(1, &vbo2d);
     glBindVertexArray(vao2d);
     glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 6, NULL,  GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 11 * 6, NULL,  GL_DYNAMIC_DRAW);
     
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), 0);
+    
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(2 * sizeof(float)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(2 * sizeof(float)));
+    
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(4 * sizeof(float)));
+    
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(5 * sizeof(float)));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(7 * sizeof(float)));
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -129,7 +144,7 @@ void Setup2dRendering(TextRendererManager *trm){
 }
 
 #define BUTTON_PADDING 5.0f;
-unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String label, float xpos, float ypos, Color color){
+unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String label, float xpos, float ypos, float roundness, Color color){
 
     int result = 0;
     float scale = 1.0f; // should be passed in 
@@ -149,8 +164,11 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     }
 
     float textXPos = xpos;
-    float width = textWidth;
-    float height = DEFAULT_TEXT_PIXEL_HEIGHT;
+    // float width = textWidth;
+    // float height = DEFAULT_TEXT_PIXEL_HEIGHT;
+
+    float width = 250.0f;
+    float height = 100.0f;
 
     int state = glfwGetMouseButton(im->window, GLFW_MOUSE_BUTTON_LEFT);
 
@@ -207,16 +225,26 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "projection_matrix");
     SetUniformValue(u_projection_matrix, trm->projection_ortho);
 
+    unsigned int u_cursor_pos = GetUniformLocation(&basic_2d_shader, "u_cursor_pos");
+    SetUniformValue(u_cursor_pos, HMM_Vec2{(float)im->cursorX, WINDOW_HEIGHT - (float)im->cursorY});
+
     glBindVertexArray(vao2d);
     
-    float vertices[6][6] = {
-        {xpos, ypos, color.r, color.g, color.b, color.a},
-        {xpos + width, ypos, color.r, color.g, color.b, color.a},
-        {xpos + width, ypos + height, color.r, color.g, color.b, color.a},
+    Color tl_color = {1.0f, 0.0f, 0.0f, 1.0f};
+    Color tr_color = {1.0f, 0.0f, 0.0f, 1.0f};
+    Color bl_color = {0.0f, 1.0f, 0.0f, 1.0f};
+    Color br_color = {0.0f, 1.0f, 0.0f, 1.0f};
 
-        {xpos + width, ypos + height, color.r, color.g, color.b, color.a},
-        {xpos, ypos + height, color.r, color.g, color.b, color.a},
-        {xpos, ypos, color.r, color.g, color.b, color.a},
+    HMM_Vec2 half_size = {width / 2.0f, height / 2.0f};
+    HMM_Vec2 center = {xpos + width / 2.0f, ypos + height / 2.0f};
+    float vertices[6][11] = {
+        {xpos, ypos, bl_color.r, bl_color.g, bl_color.b, bl_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},
+        {xpos + width, ypos, br_color.r, br_color.g, br_color.b, br_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},
+        {xpos + width, ypos + height, tr_color.r, tr_color.g, tr_color.b, tr_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y}, 
+
+        {xpos + width, ypos + height, tr_color.r, tr_color.g, tr_color.b, tr_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},  
+        {xpos, ypos + height, tl_color.r, tl_color.g, tl_color.b, tl_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},
+        {xpos, ypos, bl_color.r, bl_color.g, bl_color.b, bl_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y}
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
@@ -231,7 +259,7 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     glUseProgram(0);
     
     unsigned int error = glGetError();
-    RenderText(trm, label, scale, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{textXPos, textYPos});
+    // RenderText(trm, label, scale, HMM_Vec3{115.0f, 195.0f, 55.0f}, HMM_Vec2{textXPos, textYPos});
     error = glGetError();
     return result;
 }

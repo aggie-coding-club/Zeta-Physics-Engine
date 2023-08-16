@@ -12,7 +12,7 @@
 #endif
 
 #define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#define WINDOW_HEIGHT 640
 #define DEFAULT_FOV 70
 
 // Textures

@@ -8,7 +8,9 @@ unsigned int GetUniformLocation(Shader2 *shader, char *name){
     unsigned int result = 0;
     result = glGetUniformLocation(shader->program, name);
     if(result == -1){
-        printf("Failed to Get Uniform Location -> %s \n ", name);
+        // printf("Failed to Get Uniform Location -> %s \n ", name);
+        // printf("failed to get uniform location\n");
+        // Assert(!"Failed to Get Uniform Location");
     }
     return result;
 }
@@ -20,6 +22,14 @@ void SetUniformValue(unsigned int uniform_location, HMM_Mat4 value){
 
 void SetUniformValue(unsigned int uniform_location, HMM_Vec3 value){
         glUniform3f(uniform_location, value.X, value.Y, value.Z);
+}
+
+void SetUniformValue(unsigned int uniform_location, HMM_Vec2 value){
+        glUniform2f(uniform_location, value.X, value.Y);
+}
+
+void SetUniformValue(unsigned int uniform_location, float value){
+        glUniform1f(uniform_location, value);
 }
 
 void BindLocation(Shader2 *shader, unsigned int location, char *value){
