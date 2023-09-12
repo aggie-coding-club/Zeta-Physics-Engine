@@ -6,7 +6,7 @@
 // We can use the normals for each as possible separation axes
 // We have to account for certain edge cases when moving this to 3D
 
-namespace Collisions {
+namespace Zeta {
     // * =========================
     // * Collision Manifolds
     // * =========================
@@ -21,13 +21,249 @@ namespace Collisions {
         bool hit; // do they intersect
     };
 
-    namespace {
-        // * ===================================
-        // * Collision Manifold Calculators
-        // * ===================================
+    // * Enums used for denotating the edges of the cubes
+    enum Axis {
+        FACE_A_X,
+        FACE_A_Y,
+        FACE_A_Z,
+        FACE_B_X,
+        FACE_B_Y,
+        FACE_B_Z
+    };
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere1, Primitives::Sphere const &sphere2) {
-            CollisionManifold result;
+    // * ===================================
+    // * Collision Manifold Calculators
+    // * ===================================
+
+    // ? Normal points towards B away from A.
+
+    // todo create these plane manifold functions
+
+    CollisionManifold findCollisionFeatures(Plane const &plane, Sphere const &sphere) {
+        CollisionManifold result;
+
+        ZMath::Vec3D closest = sphere.c - plane.pos;
+        ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
+
+        // rotate the center of the sphere into the plane's local coords
+        closest = plane.rot * closest + plane.pos;
+
+        closest.x = ZMath::clamp(closest.x, min.x, max.x);
+        closest.y = ZMath::clamp(closest.y, min.y, max.y);
+        closest.z = plane.pos.z;
+
+        result.hit = closest.distSq(sphere.c) <= sphere.r*sphere.r;
+
+        if (!result.hit) { return result; }
+
+        // The closest point to the sphere's center will be our contact point.
+        // Therefore, we just set our contact point to closest.
+
+        result.numPoints = 1;
+        result.contactPoints = new ZMath::Vec3D[1];
+        result.contactPoints[0] = closest;
+
+        // determine the penetration distance and collision normal
+
+        ZMath::Vec3D diff = closest - sphere.c;
+        float d = diff.mag(); // allows us to only take the sqrt once
+        result.pDist = sphere.r - d;
+        result.normal = diff * (1.0f/d);
+
+        return result;
+    };
+
+    CollisionManifold findCollisionFeatures(Plane const &plane, AABB const &aabb) {
+        
+    };
+
+    CollisionManifold findCollisionFeatures(Plane const &plane, Cube const &cube) {
+        CollisionManifold result;
+
+        // halfsize of the plane (A) and cube (B)
+        ZMath::Vec2D planeH = plane.getHalfSize();
+        ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = cube.getHalfSize();
+
+        // * Determine the rotation matrices of A and B
+
+        // rotate anything from global space to A's local space
+        ZMath::Mat3D rotAT = plane.rot.transpose();
+
+        // rotate anything from global space to B's local space
+        ZMath::Mat3D rotBT = cube.rot.transpose();
+
+        // determine the difference between the positions
+        ZMath::Vec3D dP = cube.pos - plane.pos;
+        ZMath::Vec3D dA = rotAT * dP;
+        ZMath::Vec3D dB = rotBT * dP;
+
+        // * Rotation matrices for switching between local spaces
+
+        // ! When scenes are developed test if we actually need the absolute value
+
+        // Rotate anything from B's local space into A's
+        ZMath::Mat3D C = ZMath::abs(rotAT * cube.rot);
+
+        // Rotate anything from A's local space into B's
+        ZMath::Mat3D CT = C.transpose();
+
+        // * Check for intersections with the separating axis theorem
+
+        // todo check to see which one needs the z axis to be checked
+        // todo it's probably faceB (the cube)
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - C * hB;
+        if (faceA.x > 0 || faceA.y > 0) {
+            result.hit = 0;
+            return result;
+        }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - CT * hA;
+        if (faceB.x > 0 || faceB.y > 0 || faceB.z > 0) {
+            result.hit = 0;
+            return result;
+        }
+
+        // * Find the best axis (i.e. the axis with the least penetration)
+
+        // Assume A's x-axis is the best axis first
+        Axis axis = FACE_A_X;
+        float separation = faceA.x;
+        result.normal = dA.x > 0.0f ? plane.rot.c1 : -plane.rot.c1;
+
+        // tolerance values
+        float relativeTol = 0.95f;
+        float absoluteTol = 0.01f;
+
+        // ? check if there is another axis better than A's x axis by checking if the penetration along
+        // ?  the current axis being checked is greater than that of the current penetration
+        // ?  (as greater value = less negative = less penetration).
+
+        // A's remaining axis
+        if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
+            axis = FACE_A_Y;
+            separation = faceA.y;
+            result.normal = dA.y > 0.0f ? plane.rot.c2 : -plane.rot.c2;
+        }
+
+        // B's axes
+        if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
+            axis = FACE_B_X;
+            separation = faceB.x;
+            result.normal = dB.x > 0.0f ? cube.rot.c1 : -cube.rot.c1;
+        }
+
+        if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
+            axis = FACE_B_Y;
+            separation = faceB.y;
+            result.normal = dB.y > 0.0f ? cube.rot.c2 : -cube.rot.c2;
+        }
+
+        if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
+            axis = FACE_B_Z;
+            separation = faceB.z;
+            result.normal = dB.z > 0.0f ? cube.rot.c3 : -cube.rot.c3;
+        }
+
+        // * Setup clipping plane data based on the best axis
+
+        ZMath::Vec3D sideNormal1, sideNormal2;
+        ZMath::Vec3D incidentFace[4]; // 4 vertices for the collision in 3D
+        float front, negSide1, negSide2, posSide1, posSide2;
+
+        // * Compute the clipping lines and line segment to be clipped
+
+        // todo we're gonna need to tailor this part to the plane specifically
+        // todo  plane will either have 2 vertices for an indicent face or we would need to project the other points down to where it would be given rotation
+        // todo  unsure of which so we will draw out diagrams and figure it out
+
+        switch(axis) {
+            case FACE_A_X: {
+                front = plane.pos * result.normal + hA.x;
+                sideNormal1 = cube1.rot.c2; // yNormal
+                sideNormal2 = cube1.rot.c3; // zNormal
+                float ySide = cube1.pos * sideNormal1;
+                float zSide = cube1.pos * sideNormal2;
+
+                negSide1 = -ySide + hA.y; // negSideY
+                posSide1 = ySide + hA.y; // posSideY
+                negSide2 = -zSide + hA.z; // negSideZ
+                posSide2 = zSide + hA.z; // posSideZ
+
+                computeIncidentFace(incidentFace, hB, cube2.pos, cube2.rot, result.normal);
+                break;
+            }
+
+            case FACE_A_Y: {
+                front = cube1.pos * result.normal + hA.y;
+                sideNormal1 = cube1.rot.c1; // xNormal
+                sideNormal2 = cube1.rot.c3; // zNormal
+                float xSide = cube1.pos * sideNormal1;
+                float zSide = cube1.pos * sideNormal2;
+
+                negSide1 = -xSide + hA.x; // negSideX
+                posSide1 = xSide + hA.x; // posSideX
+                negSide2 = -zSide + hA.z; // negSideZ
+                posSide2 = zSide + hA.z; // posSideZ
+
+                computeIncidentFace(incidentFace, hB, cube2.pos, cube2.rot, result.normal);
+                break;
+            }
+
+            case FACE_B_X: {
+                front = cube2.pos * result.normal + hB.x;
+                sideNormal1 = cube2.rot.c2; // yNormal
+                sideNormal2 = cube2.rot.c3; // zNormal
+                float ySide = cube2.pos * sideNormal1;
+                float zSide = cube2.pos * sideNormal2;
+
+                negSide1 = -ySide + hB.y; // negSideY
+                posSide1 = ySide + hB.y; // posSideY
+                negSide2 = -zSide + hB.z; // negSideZ
+                posSide2 = zSide + hB.z; // posSideZ
+
+                computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
+                break;
+            }
+
+            case FACE_B_Y: {
+                front = cube2.pos * result.normal + hB.y;
+                sideNormal1 = cube2.rot.c1; // xNormal
+                sideNormal2 = cube2.rot.c3; // zNormal
+                float xSide = cube2.pos * sideNormal1;
+                float zSide = cube2.pos * sideNormal2;
+
+                negSide1 = -xSide + hB.x; // negSideX
+                posSide1 = xSide + hB.x; // posSideX
+                negSide2 = -zSide + hB.z; // negSideZ
+                posSide2 = zSide + hB.z; // posSideZ
+
+                computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
+                break;
+            }
+
+            case FACE_B_Z: {
+                front = cube2.pos * result.normal + hB.z;
+                sideNormal1 = cube2.rot.c1; // xNormal
+                sideNormal2 = cube2.rot.c2; // yNormal
+                float xSide = cube2.pos * sideNormal1;
+                float ySide = cube2.pos * sideNormal2;
+
+                negSide1 = -xSide + hB.x; // negSideX
+                posSide1 = xSide + hB.x; // posSideX
+                negSide2 = -ySide + hB.y; // negSideY
+                posSide2 = ySide + hB.y; // posSideY
+
+                computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
+                break;
+            }
+        }
+    };
+
+    CollisionManifold findCollisionFeatures(Sphere const &sphere1, Sphere const &sphere2) {
+        CollisionManifold result;
 
             float r = sphere1.r + sphere2.r;
             ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
@@ -49,8 +285,8 @@ namespace Collisions {
             return result;
         };
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::AABB const &aabb) {
-            CollisionManifold result;
+    CollisionManifold findCollisionFeatures(Sphere const &sphere, AABB const &aabb) {
+        CollisionManifold result;
 
             // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
             // ?  from the center is less than or equal to the radius of the sphere.
@@ -82,8 +318,8 @@ namespace Collisions {
             return result;
         };
 
-        CollisionManifold findCollisionFeatures(Primitives::Sphere const &sphere, Primitives::Cube const &cube) {
-            CollisionManifold result;
+    CollisionManifold findCollisionFeatures(Sphere const &sphere, Cube const &cube) {
+        CollisionManifold result;
 
             ZMath::Vec3D closest = sphere.c - cube.pos;
             ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
@@ -325,8 +561,8 @@ namespace Collisions {
 
         // ? Normal points towards B and away from A
 
-        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb1, Primitives::AABB const &aabb2) {
-            CollisionManifold result;
+    CollisionManifold findCollisionFeatures(AABB const &aabb1, AABB const &aabb2) {
+        CollisionManifold result;
 
             // half size of AABB a and b respectively
             ZMath::Vec3D hA = aabb1.getHalfSize(), hB = aabb2.getHalfSize();
@@ -480,8 +716,8 @@ namespace Collisions {
 
         // ? Normal points towards B and away from A
 
-        CollisionManifold findCollisionFeatures(Primitives::AABB const &aabb, Primitives::Cube const &cube) {
-            CollisionManifold result;
+    CollisionManifold findCollisionFeatures(AABB const &aabb, Cube const &cube) {
+        CollisionManifold result;
 
             // half size of a and b respectively
             ZMath::Vec3D hA = aabb.getHalfSize(), hB = cube.getHalfSize();
@@ -711,8 +947,8 @@ namespace Collisions {
 
         // ? Normal points towards B and away from A
 
-        CollisionManifold findCollisionFeatures(Primitives::Cube const &cube1, Primitives::Cube const &cube2) {
-            CollisionManifold result;
+    CollisionManifold findCollisionFeatures(Cube const &cube1, Cube const &cube2) {
+        CollisionManifold result;
 
             // half size of cube a and b respectively
             ZMath::Vec3D hA = cube1.getHalfSize(), hB = cube2.getHalfSize();
@@ -960,49 +1196,116 @@ namespace Collisions {
         };
     }
 
-    // Find the collision features and resolve the impulse between two arbitrary primitives.
-    CollisionManifold findCollisionFeatures(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2) {
+    // Find the collision features and resolve the impulse between two rigidbodies.
+    CollisionManifold findCollisionFeatures(RigidBody3D* rb1, RigidBody3D* rb2) {
         switch (rb1->colliderType) {
-            case Primitives::RIGID_SPHERE_COLLIDER: {
-                if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.sphere); }
-                if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.aabb); }
-                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.cube); }
+            case RIGID_SPHERE_COLLIDER: {
+                if (rb2->colliderType == RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.sphere); }
+                if (rb2->colliderType == RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.aabb); }
+                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.cube); }
 
                 break;
             }
 
-            case Primitives::RIGID_AABB_COLLIDER: {
-                if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) {
+            case RIGID_AABB_COLLIDER: {
+                if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
                     CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.aabb);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.aabb); }
-                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.cube); }
+                if (rb2->colliderType == RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.aabb); }
+                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.cube); }
 
                 break;
             }
 
-            case Primitives::RIGID_CUBE_COLLIDER: {
-                if (rb2->colliderType == Primitives::RIGID_SPHERE_COLLIDER) {
+            case RIGID_CUBE_COLLIDER: {
+                if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
                     CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2->colliderType == Primitives::RIGID_AABB_COLLIDER) {
+                if (rb2->colliderType == RIGID_AABB_COLLIDER) {
                     CollisionManifold manifold = findCollisionFeatures(rb2->collider.aabb, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2->colliderType == Primitives::RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.cube, rb2->collider.cube); }
+                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.cube, rb2->collider.cube); }
 
                 break;
             }
 
-            default: {
+            // * User defined types go here.
+        }
+
+        return {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
+    };
+
+    // Find the collision features and resolve the impulse between a staticbody and a rigidbody.
+    // The collision normal will point towards the rigid body and away from the static body.
+    CollisionManifold findCollisionFeatures(StaticBody3D* sb, RigidBody3D* rb) {
+        // ? The normal points towards B and away from A so we want to pass the rigid body's colliders second.
+
+        switch (sb->colliderType) {
+            case STATIC_PLANE_COLLIDER: {
+                switch (rb->colliderType) {
+                    case RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.sphere); }
+                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.aabb); }
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.cube); }
+                }
+
+                break;
+            }
+
+            case STATIC_SPHERE_COLLIDER: {
+                switch (rb->colliderType) {
+                    case RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.sphere); }
+                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.aabb); }
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.cube); }
+                }
+
+                break;
+            }
+
+            case STATIC_AABB_COLLIDER: {
+                switch (rb->colliderType) {
+                    case RIGID_SPHERE_COLLIDER: {
+                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.aabb);
+                        manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
+                        return manifold;
+                    }
+
+                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.aabb, rb->collider.aabb); }
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.aabb, rb->collider.cube); }
+                }
+
+                break;
+            }
+
+            case STATIC_CUBE_COLLIDER: {
+                switch (rb->colliderType) {
+                    case RIGID_SPHERE_COLLIDER: {
+                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.cube);
+                        manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
+                        return manifold;
+                    }
+
+                    case RIGID_AABB_COLLIDER: {
+                        CollisionManifold manifold = findCollisionFeatures(rb->collider.aabb, sb->collider.cube);
+                        manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
+                        return manifold;
+                    }
+
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.cube, rb->collider.cube); }
+                }
+
+                break;
+            }
+
+            case STATIC_CUSTOM_COLLIDER: {
                 // * User defined types go here.
                 break;
             }

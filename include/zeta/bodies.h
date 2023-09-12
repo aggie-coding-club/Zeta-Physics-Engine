@@ -5,7 +5,15 @@
 
 #include "primitives.h"
 
-namespace Primitives {
+namespace Zeta {
+    enum ColliderType {
+        PLANE_COLLIDER,
+        SPHERE_COLLIDER,
+        AABB_COLLIDER,
+        CUBE_COLLIDER,
+        CUSTOM_COLLIDER
+    };
+
     enum RigidBodyCollider {
         RIGID_SPHERE_COLLIDER,
         RIGID_AABB_COLLIDER,
@@ -21,6 +29,34 @@ namespace Primitives {
         STATIC_CUBE_COLLIDER,
         STATIC_CUSTOM_COLLIDER,
         STATIC_NONE
+    };
+
+    // todo really dont need this
+    class Collider {
+        public:
+            // Remember to manurally assign the type and collider if using the default constructor or it will cause undefined behvior.
+            Collider() {};
+
+            Collider(ColliderType type, void* collider) : type(type) {
+                switch(type) {
+                    case ColliderType::PLANE_COLLIDER: { this->collider.plane = *((Plane*) collider); }
+                    case STATIC_SPHERE_COLLIDER: { this->collider.sphere = *((Sphere*) collider); }
+                    case STATIC_AABB_COLLIDER: { this->collider.aabb = *((AABB*) collider); }
+                    case STATIC_CUBE_COLLIDER: { this->collider.cube = *((Cube*) collider); }
+                    // * User defined colliders go here.
+                }
+            };
+
+            ColliderType type;
+            union ColShape {
+                ColShape() {};
+
+                Plane plane;
+                Sphere sphere;
+                AABB aabb;
+                Cube cube;
+                // * Custom types go here.
+            } collider;
     };
 
     class RigidBody3D {

@@ -3,7 +3,7 @@
 
 #include "zmath.h"
 
-namespace Primitives {
+namespace Zeta {
     class Ray3D {
         public:
             ZMath::Vec3D origin;
@@ -107,9 +107,9 @@ namespace Primitives {
 
             // @brief Create a Sphere with an arbitrary radius and center.
             //
-            // @param rho (float) Radius of the sphere.
             // @param center (Vec3D) Center of the sphere.
-            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), c(center) {};
+            // @param rho (float) Radius of the sphere.
+            Sphere(ZMath::Vec3D const &center, float rho) : r(rho), c(center) {};
     };
 
     class AABB {
