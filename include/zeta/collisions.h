@@ -1,5 +1,4 @@
-#ifndef COLLISIONS_H
-#define COLLISIONS_H
+#pragma once
 
 #include "intersections.h"
 
@@ -1303,5 +1302,3 @@ namespace Zeta {
         return {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
     };
 }
-
-#endif // !COLLISIONS_H

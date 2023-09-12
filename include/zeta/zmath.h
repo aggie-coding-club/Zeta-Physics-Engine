@@ -1,5 +1,4 @@
-#ifndef ZMATH_H
-#define ZMATH_H
+#pragma once
 
 #include <cmath>
 
@@ -854,5 +853,3 @@ namespace ZMath {
         );
     };
 }
-
-#endif // ! ZMATH_H
