@@ -5,6 +5,9 @@
 
 #include "primitives.h"
 
+// todo separate out the Colliders from the Rigid and Static bodies, allowing the user to use colliders for stuff like death planes
+// todo  and the static body + rigid body collisions to be handled by the physics handler
+
 namespace Zeta {
     enum ColliderType {
         PLANE_COLLIDER,

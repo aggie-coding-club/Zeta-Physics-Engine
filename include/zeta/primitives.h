@@ -38,7 +38,7 @@ namespace Zeta {
     // This should be used to model death planes, borders, etc. as planes are not affected by forces and impulse.
     class Plane {
         private:
-            ZMath::Vec2D halfSize;
+            ZMath::Vec2D halfSize; // todo maybe change to be a vec3D with z = 0.0f. This would allow for easier access and use in manifolds and collision detection
 
         public:
             ZMath::Vec3D pos; // Center of the plane.
