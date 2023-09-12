@@ -144,13 +144,7 @@ namespace ZMath {
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
             // * This function is very expensive. Only call if absolutely needed.
-            inline float angle (Vec2D const &vec) const { return acos((x*vec.x + y*vec.y)/(sqrtf(x*x + y*y) * sqrtf(vec.x*vec.x + vec.y*vec.y))); };
-
-            // * Get the value of cos^2(theta) between the vectors.
-            inline float cos2Ang (Vec2D const &vec) const {
-                float d = x*vec.x + y*vec.y;
-                return (d*d)/((x*x + y*y)*(vec.x*vec.x + vec.y*vec.y));
-            };
+            inline float angle (Vec2D const &vec) const { return acos((x*vec.x + y*vec.y)/(sqrtf((x*x + y*y) * (vec.x*vec.x + vec.y*vec.y)))); };
 
             // * Get the sign of each entry.
             inline Vec2D getSigns() const { return Vec2D(SIGNOF(x), SIGNOF(y)); };
@@ -293,13 +287,7 @@ namespace ZMath {
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
             // * This function is very expensive. Only call if absolutely needed.
-            inline float angle (Vec3D const &vec) const { return acos((x*vec.x + y*vec.y + z*vec.z)/(sqrtf(x*x + y*y + z*z) * sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z))); };
-
-            // * Get the value of cos^2(theta) between the vectors.
-            inline float cos2Ang (Vec3D const &vec) const {
-                float d = x*vec.x + y*vec.y + z*vec.z;
-                return (d*d)/((x*x + y*y + z*z)*(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z));
-            };
+            inline float angle (Vec3D const &vec) const { return acos((x*vec.x + y*vec.y + z*vec.z)/(sqrtf((x*x + y*y + z*z) * (vec.x*vec.x + vec.y*vec.y + vec.z*vec.z)))); };
 
             // * Get a vector with the sign of each entry.
             inline Vec3D getSigns() const { return Vec3D(SIGNOF(x), SIGNOF(y), SIGNOF(z)); };
