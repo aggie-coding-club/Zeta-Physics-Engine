@@ -102,7 +102,7 @@ namespace PhysicsHandler {
                     for (int i = 0; i < colWrapper.count; i++) {
                         temp1[i] = colWrapper.bodies1[i];
                         temp2[i] = colWrapper.bodies2[i];
-                        temp3[i] = colWrapper.manifolds[i];
+                        temp3[i] = std::move(colWrapper.manifolds[i]);
                     }
 
                     delete[] colWrapper.bodies1;
