@@ -1,5 +1,4 @@
-#ifndef COLLISIONS_H
-#define COLLISIONS_H
+#pragma once
 
 #include "intersections.h"
 
@@ -175,9 +174,13 @@ namespace Collisions {
 
         // * Compute the clipping lines and line segment to be clipped
 
+        // todo we're gonna need to tailor this part to the plane specifically
+        // todo  plane will either have 2 vertices for an indicent face or we would need to project the other points down to where it would be given rotation
+        // todo  unsure of which so we will draw out diagrams and figure it out
+
         switch(axis) {
             case FACE_A_X: {
-                front = cube1.pos * result.normal + hA.x;
+                front = plane.pos * result.normal + hA.x;
                 sideNormal1 = cube1.rot.c2; // yNormal
                 sideNormal2 = cube1.rot.c3; // zNormal
                 float ySide = cube1.pos * sideNormal1;
@@ -1299,5 +1302,3 @@ namespace Collisions {
         return {ZMath::Vec3D(), nullptr, -1.0f, 0, 0};
     };
 }
-
-#endif // !COLLISIONS_H

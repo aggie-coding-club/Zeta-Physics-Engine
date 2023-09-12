@@ -1,5 +1,4 @@
-#ifndef PRIMITIVES_H
-#define PRIMITIVES_H
+#pragma once
 
 #include "zmath.h"
 
@@ -206,5 +205,3 @@ namespace Primitives {
             }; 
     };
 } // namespace Primitives
-
-#endif // !PRIMITIVES_H

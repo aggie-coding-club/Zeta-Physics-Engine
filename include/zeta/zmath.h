@@ -1,5 +1,4 @@
-#ifndef ZMATH_H
-#define ZMATH_H
+#pragma once
 
 #include <cmath>
 
@@ -144,7 +143,7 @@ namespace ZMath {
             // * Get the angle between the vectors in radians.
             // * Keep in mind range restrictions for arccos.
             // * This function is very expensive. Only call if absolutely needed.
-            inline float angle (Vec2D const &vec) const { return acos((x*vec.x + y*vec.y)/(sqrtf(x*x + y*y) * sqrtf(vec.x*vec.x + vec.y*vec.y))); };
+            inline float angle (Vec2D const &vec) const { return acos((x*vec.x + y*vec.y)/(sqrtf(x*x + y*y) * (vec.x*vec.x + vec.y*vec.y))); };
 
             // * Get the value of cos^2(theta) between the vectors.
             inline float cos2Ang (Vec2D const &vec) const {
@@ -866,5 +865,3 @@ namespace ZMath {
         );
     };
 }
-
-#endif // ! ZMATH_H

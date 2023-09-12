@@ -1,5 +1,4 @@
-#ifndef PHYSICS_HANDLER_H
-#define PHYSICS_HANDLER_H
+#pragma once
 
 #include "collisions.h"
 #include <stdexcept>
@@ -276,5 +275,3 @@ namespace PhysicsHandler {
             };
     };
 }
-
-#endif // ! PHYSICS_HANDLER_H
