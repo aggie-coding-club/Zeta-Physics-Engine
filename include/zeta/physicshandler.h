@@ -1,5 +1,4 @@
-#ifndef PHYSICS_HANDLER_H
-#define PHYSICS_HANDLER_H
+#pragma once
 
 #include "collisions.h"
 #include <stdexcept>
@@ -103,7 +102,7 @@ namespace Zeta {
                     for (int i = 0; i < colWrapper.count; i++) {
                         temp1[i] = colWrapper.bodies1[i];
                         temp2[i] = colWrapper.bodies2[i];
-                        temp3[i] = colWrapper.manifolds[i];
+                        temp3[i] = std::move(colWrapper.manifolds[i]);
                     }
 
                     delete[] colWrapper.bodies1;
@@ -276,5 +275,3 @@ namespace Zeta {
             };
     };
 }
-
-#endif // ! PHYSICS_HANDLER_H

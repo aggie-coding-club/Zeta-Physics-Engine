@@ -1,7 +1,6 @@
 // ? Stores all the different types of bodies attached to primitives.
 
-#ifndef BODIES_H
-#define BODIES_H
+#pragma once
 
 #include "primitives.h"
 
@@ -176,5 +175,3 @@ namespace Zeta {
             } collider;
         };
 }
-
-#endif // !RIGIDBODY_H
