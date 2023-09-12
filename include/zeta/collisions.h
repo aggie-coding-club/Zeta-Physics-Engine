@@ -181,84 +181,133 @@ namespace Zeta {
         switch(axis) {
             case FACE_A_X: {
                 front = plane.pos * result.normal + hA.x;
-                sideNormal1 = cube1.rot.c2; // yNormal
-                sideNormal2 = cube1.rot.c3; // zNormal
-                float ySide = cube1.pos * sideNormal1;
-                float zSide = cube1.pos * sideNormal2;
+                sideNormal1 = plane.rot.c2; // yNormal
+                sideNormal2 = plane.rot.c3; // zNormal
+                float ySide = plane.pos * sideNormal1;
+                float zSide = plane.pos * sideNormal2;
 
                 negSide1 = -ySide + hA.y; // negSideY
                 posSide1 = ySide + hA.y; // posSideY
                 negSide2 = -zSide + hA.z; // negSideZ
                 posSide2 = zSide + hA.z; // posSideZ
 
-                computeIncidentFace(incidentFace, hB, cube2.pos, cube2.rot, result.normal);
+                computeIncidentFace(incidentFace, hB, cube.pos, cube.rot, result.normal);
                 break;
             }
 
             case FACE_A_Y: {
-                front = cube1.pos * result.normal + hA.y;
-                sideNormal1 = cube1.rot.c1; // xNormal
-                sideNormal2 = cube1.rot.c3; // zNormal
-                float xSide = cube1.pos * sideNormal1;
-                float zSide = cube1.pos * sideNormal2;
+                front = plane.pos * result.normal + hA.y;
+                sideNormal1 = plane.rot.c1; // xNormal
+                sideNormal2 = plane.rot.c3; // zNormal
+                float xSide = plane.pos * sideNormal1;
+                float zSide = plane.pos * sideNormal2;
 
                 negSide1 = -xSide + hA.x; // negSideX
                 posSide1 = xSide + hA.x; // posSideX
                 negSide2 = -zSide + hA.z; // negSideZ
                 posSide2 = zSide + hA.z; // posSideZ
 
-                computeIncidentFace(incidentFace, hB, cube2.pos, cube2.rot, result.normal);
+                computeIncidentFace(incidentFace, hB, cube.pos, cube.rot, result.normal);
                 break;
             }
 
             case FACE_B_X: {
-                front = cube2.pos * result.normal + hB.x;
-                sideNormal1 = cube2.rot.c2; // yNormal
-                sideNormal2 = cube2.rot.c3; // zNormal
-                float ySide = cube2.pos * sideNormal1;
-                float zSide = cube2.pos * sideNormal2;
+                front = cube.pos * result.normal + hB.x;
+                sideNormal1 = cube.rot.c2; // yNormal
+                sideNormal2 = cube.rot.c3; // zNormal
+                float ySide = cube.pos * sideNormal1;
+                float zSide = cube.pos * sideNormal2;
 
                 negSide1 = -ySide + hB.y; // negSideY
                 posSide1 = ySide + hB.y; // posSideY
                 negSide2 = -zSide + hB.z; // negSideZ
                 posSide2 = zSide + hB.z; // posSideZ
 
-                computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
+                computeIncidentFace(incidentFace, hA, plane.pos, plane.rot, result.normal);
                 break;
             }
 
             case FACE_B_Y: {
-                front = cube2.pos * result.normal + hB.y;
-                sideNormal1 = cube2.rot.c1; // xNormal
-                sideNormal2 = cube2.rot.c3; // zNormal
-                float xSide = cube2.pos * sideNormal1;
-                float zSide = cube2.pos * sideNormal2;
+                front = cube.pos * result.normal + hB.y;
+                sideNormal1 = cube.rot.c1; // xNormal
+                sideNormal2 = cube.rot.c3; // zNormal
+                float xSide = cube.pos * sideNormal1;
+                float zSide = cube.pos * sideNormal2;
 
                 negSide1 = -xSide + hB.x; // negSideX
                 posSide1 = xSide + hB.x; // posSideX
                 negSide2 = -zSide + hB.z; // negSideZ
                 posSide2 = zSide + hB.z; // posSideZ
 
-                computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
+                computeIncidentFace(incidentFace, hA, plane.pos, plane.rot, result.normal);
                 break;
             }
 
             case FACE_B_Z: {
-                front = cube2.pos * result.normal + hB.z;
-                sideNormal1 = cube2.rot.c1; // xNormal
-                sideNormal2 = cube2.rot.c2; // yNormal
-                float xSide = cube2.pos * sideNormal1;
-                float ySide = cube2.pos * sideNormal2;
+                front = cube.pos * result.normal + hB.z;
+                sideNormal1 = cube.rot.c1; // xNormal
+                sideNormal2 = cube.rot.c2; // yNormal
+                float xSide = cube.pos * sideNormal1;
+                float ySide = cube.pos * sideNormal2;
 
                 negSide1 = -xSide + hB.x; // negSideX
                 posSide1 = xSide + hB.x; // posSideX
                 negSide2 = -ySide + hB.y; // negSideY
                 posSide2 = ySide + hB.y; // posSideY
 
-                computeIncidentFace(incidentFace, hA, cube1.pos, cube1.rot, result.normal);
+                computeIncidentFace(incidentFace, hA, plane.pos, plane.rot, result.normal);
                 break;
             }
         }
+
+        // * Clip the incident edge with box planes.
+
+        ZMath::Vec3D clipPoints1[4];
+        ZMath::Vec3D clipPoints2[4];
+
+        // Clip to side 1
+        int np = clipSegmentToLine(clipPoints1, incidentFace, -sideNormal1, -sideNormal2, negSide1, negSide2);
+
+        if (np < 4) {
+            result.hit = 0;
+            return result;
+        }
+
+        // Clip to the negative side 1
+        np = clipSegmentToLine(clipPoints2, clipPoints1, sideNormal1, sideNormal2, posSide1, posSide2);
+
+        if (np < 4) {
+            result.hit = 0;
+            return result;
+        }
+
+        // * ClipPoints2 now contains the clipping points.
+        // * Compute the contact points.
+        
+        // store the conatct points in here and add them to the dynamic array after they are determined
+        ZMath::Vec3D contactPoints[4];
+        np = 0;
+        result.pDist = 0.0f;
+
+        for (int i = 0; i < 4; ++i) {
+            separation = result.normal * clipPoints2[i] - front;
+
+            if (separation <= 0) {
+                contactPoints[np++] = clipPoints2[i] - result.normal * separation;
+                if (result.pDist < separation) { result.pDist = separation; }
+            }
+        }
+
+        // * update the manifold to contain the results.
+
+        result.pDist = -result.pDist;
+        result.hit = 1;
+        result.numPoints = np;
+        result.contactPoints = new ZMath::Vec3D[np];
+
+        for (int i = 0; i < np; ++i) { result.contactPoints[i] = contactPoints[i]; }
+        
+        return result;
     };
 
     CollisionManifold findCollisionFeatures(Sphere const &sphere1, Sphere const &sphere2) {
