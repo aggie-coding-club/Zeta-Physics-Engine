@@ -76,6 +76,136 @@ namespace Zeta {
         
     };
 
+
+     /**
+     * @brief Determine the 4 vertices making up the incident face.
+     * 
+     * @param v Array which gets filled with the 4 vertices comprising the incident face.
+     * @param h Halfsize of the incident cube.
+     * @param pos The position of the incident cube.
+     * @param rot The rotation matrix of the incident cube.
+     * @param normal The normal vector of the collision.
+     */
+    static void computeIncidentFace(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, 
+                                    const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
+
+        // Rotate the normal to the incident cube's local space.
+        ZMath::Vec3D n = rot.transpose() * normal;
+        ZMath::Vec3D nAbs = ZMath::abs(n);
+
+        // Determine the vertices in terms of halfsize.
+        // Vertex array starts in bottom left corner when considering the face as a 2D box and goes around counterclockwise.
+        if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
+            if (n.x > 0.0f) { // incident cube is intersecting on its -x side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+
+            } else { // incident cube is intersecting on its +x side
+                v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+            }
+
+        } else if (nAbs.y > nAbs.z) { // y >= x && y > z
+            if (n.y > 0.0f) { // incident cube is intersecting on its -y side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(h.x, -h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, -h.y, h.z);
+                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+
+            } else { // incident cube is intersecting on its +y side
+                v[0] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(-h.x, h.y, h.z);
+            }
+
+        } else { // z >= y && z >= x
+            if (n.z > 0.0f) { // incident cube is intersecting on its -z side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, -h.z);
+                v[3] = ZMath::Vec3D(h.x, -h.y, -h.z);
+
+            } else { // incdient cube is intersecting on its +z side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, h.z);
+                v[1] = ZMath::Vec3D(-h.x, h.y, h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+            }
+        }
+
+        // rotate vertices back into global coordinates and translate them to their proper positions
+        v[0] = pos + rot * v[0];
+        v[1] = pos + rot * v[1];
+        v[2] = pos + rot * v[2];
+        v[3] = pos + rot * v[3];
+    };
+
+    /**
+     * @brief Compute the clipping points given input points.
+     * 
+     * @param vOut Array which gets filled with the clipping points.
+     * @param vIn Array containing the input points.
+     * @param n1 Side normal 1.
+     * @param n2 Side normal 2.
+     * @param offset1 Distance to the side corresponding with side normal 1.
+     * @param offset2 Distance to the side corresponding with side normal 2.
+     * @return (int) The number of clipping points. If this does not return 4, there is not an intersection on this axis.
+     */
+    int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
+        // begin with 0 output points
+        int np = 0;
+
+        // calculate the distance
+        // first set of distances
+        float d0 = n1 * vIn[0] - offset1;
+        float d1 = n1 * vIn[1] - offset1;
+
+        // second set of distances
+        float d2 = n2 * vIn[0] - offset2;
+        float d3 = n2 * vIn[3] - offset2;
+
+        // * Compute the clipping points.
+        // ? If the points are outside the reference cube's clipping plane (more or less inside the cube), add them as clipping points.
+        // ? Otherwise, check if the vertices are separated by the edge of the reference cube used for this clipping plane.
+        
+        // cache the interpolation values for efficiency
+        float i1 = (d0/(d1 + d0));
+        float i2 = (d2/(d3 + d2));
+        float i3 = (d1/(d1 + d0));
+        float i4 = (d3/(d3 + d2));
+
+        // first input point
+        if (d0 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[0]; }
+        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1 + (vIn[3] - vIn[0]) * i2; }
+        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1; } 
+        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[3] - vIn[0]) * i2; }
+
+        // second input point
+        if (d1 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[1]; }
+        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3 + (vIn[2] - vIn[1]) * i2; }
+        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3; }
+        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[2] - vIn[1]) * i2; }
+
+        // third input point
+        if (d1 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[2]; }
+        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3 + (vIn[1] - vIn[2]) * i4; }
+        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3; }
+        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[1] - vIn[2]) * i4; }
+
+        // fourth input point
+        if (d0 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[3]; }
+        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1 + (vIn[0] - vIn[3]) * i4; }
+        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1; }
+        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[0] - vIn[3]) * i4; }
+
+        return np;
+    };
+
     CollisionManifold findCollisionFeatures(Plane const &plane, Cube const &cube) {
         CollisionManifold result;
 
@@ -108,12 +238,9 @@ namespace Zeta {
 
         // * Check for intersections with the separating axis theorem
 
-        // todo check to see which one needs the z axis to be checked
-        // todo it's probably faceB (the cube)
-
         // amount of penetration along A's axes
         ZMath::Vec3D faceA = ZMath::abs(dA) - hA - C * hB;
-        if (faceA.x > 0 || faceA.y > 0) {
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) {
             result.hit = 0;
             return result;
         }
@@ -140,11 +267,17 @@ namespace Zeta {
         // ?  the current axis being checked is greater than that of the current penetration
         // ?  (as greater value = less negative = less penetration).
 
-        // A's remaining axis
+        // A's remaining axes
         if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
             axis = FACE_A_Y;
             separation = faceA.y;
             result.normal = dA.y > 0.0f ? plane.rot.c2 : -plane.rot.c2;
+        }
+
+        if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
+            axis = FACE_A_Z;
+            separation = faceA.z;
+            result.normal = dA.z > 0.0f ? plane.rot.c3 : -plane.rot.c3;
         }
 
         // B's axes
@@ -174,9 +307,18 @@ namespace Zeta {
 
         // * Compute the clipping lines and line segment to be clipped
 
-        // todo we're gonna need to tailor this part to the plane specifically
-        // todo  plane will either have 2 vertices for an indicent face or we would need to project the other points down to where it would be given rotation
-        // todo  unsure of which so we will draw out diagrams and figure it out
+        // todo because we know more information about the size of the clipping points for specific cases,
+        // todo     we should handle those separately in their respective switch statements.
+
+        // todo potentially only focus on which part of the plane was hit in the collision and determine from there
+        // todo     this would be fine because it is a static body, so while being slightly inaccurate it wouldn't be terrible
+
+        // todo this would allow us to determine the only two clipping points cases very easily -- next we'd just have to determine
+        // todo     how to determine in the case of the z-face plane collision how to distinguish between 2 or 4
+
+        // todo we can hardcode in the plane's incident face
+        // todo and because the plane's incident face will always be the same, we know that the data when the plane is the one that's been collided with, will be the same each time, too
+        // todo alternatively, we could only check for the plane face with the greatest penetration and go from there
 
         switch(axis) {
             case FACE_A_X: {
@@ -206,6 +348,22 @@ namespace Zeta {
                 posSide1 = xSide + hA.x; // posSideX
                 negSide2 = -zSide + hA.z; // negSideZ
                 posSide2 = zSide + hA.z; // posSideZ
+
+                computeIncidentFace(incidentFace, hB, cube.pos, cube.rot, result.normal);
+                break;
+            }
+
+            case FACE_A_Z: {
+                front = plane.pos * result.normal + hA.z;
+                sideNormal1 = plane.rot.c1; // xNormal
+                sideNormal2 = plane.rot.c2; // yNormal
+                float xSide = plane.pos * sideNormal1;
+                float ySide = plane.pos * sideNormal2;
+
+                negSide1 = -xSide + hA.x; // negSideX
+                posSide1 = xSide + hA.x; // posSideX
+                negSide2 = -ySide + hA.y; // negSideY
+                posSide2 = ySide + hA.y; // posSideY
 
                 computeIncidentFace(incidentFace, hB, cube.pos, cube.rot, result.normal);
                 break;
@@ -468,134 +626,134 @@ namespace Zeta {
         v[3] = pos + v[3];
     };
 
-    /**
-     * @brief Determine the 4 vertices making up the incident face.
-     * 
-     * @param v Array which gets filled with the 4 vertices comprising the incident face.
-     * @param h Halfsize of the incident cube.
-     * @param pos The position of the incident cube.
-     * @param rot The rotation matrix of the incident cube.
-     * @param normal The normal vector of the collision.
-     */
-    static void computeIncidentFace(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, 
-                                    const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
+    // /**
+    //  * @brief Determine the 4 vertices making up the incident face.
+    //  * 
+    //  * @param v Array which gets filled with the 4 vertices comprising the incident face.
+    //  * @param h Halfsize of the incident cube.
+    //  * @param pos The position of the incident cube.
+    //  * @param rot The rotation matrix of the incident cube.
+    //  * @param normal The normal vector of the collision.
+    //  */
+    // static void computeIncidentFace(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, 
+    //                                 const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
 
-        // Rotate the normal to the incident cube's local space.
-        ZMath::Vec3D n = rot.transpose() * normal;
-        ZMath::Vec3D nAbs = ZMath::abs(n);
+    //     // Rotate the normal to the incident cube's local space.
+    //     ZMath::Vec3D n = rot.transpose() * normal;
+    //     ZMath::Vec3D nAbs = ZMath::abs(n);
 
-        // Determine the vertices in terms of halfsize.
-        // Vertex array starts in bottom left corner when considering the face as a 2D box and goes around counterclockwise.
-        if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
-            if (n.x > 0.0f) { // incident cube is intersecting on its -x side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+    //     // Determine the vertices in terms of halfsize.
+    //     // Vertex array starts in bottom left corner when considering the face as a 2D box and goes around counterclockwise.
+    //     if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
+    //         if (n.x > 0.0f) { // incident cube is intersecting on its -x side
+    //             v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+    //             v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+    //             v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
+    //             v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
 
-            } else { // incident cube is intersecting on its +x side
-                v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
-            }
+    //         } else { // incident cube is intersecting on its +x side
+    //             v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
+    //             v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+    //             v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+    //             v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+    //         }
 
-        } else if (nAbs.y > nAbs.z) { // y >= x && y > z
-            if (n.y > 0.0f) { // incident cube is intersecting on its -y side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(h.x, -h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, -h.y, h.z);
-                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+    //     } else if (nAbs.y > nAbs.z) { // y >= x && y > z
+    //         if (n.y > 0.0f) { // incident cube is intersecting on its -y side
+    //             v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+    //             v[1] = ZMath::Vec3D(h.x, -h.y, -h.z);
+    //             v[2] = ZMath::Vec3D(h.x, -h.y, h.z);
+    //             v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
 
-            } else { // incident cube is intersecting on its +y side
-                v[0] = ZMath::Vec3D(-h.x, h.y, -h.z);
-                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(-h.x, h.y, h.z);
-            }
+    //         } else { // incident cube is intersecting on its +y side
+    //             v[0] = ZMath::Vec3D(-h.x, h.y, -h.z);
+    //             v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+    //             v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+    //             v[3] = ZMath::Vec3D(-h.x, h.y, h.z);
+    //         }
 
-        } else { // z >= y && z >= x
-            if (n.z > 0.0f) { // incident cube is intersecting on its -z side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, -h.z);
-                v[3] = ZMath::Vec3D(h.x, -h.y, -h.z);
+    //     } else { // z >= y && z >= x
+    //         if (n.z > 0.0f) { // incident cube is intersecting on its -z side
+    //             v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+    //             v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+    //             v[2] = ZMath::Vec3D(h.x, h.y, -h.z);
+    //             v[3] = ZMath::Vec3D(h.x, -h.y, -h.z);
 
-            } else { // incdient cube is intersecting on its +z side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, h.z);
-                v[1] = ZMath::Vec3D(-h.x, h.y, h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
-            }
-        }
+    //         } else { // incdient cube is intersecting on its +z side
+    //             v[0] = ZMath::Vec3D(-h.x, -h.y, h.z);
+    //             v[1] = ZMath::Vec3D(-h.x, h.y, h.z);
+    //             v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+    //             v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+    //         }
+    //     }
 
-        // rotate vertices back into global coordinates and translate them to their proper positions
-        v[0] = pos + rot * v[0];
-        v[1] = pos + rot * v[1];
-        v[2] = pos + rot * v[2];
-        v[3] = pos + rot * v[3];
-    };
+    //     // rotate vertices back into global coordinates and translate them to their proper positions
+    //     v[0] = pos + rot * v[0];
+    //     v[1] = pos + rot * v[1];
+    //     v[2] = pos + rot * v[2];
+    //     v[3] = pos + rot * v[3];
+    // };
 
-    /**
-     * @brief Compute the clipping points given input points.
-     * 
-     * @param vOut Array which gets filled with the clipping points.
-     * @param vIn Array containing the input points.
-     * @param n1 Side normal 1.
-     * @param n2 Side normal 2.
-     * @param offset1 Distance to the side corresponding with side normal 1.
-     * @param offset2 Distance to the side corresponding with side normal 2.
-     * @return (int) The number of clipping points. If this does not return 4, there is not an intersection on this axis.
-     */
-    int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
-        // begin with 0 output points
-        int np = 0;
+    // /**
+    //  * @brief Compute the clipping points given input points.
+    //  * 
+    //  * @param vOut Array which gets filled with the clipping points.
+    //  * @param vIn Array containing the input points.
+    //  * @param n1 Side normal 1.
+    //  * @param n2 Side normal 2.
+    //  * @param offset1 Distance to the side corresponding with side normal 1.
+    //  * @param offset2 Distance to the side corresponding with side normal 2.
+    //  * @return (int) The number of clipping points. If this does not return 4, there is not an intersection on this axis.
+    //  */
+    // int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
+    //     // begin with 0 output points
+    //     int np = 0;
 
-        // calculate the distance
-        // first set of distances
-        float d0 = n1 * vIn[0] - offset1;
-        float d1 = n1 * vIn[1] - offset1;
+    //     // calculate the distance
+    //     // first set of distances
+    //     float d0 = n1 * vIn[0] - offset1;
+    //     float d1 = n1 * vIn[1] - offset1;
 
-        // second set of distances
-        float d2 = n2 * vIn[0] - offset2;
-        float d3 = n2 * vIn[3] - offset2;
+    //     // second set of distances
+    //     float d2 = n2 * vIn[0] - offset2;
+    //     float d3 = n2 * vIn[3] - offset2;
 
-        // * Compute the clipping points.
-        // ? If the points are outside the reference cube's clipping plane (more or less inside the cube), add them as clipping points.
-        // ? Otherwise, check if the vertices are separated by the edge of the reference cube used for this clipping plane.
+    //     // * Compute the clipping points.
+    //     // ? If the points are outside the reference cube's clipping plane (more or less inside the cube), add them as clipping points.
+    //     // ? Otherwise, check if the vertices are separated by the edge of the reference cube used for this clipping plane.
         
-        // cache the interpolation values for efficiency
-        float i1 = (d0/(d1 + d0));
-        float i2 = (d2/(d3 + d2));
-        float i3 = (d1/(d1 + d0));
-        float i4 = (d3/(d3 + d2));
+    //     // cache the interpolation values for efficiency
+    //     float i1 = (d0/(d1 + d0));
+    //     float i2 = (d2/(d3 + d2));
+    //     float i3 = (d1/(d1 + d0));
+    //     float i4 = (d3/(d3 + d2));
 
-        // first input point
-        if (d0 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[0]; }
-        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1 + (vIn[3] - vIn[0]) * i2; }
-        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1; } 
-        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[3] - vIn[0]) * i2; }
+    //     // first input point
+    //     if (d0 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[0]; }
+    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1 + (vIn[3] - vIn[0]) * i2; }
+    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1; } 
+    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[3] - vIn[0]) * i2; }
 
-        // second input point
-        if (d1 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[1]; }
-        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3 + (vIn[2] - vIn[1]) * i2; }
-        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3; }
-        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[2] - vIn[1]) * i2; }
+    //     // second input point
+    //     if (d1 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[1]; }
+    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3 + (vIn[2] - vIn[1]) * i2; }
+    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3; }
+    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[2] - vIn[1]) * i2; }
 
-        // third input point
-        if (d1 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[2]; }
-        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3 + (vIn[1] - vIn[2]) * i4; }
-        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3; }
-        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[1] - vIn[2]) * i4; }
+    //     // third input point
+    //     if (d1 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[2]; }
+    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3 + (vIn[1] - vIn[2]) * i4; }
+    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3; }
+    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[1] - vIn[2]) * i4; }
 
-        // fourth input point
-        if (d0 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[3]; }
-        else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1 + (vIn[0] - vIn[3]) * i4; }
-        else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1; }
-        else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[0] - vIn[3]) * i4; }
+    //     // fourth input point
+    //     if (d0 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[3]; }
+    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1 + (vIn[0] - vIn[3]) * i4; }
+    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1; }
+    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[0] - vIn[3]) * i4; }
 
-        return np;
-    };
+    //     return np;
+    // };
 
     // ? Normal points towards B and away from A
 

@@ -3,6 +3,9 @@
 #include "collisions.h"
 #include <stdexcept>
 
+// todo go through project and make it more memory efficient.
+// todo for example: add in more std::move calls and avoid assigning an object to another object directly if possible
+
 namespace Zeta {
     // * ====================================
     // * Common Framerates for Handler
