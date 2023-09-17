@@ -38,6 +38,8 @@ namespace Zeta {
 
     // todo create these plane manifold functions
 
+    // todo go through and replace direct assignment of vectors to using .set()
+
     CollisionManifold findCollisionFeatures(Plane const &plane, Sphere const &sphere) {
         CollisionManifold result;
 
@@ -381,7 +383,21 @@ namespace Zeta {
                 negSide2 = -zSide + hB.z; // negSideZ
                 posSide2 = zSide + hB.z; // posSideZ
 
-                computeIncidentFace(incidentFace, hA, plane.pos, plane.rot, result.normal);
+                // ? We know when the plane serves as the incident face, it must be the plane's only 3D face.
+                // ? In other words, we take the plane's 4 vertices.
+
+                // Determine the incident face in terms of halfSize. hA.z will always be 0.
+                incidentFace[0].set(-hA.x, -hA.y, 0.0f);
+                incidentFace[1].set(-hA.x, hA.y, 0.0f);
+                incidentFace[2].set(hA.x, hA.y, 0.0f);
+                incidentFace[3].set(hA.x, -hA.y, 0.0f);
+
+                // Rotate the incident face into global coordinates
+                incidentFace[0].set(plane.pos + plane.rot * incidentFace[0]);
+                incidentFace[1].set(plane.pos + plane.rot * incidentFace[1]);
+                incidentFace[2].set(plane.pos + plane.rot * incidentFace[2]);
+                incidentFace[3].set(plane.pos + plane.rot * incidentFace[3]);
+
                 break;
             }
 
@@ -397,7 +413,21 @@ namespace Zeta {
                 negSide2 = -zSide + hB.z; // negSideZ
                 posSide2 = zSide + hB.z; // posSideZ
 
-                computeIncidentFace(incidentFace, hA, plane.pos, plane.rot, result.normal);
+                // ? We know when the plane serves as the incident face, it must be the plane's only 3D face.
+                // ? In other words, we take the plane's 4 vertices.
+
+                // Determine the incident face in terms of halfSize. hA.z will always be 0.
+                incidentFace[0].set(-hA.x, -hA.y, 0.0f);
+                incidentFace[1].set(-hA.x, hA.y, 0.0f);
+                incidentFace[2].set(hA.x, hA.y, 0.0f);
+                incidentFace[3].set(hA.x, -hA.y, 0.0f);
+
+                // Rotate the incident face into global coordinates
+                incidentFace[0].set(plane.pos + plane.rot * incidentFace[0]);
+                incidentFace[1].set(plane.pos + plane.rot * incidentFace[1]);
+                incidentFace[2].set(plane.pos + plane.rot * incidentFace[2]);
+                incidentFace[3].set(plane.pos + plane.rot * incidentFace[3]);
+
                 break;
             }
 
@@ -413,7 +443,21 @@ namespace Zeta {
                 negSide2 = -ySide + hB.y; // negSideY
                 posSide2 = ySide + hB.y; // posSideY
 
-                computeIncidentFace(incidentFace, hA, plane.pos, plane.rot, result.normal);
+                // ? We know when the plane serves as the incident face, it must be the plane's only 3D face.
+                // ? In other words, we take the plane's 4 vertices.
+
+                // Determine the incident face in terms of halfSize. hA.z will always be 0.
+                incidentFace[0].set(-hA.x, -hA.y, 0.0f);
+                incidentFace[1].set(-hA.x, hA.y, 0.0f);
+                incidentFace[2].set(hA.x, hA.y, 0.0f);
+                incidentFace[3].set(hA.x, -hA.y, 0.0f);
+
+                // Rotate the incident face into global coordinates
+                incidentFace[0].set(plane.pos + plane.rot * incidentFace[0]);
+                incidentFace[1].set(plane.pos + plane.rot * incidentFace[1]);
+                incidentFace[2].set(plane.pos + plane.rot * incidentFace[2]);
+                incidentFace[3].set(plane.pos + plane.rot * incidentFace[3]);
+
                 break;
             }
         }
