@@ -74,12 +74,76 @@ namespace Zeta {
         return result;
     };
 
-    CollisionManifold findCollisionFeatures(Plane const &plane, AABB const &aabb) {
-        
+
+    // * ====================================================
+    // * Helper Functions for 3D Box Collision Manifolds
+    // * ====================================================
+
+    /**
+     * @brief Determine the 4 vertices comprising the incident face when the incident cube is an AABB.
+     * 
+     * @param v Array which gets filled with the 4 vertices making up the incident face.
+     * @param h Halfsize of the incident AABB.
+     * @param pos The position of the incident AABB.
+     * @param normal The normal vector of the collision (points towards B away from A).
+     */
+    static void computeIncidentFaceAABB(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, const ZMath::Vec3D& normal) {
+        // Take the absolute value of the normal for comparisons.
+        ZMath::Vec3D nAbs = ZMath::abs(normal);
+
+        // Determine the vertices in terms of halfsize.
+        // Vertex array starts in the bottom left corner when considering the face as a 2D box and goes around counterclockwise.
+        if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
+            if (normal.x > 0.0f) { // incident cube is intersecting on its -x side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+
+            } else { // incident cube is intersecting on its +x side
+                v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+            }
+
+        } else if (nAbs.y > nAbs.z) { // y >= x && y > z
+            if (normal.y > 0.0f) { // incident cube is intersecting on its -y side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(h.x, -h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, -h.y, h.z);
+                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
+
+            } else { // incident cube is intersecting on its +y side
+                v[0] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(-h.x, h.y, h.z);
+            }
+
+        } else { // z >= y && z >= x
+            if (normal.z > 0.0f) { // incident cube is intersecting on its -z side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
+                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, -h.z);
+                v[3] = ZMath::Vec3D(h.x, -h.y, -h.z);
+
+            } else { // incdient cube is intersecting on its +z side
+                v[0] = ZMath::Vec3D(-h.x, -h.y, h.z);
+                v[1] = ZMath::Vec3D(-h.x, h.y, h.z);
+                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
+                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
+            }
+        }
+
+        // translate the vertices to their proper positions
+        v[0] = pos + v[0];
+        v[1] = pos + v[1];
+        v[2] = pos + v[2];
+        v[3] = pos + v[3];
     };
 
-
-     /**
+    /**
      * @brief Determine the 4 vertices making up the incident face.
      * 
      * @param v Array which gets filled with the 4 vertices comprising the incident face.
@@ -206,6 +270,287 @@ namespace Zeta {
         else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[0] - vIn[3]) * i4; }
 
         return np;
+    };
+
+
+    CollisionManifold findCollisionFeatures(Plane const &plane, AABB const &aabb) {
+        CollisionManifold result;
+
+        // halfsize of the plane (A) and aabb (B)
+        ZMath::Vec2D planeH = plane.getHalfSize();
+        ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = aabb.getHalfSize();
+
+        // * Determine the rotation matrices of A and B
+
+        // rotate anything from global space (B's local space) to A's local space
+        ZMath::Mat3D rotAT = plane.rot.transpose();
+
+        // determine the difference between the positions
+        // Note: global space is the AABB's local space
+        ZMath::Vec3D dB = aabb.pos - plane.pos;
+        ZMath::Vec3D dA = rotAT * dB;
+
+        // * Check for intersections with the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - rotAT * hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) {
+            result.hit = 0;
+            return result;
+        }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - plane.rot * hA;
+        if (faceB.x > 0 || faceB.y > 0 || faceB.z > 0) {
+            result.hit = 0;
+            return result;
+        }
+
+        // * Find the best axis (i.e. the axis with the least penetration)
+
+        // Assume A's x-axis is the best axis first
+        Axis axis = FACE_A_X;
+        float separation = faceA.x;
+        result.normal = dA.x > 0.0f ? plane.rot.c1 : -plane.rot.c1;
+
+        // tolerance values
+        float relativeTol = 0.95f;
+        float absoluteTol = 0.01f;
+
+        // ? check if there is another axis better than A's x axis by checking if the penetration along
+        // ?  the current axis being checked is greater than that of the current penetration
+        // ?  (as greater value = less negative = less penetration).
+
+        // A's remaining axes
+        if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
+            axis = FACE_A_Y;
+            separation = faceA.y;
+            result.normal = dA.y > 0.0f ? plane.rot.c2 : -plane.rot.c2;
+        }
+
+        if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
+            axis = FACE_A_Z;
+            separation = faceA.z;
+            result.normal = dA.z > 0.0f ? plane.rot.c3 : -plane.rot.c3;
+        }
+
+        // B's axes
+        if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
+            axis = FACE_B_X;
+            separation = faceB.x;
+            result.normal = dB.x > 0.0f ? ZMath::Vec3D(1, 0, 0) : ZMath::Vec3D(-1, 0, 0);
+        }
+
+        if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
+            axis = FACE_B_Y;
+            separation = faceB.y;
+            result.normal = dB.y > 0.0f ? ZMath::Vec3D(0, 1, 0) : ZMath::Vec3D(0, -1, 0);
+        }
+
+        if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
+            axis = FACE_B_Z;
+            separation = faceB.z;
+            result.normal = dB.z > 0.0f ? ZMath::Vec3D(0, 0, 1) : ZMath::Vec3D(0, 0, -1);
+        }
+
+        // * Setup clipping plane data based on the best axis
+
+        ZMath::Vec3D sideNormal1, sideNormal2;
+        ZMath::Vec3D incidentFace[4]; // 4 vertices for the collision in 3D
+        float front, negSide1, negSide2, posSide1, posSide2;
+
+        // * Compute the clipping lines and line segment to be clipped
+
+        // todo check my work for this tomorrow or after a couple days
+
+        switch(axis) {
+            case FACE_A_X: {
+                front = plane.pos * result.normal + hA.x;
+                sideNormal1 = plane.rot.c2; // yNormal
+                sideNormal2 = plane.rot.c3; // zNormal
+                float ySide = plane.pos * sideNormal1;
+                float zSide = plane.pos * sideNormal2;
+
+                negSide1 = -ySide + hA.y; // negSideY
+                posSide1 = ySide + hA.y; // posSideY
+                negSide2 = -zSide + hA.z; // negSideZ
+                posSide2 = zSide + hA.z; // posSideZ
+
+                computeIncidentFaceAABB(incidentFace, hB, aabb.pos, result.normal);
+                break;
+            }
+
+            case FACE_A_Y: {
+                front = plane.pos * result.normal + hA.y;
+                sideNormal1 = plane.rot.c1; // xNormal
+                sideNormal2 = plane.rot.c3; // zNormal
+                float xSide = plane.pos * sideNormal1;
+                float zSide = plane.pos * sideNormal2;
+
+                negSide1 = -xSide + hA.x; // negSideX
+                posSide1 = xSide + hA.x; // posSideX
+                negSide2 = -zSide + hA.z; // negSideZ
+                posSide2 = zSide + hA.z; // posSideZ
+
+                computeIncidentFaceAABB(incidentFace, hB, aabb.pos, result.normal);
+                break;
+            }
+
+            case FACE_A_Z: {
+                front = plane.pos * result.normal + hA.z;
+                sideNormal1 = plane.rot.c1; // xNormal
+                sideNormal2 = plane.rot.c2; // yNormal
+                float xSide = plane.pos * sideNormal1;
+                float ySide = plane.pos * sideNormal2;
+
+                negSide1 = -xSide + hA.x; // negSideX
+                posSide1 = xSide + hA.x; // posSideX
+                negSide2 = -ySide + hA.y; // negSideY
+                posSide2 = ySide + hA.y; // posSideY
+
+                computeIncidentFaceAABB(incidentFace, hB, aabb.pos, result.normal);
+                break;
+            }
+
+            case FACE_B_X: {
+                front = aabb.pos * result.normal + hB.x;
+                sideNormal1.set(0, 1, 0); // yNormal
+                sideNormal2.set(0, 0, 1); // zNormal
+                float ySide = aabb.pos * sideNormal1;
+                float zSide = aabb.pos * sideNormal2;
+
+                negSide1 = -ySide + hB.y; // negSideY
+                posSide1 = ySide + hB.y; // posSideY
+                negSide2 = -zSide + hB.z; // negSideZ
+                posSide2 = zSide + hB.z; // posSideZ
+
+                // ? We know when the plane serves as the incident face, it must be the plane's only 3D face.
+                // ? In other words, we take the plane's 4 vertices.
+
+                // Determine the incident face in terms of halfSize. hA.z will always be 0.
+                incidentFace[0].set(-hA.x, -hA.y, 0.0f);
+                incidentFace[1].set(-hA.x, hA.y, 0.0f);
+                incidentFace[2].set(hA.x, hA.y, 0.0f);
+                incidentFace[3].set(hA.x, -hA.y, 0.0f);
+
+                // Rotate the incident face into global coordinates
+                incidentFace[0].set(plane.pos + plane.rot * incidentFace[0]);
+                incidentFace[1].set(plane.pos + plane.rot * incidentFace[1]);
+                incidentFace[2].set(plane.pos + plane.rot * incidentFace[2]);
+                incidentFace[3].set(plane.pos + plane.rot * incidentFace[3]);
+
+                break;
+            }
+
+            case FACE_B_Y: {
+                front = aabb.pos * result.normal + hB.y;
+                sideNormal1.set(1, 0, 0); // xNormal
+                sideNormal2.set(0, 0, 1); // zNormal
+                float xSide = aabb.pos * sideNormal1;
+                float zSide = aabb.pos * sideNormal2;
+
+                negSide1 = -xSide + hB.x; // negSideX
+                posSide1 = xSide + hB.x; // posSideX
+                negSide2 = -zSide + hB.z; // negSideZ
+                posSide2 = zSide + hB.z; // posSideZ
+
+                // ? We know when the plane serves as the incident face, it must be the plane's only 3D face.
+                // ? In other words, we take the plane's 4 vertices.
+
+                // Determine the incident face in terms of halfSize. hA.z will always be 0.
+                incidentFace[0].set(-hA.x, -hA.y, 0.0f);
+                incidentFace[1].set(-hA.x, hA.y, 0.0f);
+                incidentFace[2].set(hA.x, hA.y, 0.0f);
+                incidentFace[3].set(hA.x, -hA.y, 0.0f);
+
+                // Rotate the incident face into global coordinates
+                incidentFace[0].set(plane.pos + plane.rot * incidentFace[0]);
+                incidentFace[1].set(plane.pos + plane.rot * incidentFace[1]);
+                incidentFace[2].set(plane.pos + plane.rot * incidentFace[2]);
+                incidentFace[3].set(plane.pos + plane.rot * incidentFace[3]);
+
+                break;
+            }
+
+            case FACE_B_Z: {
+                front = aabb.pos * result.normal + hB.z;
+                sideNormal1.set(1, 0, 0); // xNormal
+                sideNormal2.set(0, 1, 0); // yNormal
+                float xSide = aabb.pos * sideNormal1;
+                float ySide = aabb.pos * sideNormal2;
+
+                negSide1 = -xSide + hB.x; // negSideX
+                posSide1 = xSide + hB.x; // posSideX
+                negSide2 = -ySide + hB.y; // negSideY
+                posSide2 = ySide + hB.y; // posSideY
+
+                // ? We know when the plane serves as the incident face, it must be the plane's only 3D face.
+                // ? In other words, we take the plane's 4 vertices.
+
+                // Determine the incident face in terms of halfSize. hA.z will always be 0.
+                incidentFace[0].set(-hA.x, -hA.y, 0.0f);
+                incidentFace[1].set(-hA.x, hA.y, 0.0f);
+                incidentFace[2].set(hA.x, hA.y, 0.0f);
+                incidentFace[3].set(hA.x, -hA.y, 0.0f);
+
+                // Rotate the incident face into global coordinates
+                incidentFace[0].set(plane.pos + plane.rot * incidentFace[0]);
+                incidentFace[1].set(plane.pos + plane.rot * incidentFace[1]);
+                incidentFace[2].set(plane.pos + plane.rot * incidentFace[2]);
+                incidentFace[3].set(plane.pos + plane.rot * incidentFace[3]);
+
+                break;
+            }
+        }
+
+        // * Clip the incident edge with box planes.
+
+        ZMath::Vec3D clipPoints1[4];
+        ZMath::Vec3D clipPoints2[4];
+
+        // Clip to side 1
+        int np = clipSegmentToLine(clipPoints1, incidentFace, -sideNormal1, -sideNormal2, negSide1, negSide2);
+
+        if (np < 4) {
+            result.hit = 0;
+            return result;
+        }
+
+        // Clip to the negative side 1
+        np = clipSegmentToLine(clipPoints2, clipPoints1, sideNormal1, sideNormal2, posSide1, posSide2);
+
+        if (np < 4) {
+            result.hit = 0;
+            return result;
+        }
+
+        // * ClipPoints2 now contains the clipping points.
+        // * Compute the contact points.
+        
+        // store the conatct points in here and add them to the dynamic array after they are determined
+        ZMath::Vec3D contactPoints[4];
+        np = 0;
+        result.pDist = 0.0f;
+
+        for (int i = 0; i < 4; ++i) {
+            separation = result.normal * clipPoints2[i] - front;
+
+            if (separation <= 0) {
+                contactPoints[np++] = clipPoints2[i] - result.normal * separation;
+                if (result.pDist < separation) { result.pDist = separation; }
+            }
+        }
+
+        // * update the manifold to contain the results.
+
+        result.pDist = -result.pDist;
+        result.hit = 1;
+        result.numPoints = np;
+        result.contactPoints = new ZMath::Vec3D[np];
+
+        for (int i = 0; i < np; ++i) { result.contactPoints[i] = contactPoints[i]; }
+        
+        return result;
     };
 
     CollisionManifold findCollisionFeatures(Plane const &plane, Cube const &cube) {
@@ -590,203 +935,6 @@ namespace Zeta {
 
         return result;
     };
-
-    // * ====================================================
-    // * Helper Functions for 3D Box Collision Manifolds
-    // * ====================================================
-
-    /**
-     * @brief Determine the 4 vertices comprising the incident face when the incident cube is an AABB.
-     * 
-     * @param v Array which gets filled with the 4 vertices making up the incident face.
-     * @param h Halfsize of the incident AABB.
-     * @param pos The position of the incident AABB.
-     * @param normal The normal vector of the collision (points towards B away from A).
-     */
-    static void computeIncidentFaceAABB(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, const ZMath::Vec3D& normal) {
-        // Take the absolute value of the normal for comparisons.
-        ZMath::Vec3D nAbs = ZMath::abs(normal);
-
-        // Determine the vertices in terms of halfsize.
-        // Vertex array starts in the bottom left corner when considering the face as a 2D box and goes around counterclockwise.
-        if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
-            if (normal.x > 0.0f) { // incident cube is intersecting on its -x side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
-
-            } else { // incident cube is intersecting on its +x side
-                v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
-            }
-
-        } else if (nAbs.y > nAbs.z) { // y >= x && y > z
-            if (normal.y > 0.0f) { // incident cube is intersecting on its -y side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(h.x, -h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, -h.y, h.z);
-                v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
-
-            } else { // incident cube is intersecting on its +y side
-                v[0] = ZMath::Vec3D(-h.x, h.y, -h.z);
-                v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(-h.x, h.y, h.z);
-            }
-
-        } else { // z >= y && z >= x
-            if (normal.z > 0.0f) { // incident cube is intersecting on its -z side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-                v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, -h.z);
-                v[3] = ZMath::Vec3D(h.x, -h.y, -h.z);
-
-            } else { // incdient cube is intersecting on its +z side
-                v[0] = ZMath::Vec3D(-h.x, -h.y, h.z);
-                v[1] = ZMath::Vec3D(-h.x, h.y, h.z);
-                v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-                v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
-            }
-        }
-
-        // translate the vertices to their proper positions
-        v[0] = pos + v[0];
-        v[1] = pos + v[1];
-        v[2] = pos + v[2];
-        v[3] = pos + v[3];
-    };
-
-    // /**
-    //  * @brief Determine the 4 vertices making up the incident face.
-    //  * 
-    //  * @param v Array which gets filled with the 4 vertices comprising the incident face.
-    //  * @param h Halfsize of the incident cube.
-    //  * @param pos The position of the incident cube.
-    //  * @param rot The rotation matrix of the incident cube.
-    //  * @param normal The normal vector of the collision.
-    //  */
-    // static void computeIncidentFace(ZMath::Vec3D v[4], const ZMath::Vec3D& h, const ZMath::Vec3D& pos, 
-    //                                 const ZMath::Mat3D& rot, const ZMath::Vec3D& normal) {
-
-    //     // Rotate the normal to the incident cube's local space.
-    //     ZMath::Vec3D n = rot.transpose() * normal;
-    //     ZMath::Vec3D nAbs = ZMath::abs(n);
-
-    //     // Determine the vertices in terms of halfsize.
-    //     // Vertex array starts in bottom left corner when considering the face as a 2D box and goes around counterclockwise.
-    //     if (nAbs.x > nAbs.y && nAbs.x > nAbs.z) { // x > y && x > z
-    //         if (n.x > 0.0f) { // incident cube is intersecting on its -x side
-    //             v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-    //             v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
-    //             v[2] = ZMath::Vec3D(-h.x, h.y, h.z);
-    //             v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
-
-    //         } else { // incident cube is intersecting on its +x side
-    //             v[0] = ZMath::Vec3D(h.x, -h.y, -h.z);
-    //             v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
-    //             v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-    //             v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
-    //         }
-
-    //     } else if (nAbs.y > nAbs.z) { // y >= x && y > z
-    //         if (n.y > 0.0f) { // incident cube is intersecting on its -y side
-    //             v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-    //             v[1] = ZMath::Vec3D(h.x, -h.y, -h.z);
-    //             v[2] = ZMath::Vec3D(h.x, -h.y, h.z);
-    //             v[3] = ZMath::Vec3D(-h.x, -h.y, h.z);
-
-    //         } else { // incident cube is intersecting on its +y side
-    //             v[0] = ZMath::Vec3D(-h.x, h.y, -h.z);
-    //             v[1] = ZMath::Vec3D(h.x, h.y, -h.z);
-    //             v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-    //             v[3] = ZMath::Vec3D(-h.x, h.y, h.z);
-    //         }
-
-    //     } else { // z >= y && z >= x
-    //         if (n.z > 0.0f) { // incident cube is intersecting on its -z side
-    //             v[0] = ZMath::Vec3D(-h.x, -h.y, -h.z);
-    //             v[1] = ZMath::Vec3D(-h.x, h.y, -h.z);
-    //             v[2] = ZMath::Vec3D(h.x, h.y, -h.z);
-    //             v[3] = ZMath::Vec3D(h.x, -h.y, -h.z);
-
-    //         } else { // incdient cube is intersecting on its +z side
-    //             v[0] = ZMath::Vec3D(-h.x, -h.y, h.z);
-    //             v[1] = ZMath::Vec3D(-h.x, h.y, h.z);
-    //             v[2] = ZMath::Vec3D(h.x, h.y, h.z);
-    //             v[3] = ZMath::Vec3D(h.x, -h.y, h.z);
-    //         }
-    //     }
-
-    //     // rotate vertices back into global coordinates and translate them to their proper positions
-    //     v[0] = pos + rot * v[0];
-    //     v[1] = pos + rot * v[1];
-    //     v[2] = pos + rot * v[2];
-    //     v[3] = pos + rot * v[3];
-    // };
-
-    // /**
-    //  * @brief Compute the clipping points given input points.
-    //  * 
-    //  * @param vOut Array which gets filled with the clipping points.
-    //  * @param vIn Array containing the input points.
-    //  * @param n1 Side normal 1.
-    //  * @param n2 Side normal 2.
-    //  * @param offset1 Distance to the side corresponding with side normal 1.
-    //  * @param offset2 Distance to the side corresponding with side normal 2.
-    //  * @return (int) The number of clipping points. If this does not return 4, there is not an intersection on this axis.
-    //  */
-    // int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
-    //     // begin with 0 output points
-    //     int np = 0;
-
-    //     // calculate the distance
-    //     // first set of distances
-    //     float d0 = n1 * vIn[0] - offset1;
-    //     float d1 = n1 * vIn[1] - offset1;
-
-    //     // second set of distances
-    //     float d2 = n2 * vIn[0] - offset2;
-    //     float d3 = n2 * vIn[3] - offset2;
-
-    //     // * Compute the clipping points.
-    //     // ? If the points are outside the reference cube's clipping plane (more or less inside the cube), add them as clipping points.
-    //     // ? Otherwise, check if the vertices are separated by the edge of the reference cube used for this clipping plane.
-        
-    //     // cache the interpolation values for efficiency
-    //     float i1 = (d0/(d1 + d0));
-    //     float i2 = (d2/(d3 + d2));
-    //     float i3 = (d1/(d1 + d0));
-    //     float i4 = (d3/(d3 + d2));
-
-    //     // first input point
-    //     if (d0 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[0]; }
-    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1 + (vIn[3] - vIn[0]) * i2; }
-    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[0] + (vIn[1] - vIn[0]) * i1; } 
-    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[0] + (vIn[3] - vIn[0]) * i2; }
-
-    //     // second input point
-    //     if (d1 <= 0.0f && d2 <= 0.0f) { vOut[np++] = vIn[1]; }
-    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3 + (vIn[2] - vIn[1]) * i2; }
-    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[1] + (vIn[0] - vIn[1]) * i3; }
-    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[1] + (vIn[2] - vIn[1]) * i2; }
-
-    //     // third input point
-    //     if (d1 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[2]; }
-    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3 + (vIn[1] - vIn[2]) * i4; }
-    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[2] + (vIn[3] - vIn[2]) * i3; }
-    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[2] + (vIn[1] - vIn[2]) * i4; }
-
-    //     // fourth input point
-    //     if (d0 <= 0.0f && d3 <= 0.0f) { vOut[np++] = vIn[3]; }
-    //     else if (d0 * d1 < 0.0f && d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1 + (vIn[0] - vIn[3]) * i4; }
-    //     else if (d0 * d1 < 0.0f) { vOut[np++] = vIn[3] + (vIn[2] - vIn[3]) * i1; }
-    //     else if (d2 * d3 < 0.0f) { vOut[np++] = vIn[3] + (vIn[0] - vIn[3]) * i4; }
-
-    //     return np;
-    // };
 
     // ? Normal points towards B and away from A
 
