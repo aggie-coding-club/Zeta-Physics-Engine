@@ -309,18 +309,7 @@ namespace Zeta {
 
         // * Compute the clipping lines and line segment to be clipped
 
-        // todo because we know more information about the size of the clipping points for specific cases,
-        // todo     we should handle those separately in their respective switch statements.
-
-        // todo potentially only focus on which part of the plane was hit in the collision and determine from there
-        // todo     this would be fine because it is a static body, so while being slightly inaccurate it wouldn't be terrible
-
-        // todo this would allow us to determine the only two clipping points cases very easily -- next we'd just have to determine
-        // todo     how to determine in the case of the z-face plane collision how to distinguish between 2 or 4
-
-        // todo we can hardcode in the plane's incident face
-        // todo and because the plane's incident face will always be the same, we know that the data when the plane is the one that's been collided with, will be the same each time, too
-        // todo alternatively, we could only check for the plane face with the greatest penetration and go from there
+        // todo check my work for this tomorrow or after a couple days
 
         switch(axis) {
             case FACE_A_X: {
