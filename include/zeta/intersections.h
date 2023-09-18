@@ -399,6 +399,27 @@ namespace Zeta {
         return closest.distSq(sphere.c) <= sphere.r*sphere.r;
     };
 
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool PlaneAndSphere(Plane const &plane, Sphere const &sphere, ZMath::Vec3D &normal) {
+        ZMath::Vec3D closest(sphere.c - plane.pos);
+        ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
+
+        closest = plane.rot * closest + plane.pos;
+
+        closest.x = ZMath::clamp(closest.x, min.x, max.x);
+        closest.y = ZMath::clamp(closest.y, min.y, max.y);
+        // if this doesn't work try replacing with ZMath::clamp(closest.z, min.z, max.z);
+        closest.z = plane.pos.z;
+
+        ZMath::Vec3D diff = closest - sphere.c;
+        if (diff.magSq() > sphere.r*sphere.r) { return 0; }
+
+        normal = diff.normalize();
+        return 1;
+    };
+
     // Determine if a plane intersects an unrotated cube.
     bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {
         // halfsize of the plane (A) and aabb (B)
