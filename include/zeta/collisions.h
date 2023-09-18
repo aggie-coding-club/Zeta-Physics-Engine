@@ -36,8 +36,6 @@ namespace Zeta {
 
     // ? Normal points towards B away from A.
 
-    // todo create these plane manifold functions
-
     // todo go through and replace direct assignment of vectors to using .set()
 
     CollisionManifold findCollisionFeatures(Plane const &plane, Sphere const &sphere) {

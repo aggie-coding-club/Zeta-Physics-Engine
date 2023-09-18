@@ -404,8 +404,29 @@ namespace Zeta {
 
     // Determine if a plane intersects an unrotated cube.
     bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {
-        float r = std::fabs(plane.normal.x * aabb.pos.x) + std::fabs(plane.normal.y * aabb.pos.y) + std::fabs(plane.normal.z * aabb.pos.z);
-        return PlaneAndSphere(plane, Sphere(aabb.pos, r));
+        // halfsize of the plane (A) and aabb (B)
+        ZMath::Vec2D planeH = plane.getHalfSize();
+        ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = aabb.getHalfSize();
+
+        // * Determine the rotation matrices of A and B
+
+        // rotate anything from global space (B's local space) to A's local space
+        ZMath::Mat3D rotAT = plane.rot.transpose();
+
+        // determine the difference between the positions
+        // Note: global space is the AABB's local space
+        ZMath::Vec3D dB = aabb.pos - plane.pos;
+        ZMath::Vec3D dA = rotAT * dB;
+
+        // * Check for intersections with the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - rotAT * hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - plane.rot * hA;
+        return faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0;
     };
 
     // Determine if a plane intersects a cube.
