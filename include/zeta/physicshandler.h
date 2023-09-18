@@ -6,6 +6,8 @@
 // todo go through project and make it more memory efficient.
 // todo for example: add in more std::move calls and avoid assigning an object to another object directly if possible
 
+// todo need to add static body handling here
+
 namespace Zeta {
     // * ====================================
     // * Common Framerates for Handler
@@ -219,6 +221,21 @@ namespace Zeta {
                 }
 
                 rbs.rigidBodies[rbs.count++] = rb;
+            };
+
+            // Add a list of rigid bodies to be updated
+            void addRigidBody(RigidBody3D** rbs, int size) {
+                if (this->rbs.count + size - 1 >= this->rbs.capacity) {
+                    this->rbs.capacity += size;
+                    RigidBody3D** temp = new RigidBody3D*[this->rbs.capacity];
+
+                    for (int i = 0; i < this->rbs.count; ++i) { temp[i] = this->rbs.rigidBodies[i]; }
+
+                    delete[] this->rbs.rigidBodies;
+                    this->rbs.rigidBodies = temp;
+                }
+
+                for (int i = 0; i < size; ++i) { this->rbs.rigidBodies[this->rbs.count++] = rbs[i]; }
             };
 
             // Remove a rigid body.
