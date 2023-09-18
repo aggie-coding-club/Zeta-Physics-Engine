@@ -447,6 +447,78 @@ namespace Zeta {
         return faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0;
     };
 
+    // Check for intersection and return the collision normal.
+    // If there is not an intersection, the normal will be a junk value.
+    // The normal will point towards B away from A.
+    bool PlaneAndAABB(Plane const &plane, AABB const &aabb, ZMath::Vec3D &normal) {
+        // halfsize of the plane (A) and aabb (B)
+        ZMath::Vec2D planeH = plane.getHalfSize();
+        ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = aabb.getHalfSize();
+
+        // * Determine the rotation matrices of A and B
+
+        // rotate anything from global space (B's local space) to A's local space
+        ZMath::Mat3D rotAT = plane.rot.transpose();
+
+        // determine the difference between the positions
+        // Note: global space is the AABB's local space
+        ZMath::Vec3D dB = aabb.pos - plane.pos;
+        ZMath::Vec3D dA = rotAT * dB;
+
+        // * Check for intersections with the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - rotAT * hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - plane.rot * hA;
+        if (faceB.x > 0 || faceB.y > 0 || faceB.z > 0) { return 0; }
+
+        // * Find the best axis (i.e. the axis with the least penetration)
+
+        // Assume A's x-axis is the best axis first
+        float separation = faceA.x;
+        normal = dA.x > 0.0f ? plane.rot.c1 : -plane.rot.c1;
+
+        // tolerance values
+        float relativeTol = 0.95f;
+        float absoluteTol = 0.01f;
+
+        // ? check if there is another axis better than A's x axis by checking if the penetration along
+        // ?  the current axis being checked is greater than that of the current penetration
+        // ?  (as greater value = less negative = less penetration).
+
+        // A's remaining axes
+        if (faceA.y > relativeTol * separation + absoluteTol * hA.y) {
+            separation = faceA.y;
+            normal = dA.y > 0.0f ? plane.rot.c2 : -plane.rot.c2;
+        }
+
+        if (faceA.z > relativeTol * separation + absoluteTol * hA.z) {
+            separation = faceA.z;
+            normal = dA.z > 0.0f ? plane.rot.c3 : -plane.rot.c3;
+        }
+
+        // B's axes
+        if (faceB.x > relativeTol * separation + absoluteTol * hB.x) {
+            separation = faceB.x;
+            normal = dB.x > 0.0f ? ZMath::Vec3D(1, 0, 0) : ZMath::Vec3D(-1, 0, 0);
+        }
+
+        if (faceB.y > relativeTol * separation + absoluteTol * hB.y) {
+            separation = faceB.y;
+            normal = dB.y > 0.0f ? ZMath::Vec3D(0, 1, 0) : ZMath::Vec3D(0, -1, 0);
+        }
+
+        if (faceB.z > relativeTol * separation + absoluteTol * hB.z) {
+            separation = faceB.z;
+            normal = dB.z > 0.0f ? ZMath::Vec3D(0, 0, 1) : ZMath::Vec3D(0, 0, -1);
+        }
+
+        return 1;
+    };
+
     // Determine if a plane intersects a cube.
     bool PlaneAndCube(Plane const &plane, Cube const &cube) {
         // halfsize of the plane (A) and cube (B)
