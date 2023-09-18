@@ -399,9 +399,6 @@ namespace Zeta {
         return closest.distSq(sphere.c) <= sphere.r*sphere.r;
     };
 
-    // todo PlaneAndAABB and PlaneAndCube both likely do not work
-    // todo fix
-
     // Determine if a plane intersects an unrotated cube.
     bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {
         // halfsize of the plane (A) and aabb (B)
@@ -431,9 +428,42 @@ namespace Zeta {
 
     // Determine if a plane intersects a cube.
     bool PlaneAndCube(Plane const &plane, Cube const &cube) {
-        AABB aabb(cube.getLocalMin(), cube.getLocalMax());
-        Plane p(plane.getLocalMin(), plane.getLocalMax(), plane.pos.z, plane.theta - cube.theta, plane.phi - cube.phi);
-        return PlaneAndAABB(p, aabb);
+        // halfsize of the plane (A) and cube (B)
+        ZMath::Vec2D planeH = plane.getHalfSize();
+        ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = cube.getHalfSize();
+
+        // * Determine the rotation matrices of A and B
+
+        // rotate anything from global space to A's local space
+        ZMath::Mat3D rotAT = plane.rot.transpose();
+
+        // rotate anything from global space to B's local space
+        ZMath::Mat3D rotBT = cube.rot.transpose();
+
+        // determine the difference between the positions
+        ZMath::Vec3D dP = cube.pos - plane.pos;
+        ZMath::Vec3D dA = rotAT * dP;
+        ZMath::Vec3D dB = rotBT * dP;
+
+        // * Rotation matrices for switching between local spaces
+
+        // ! When scenes are developed test if we actually need the absolute value
+
+        // Rotate anything from B's local space into A's
+        ZMath::Mat3D C = ZMath::abs(rotAT * cube.rot);
+
+        // Rotate anything from A's local space into B's
+        ZMath::Mat3D CT = C.transpose();
+
+        // * Check for intersections with the separating axis theorem
+
+        // amount of penetration along A's axes
+        ZMath::Vec3D faceA = ZMath::abs(dA) - hA - C * hB;
+        if (faceA.x > 0 || faceA.y > 0 || faceA.z > 0) { return 0; }
+
+        // amount of penetration along B's axes
+        ZMath::Vec3D faceB = ZMath::abs(dB) - hB - CT * hA;
+        return faceB.x <= 0 && faceB.y <= 0 && faceB.z <= 0;
     };
 
     // * ===================================
