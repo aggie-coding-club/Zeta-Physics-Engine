@@ -1,10 +1,14 @@
-#ifndef PHYSICS_HANDLER_H
-#define PHYSICS_HANDLER_H
+#pragma once
 
 #include "collisions.h"
 #include <stdexcept>
 
-namespace PhysicsHandler {
+// todo go through project and make it more memory efficient.
+// todo for example: add in more std::move calls and avoid assigning an object to another object directly if possible
+
+// todo need to add static body handling here
+
+namespace Zeta {
     // * ====================================
     // * Common Framerates for Handler
     // * ====================================
@@ -20,7 +24,7 @@ namespace PhysicsHandler {
     // * =========================
 
     // Resolve a collision between two rigidbodies.
-    static void applyImpulse(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2, Collisions::CollisionManifold const &manifold) {
+    void applyImpulse(RigidBody3D* rb1, RigidBody3D* rb2, CollisionManifold const &manifold) {
         // delta v = J/m
         // For this calculation we need to acocunt for the relative velocity between the two objects
         // v_r = v_1 - v_2
@@ -36,6 +40,13 @@ namespace PhysicsHandler {
         rb2->vel += manifold.normal * (rb2->invMass * J);
     };
 
+    // todo test if this is reasonable for the impulse resolution
+    // Resolve a collision between a rigidbody and a staticbody.
+    void applyImpulse(RigidBody3D* rb, StaticBody3D* sb, CollisionManifold const &manifold) {
+        float J = ((ZMath::abs(rb->vel) * -(1 + rb->cor)) * manifold.normal)/rb->invMass;
+        rb->vel -= manifold.normal * (rb->invMass * J);
+    };
+
 
     // * ==============
     // * Wrappers
@@ -49,15 +60,15 @@ namespace PhysicsHandler {
         // ? For now, default to allocating 64 slots for Objects. Probably up once we start implementing more stuff.
 
         struct RigidBodies {
-            Primitives::RigidBody3D** rigidBodies = nullptr; // list of active rigid bodies
+            RigidBody3D** rigidBodies = nullptr; // list of active rigid bodies
             int capacity; // current max capacity
             int count; // number of rigid bodies 
         };
 
         struct CollisionWrapper {
-            Primitives::RigidBody3D** bodies1 = nullptr; // list of colliding bodies (Object A)
-            Primitives::RigidBody3D** bodies2 = nullptr; // list of colliding bodies (Object B)
-            Collisions::CollisionManifold* manifolds = nullptr; // list of the collision manifolds between the objects
+            RigidBody3D** bodies1 = nullptr; // list of colliding bodies (Object A)
+            RigidBody3D** bodies2 = nullptr; // list of colliding bodies (Object B)
+            CollisionManifold* manifolds = nullptr; // list of the collision manifolds between the objects
 
             int capacity; // current max capacity
             int count; // number of collisions
@@ -85,18 +96,18 @@ namespace PhysicsHandler {
             // * Functions for Ease of Use
             // * ==============================
 
-            inline void addCollision(Primitives::RigidBody3D* rb1, Primitives::RigidBody3D* rb2, Collisions::CollisionManifold const &manifold) {
+            inline void addCollision(RigidBody3D* rb1, RigidBody3D* rb2, CollisionManifold const &manifold) {
                 if (colWrapper.count == colWrapper.capacity) { // 99.9% of the time this part of the code will not execute. This is for an edge case.
                     colWrapper.capacity *= 2;
 
-                    Primitives::RigidBody3D** temp1 = new Primitives::RigidBody3D*[colWrapper.capacity];
-                    Primitives::RigidBody3D** temp2 = new Primitives::RigidBody3D*[colWrapper.capacity];
-                    Collisions::CollisionManifold* temp3 = new Collisions::CollisionManifold[colWrapper.capacity];
+                    RigidBody3D** temp1 = new RigidBody3D*[colWrapper.capacity];
+                    RigidBody3D** temp2 = new RigidBody3D*[colWrapper.capacity];
+                    CollisionManifold* temp3 = new CollisionManifold[colWrapper.capacity];
 
                     for (int i = 0; i < colWrapper.count; i++) {
                         temp1[i] = colWrapper.bodies1[i];
                         temp2[i] = colWrapper.bodies2[i];
-                        temp3[i] = colWrapper.manifolds[i];
+                        temp3[i] = std::move(colWrapper.manifolds[i]);
                     }
 
                     delete[] colWrapper.bodies1;
@@ -125,9 +136,9 @@ namespace PhysicsHandler {
                 for (int i = 0; i < colWrapper.count; ++i) { delete[] colWrapper.manifolds[i].contactPoints; }
                 delete[] colWrapper.manifolds;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfRbs];
-                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfRbs];
-                colWrapper.manifolds = new Collisions::CollisionManifold[halfRbs];
+                colWrapper.bodies1 = new RigidBody3D*[halfRbs];
+                colWrapper.bodies2 = new RigidBody3D*[halfRbs];
+                colWrapper.manifolds = new CollisionManifold[halfRbs];
 
                 colWrapper.capacity = halfRbs;
                 colWrapper.count = 0;
@@ -156,13 +167,13 @@ namespace PhysicsHandler {
             Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = FPS_60) : g(g), updateStep(timeStep) {
                 if (updateStep < FPS_60) { updateStep = FPS_60; } // hard cap at 60 FPS
 
-                rbs.rigidBodies = new Primitives::RigidBody3D*[startingSlots];
+                rbs.rigidBodies = new RigidBody3D*[startingSlots];
                 rbs.capacity = startingSlots;
                 rbs.count = 0;
 
-                colWrapper.bodies1 = new Primitives::RigidBody3D*[halfStartingSlots];
-                colWrapper.bodies2 = new Primitives::RigidBody3D*[halfStartingSlots];
-                colWrapper.manifolds = new Collisions::CollisionManifold[halfStartingSlots];
+                colWrapper.bodies1 = new RigidBody3D*[halfStartingSlots];
+                colWrapper.bodies2 = new RigidBody3D*[halfStartingSlots];
+                colWrapper.manifolds = new CollisionManifold[halfStartingSlots];
                 colWrapper.capacity = halfStartingSlots;
                 colWrapper.count = 0;
             };
@@ -198,10 +209,10 @@ namespace PhysicsHandler {
             // * ============================
 
             // Add a rigid body to the list of rigid bodies to be updated.
-            void addRigidBody(Primitives::RigidBody3D* rb) {
+            void addRigidBody(RigidBody3D* rb) {
                 if (rbs.count == rbs.capacity) {
                     rbs.capacity *= 2;
-                    Primitives::RigidBody3D** temp = new Primitives::RigidBody3D*[rbs.capacity];
+                    RigidBody3D** temp = new RigidBody3D*[rbs.capacity];
 
                     for (int i = 0; i < rbs.count; ++i) { temp[i] = rbs.rigidBodies[i]; }
 
@@ -212,10 +223,25 @@ namespace PhysicsHandler {
                 rbs.rigidBodies[rbs.count++] = rb;
             };
 
+            // Add a list of rigid bodies to be updated
+            void addRigidBody(RigidBody3D** rbs, int size) {
+                if (this->rbs.count + size - 1 >= this->rbs.capacity) {
+                    this->rbs.capacity += size;
+                    RigidBody3D** temp = new RigidBody3D*[this->rbs.capacity];
+
+                    for (int i = 0; i < this->rbs.count; ++i) { temp[i] = this->rbs.rigidBodies[i]; }
+
+                    delete[] this->rbs.rigidBodies;
+                    this->rbs.rigidBodies = temp;
+                }
+
+                for (int i = 0; i < size; ++i) { this->rbs.rigidBodies[this->rbs.count++] = rbs[i]; }
+            };
+
             // Remove a rigid body.
             // This returns 1 if the rigid body is found and removed and 0 if it was not found.
             // If the rigid body is found, the data pointed to by rb gets deleted by this function.
-            bool removeRigidBody(Primitives::RigidBody3D* rb) {
+            bool removeRigidBody(RigidBody3D* rb) {
                 for (int i = rbs.count; i >= 0; --i) {
                     if (rbs.rigidBodies[i] == rb) {
                         delete rb;
@@ -242,7 +268,7 @@ namespace PhysicsHandler {
                     // Broad phase: collision detection
                     for (int i = 0; i < rbs.count - 1; i++) {
                         for (int j = i + 1; j < rbs.count; j++) {
-                            Collisions::CollisionManifold result = Collisions::findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
+                            CollisionManifold result = findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
                             if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
                         }
                     }
@@ -269,5 +295,3 @@ namespace PhysicsHandler {
             };
     };
 }
-
-#endif // ! PHYSICS_HANDLER_H
