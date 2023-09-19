@@ -11,7 +11,7 @@ out vec4 out_color;
 
 uniform vec2 u_resolution;
 uniform vec2 u_cursor_pos;
-vec2 halfSize = {0.0, 0.0};
+vec2 halfSize = vec2(0.0, 0.0);
 float roundness = 0.0;
 
 void main(){
