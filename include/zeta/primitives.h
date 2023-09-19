@@ -1,9 +1,8 @@
-#ifndef PRIMITIVES_H
-#define PRIMITIVES_H
+#pragma once
 
 #include "zmath.h"
 
-namespace Primitives {
+namespace Zeta {
     class Ray3D {
         public:
             ZMath::Vec3D origin;
@@ -38,7 +37,7 @@ namespace Primitives {
     // This should be used to model death planes, borders, etc. as planes are not affected by forces and impulse.
     class Plane {
         private:
-            ZMath::Vec2D halfSize;
+            ZMath::Vec2D halfSize; // todo maybe change to be a vec3D with z = 0.0f. This would allow for easier access and use in manifolds and collision detection
 
         public:
             ZMath::Vec3D pos; // Center of the plane.
@@ -107,9 +106,9 @@ namespace Primitives {
 
             // @brief Create a Sphere with an arbitrary radius and center.
             //
-            // @param rho (float) Radius of the sphere.
             // @param center (Vec3D) Center of the sphere.
-            Sphere(float rho, ZMath::Vec3D const &center) : r(rho), c(center) {};
+            // @param rho (float) Radius of the sphere.
+            Sphere(ZMath::Vec3D const &center, float rho) : r(rho), c(center) {};
     };
 
     class AABB {
@@ -206,5 +205,3 @@ namespace Primitives {
             }; 
     };
 } // namespace Primitives
-
-#endif // !PRIMITIVES_H
