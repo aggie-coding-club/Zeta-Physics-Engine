@@ -57,10 +57,12 @@ bool DoButton(UI_id, text, pos, ...) {
 
 
 */
-#define BUTTON_NORMAL_COLOR {255.0f / 255.0f, 12.0f / 255.0f, 12.0f / 255.0f, 1.0f} // #0c0c0c
-// #define BUTTON_NORMAL_COLOR {12.0f / 255.0f, 12.0f / 255.0f, 12.0f / 255.0f, 1.0f} // #0c0c0c
-#define BUTTON_HOT_COLOR {47.0f / 255.0f, 36.0f / 255.0f, 36.0f / 255.0f, 1.0f} // #252424
-#define BUTTON_ACTIVE_COLOR {82.0f / 255.0f, 60.0f / 255.0f, 60.0f / 255.0f, 1.0f} // #3e3c3c
+#define BUTTON_NORMAL_COLOR {106.0f, 46.0f, 53.0f, 255.0f} // #0c0c0c
+#define BUTTON_HOT_COLOR {66.0f, 46.0f, 53.0f, 255.0f} // #252424
+#define BUTTON_ACTIVE_COLOR {46.0f, 66.0f, 53.0f, 255.0f} // #3e3c3c
+
+#define BUTTON_WIDTH 220.0
+#define BUTTON_HEIGHT 60.0
 
 struct InputManager{
     float cursorX;
@@ -112,15 +114,24 @@ void SetNotHot(InputManager *im){
     im->hot_ui = 0;
 }
 
+void NormalizeColor(Color *color){
+    color->r = color->r / 255.0f;
+    color->g = color->g / 255.0f;
+    color->b = color->b / 255.0f;
+    color->a = color->a / 255.0f;
+}
+
 void Setup2dRendering(TextRendererManager *trm){
 
     basic_2d_shader.program = LoadShaders("basic_2d_shader_vs.glsl", "basic_2d_shader_fs.glsl");
     glUseProgram(basic_2d_shader.program);
-    BindLocation(&basic_2d_shader, 0, "position");
-    BindLocation(&basic_2d_shader, 1, "color");
-    BindLocation(&basic_2d_shader, 2, "quad_size");
-    BindLocation(&basic_2d_shader, 3, "quad_position");
-    BindLocation(&basic_2d_shader, 4, "outline_width");
+    // BindLocation(&basic_2d_shader, 0, "position");
+    // BindLocation(&basic_2d_shader, 1, "color");
+    // BindLocation(&basic_2d_shader, 2, "center");
+    // BindLocation(&basic_2d_shader, 3, "half_size");
+    // BindLocation(&basic_2d_shader, 4, "border_color");
+    // BindLocation(&basic_2d_shader, 5, "border_width");
+    // BindLocation(&basic_2d_shader, 6, "roundess");
 
     unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "u_projection_matrix");
     SetUniformValue(u_projection_matrix, trm->projection_ortho);
@@ -132,32 +143,37 @@ void Setup2dRendering(TextRendererManager *trm){
     glGenBuffers(1, &vbo2d);
     glBindVertexArray(vao2d);
     glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 11 * 6, NULL,  GL_DYNAMIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 11 * 6, NULL,  GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 16 * 6, NULL,  GL_DYNAMIC_DRAW);
     
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), 0);
-    
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), 0);
-    
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(2 * sizeof(float)));
-    
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
-    
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(7 * sizeof(float)));
-
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(9 * sizeof(float)));
+    glEnableVertexAttribArray(5);
+    glEnableVertexAttribArray(6);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16 * sizeof(float), 0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid*)(2 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid*)(10 * sizeof(float)));
+    glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid*)(14 * sizeof(float)));
+    glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid*)(15 * sizeof(float)));
     
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
+    glDisableVertexAttribArray(5);
+    glDisableVertexAttribArray(6);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     glUseProgram(0);
 
-    int eof = 0;
 }
 
 void DrawRect(TextRendererManager *trm, HMM_Vec2 pos, float width, float height, Color color){
@@ -219,8 +235,9 @@ unsigned int UI_End(InputManager *im){
 }
 
 #define BUTTON_PADDING 5.0f;
-unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String label, float xpos, float ypos, float roundness, Color color){
-
+unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String label, float xpos, float ypos, Color color){
+    float roundness = 15.0f;
+    float border_width = 5.0f;
     int result = 0;
     float scale = 1.0f; // should be passed in 
     
@@ -238,12 +255,12 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
         textWidth += (ch.advance >> 6) * scale;
     }
 
-    float width = textWidth + 30.0f;
-    float height = DEFAULT_TEXT_PIXEL_HEIGHT + 20.0f;
+    // float width = textWidth + 30.0f;
+    // float height = DEFAULT_TEXT_PIXEL_HEIGHT + 20.0f;
+    float width = BUTTON_WIDTH;
+    float height = BUTTON_HEIGHT;
 
     float textXPos = xpos + width / 2.0f - textWidth / 2.0f;
-    // float width = 250.0f;
-    // float height = 100.0f;
     HMM_Vec2 pos = {xpos, ypos};
     int state = glfwGetMouseButton(im->window, GLFW_MOUSE_BUTTON_LEFT);
 
@@ -306,29 +323,50 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
 
     glBindVertexArray(vao2d);
     
+    NormalizeColor(&color);
     Color tl_color = color;
     Color tr_color = color;
     Color bl_color = color;
     Color br_color = color;
 
+    Color border_color = {235.0f, 235.0f, 211.0f, 255.0};
+
     HMM_Vec2 half_size = {width / 2.0f, height / 2.0f};
     HMM_Vec2 center = {xpos + width / 2.0f, ypos + height / 2.0f};
-    float vertices[6][11] = {
-        {xpos, ypos, bl_color.r, bl_color.g, bl_color.b, bl_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},
-        {xpos + width, ypos, br_color.r, br_color.g, br_color.b, br_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},
-        {xpos + width, ypos + height, tr_color.r, tr_color.g, tr_color.b, tr_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y}, 
+    NormalizeColor(&border_color);
 
-        {xpos + width, ypos + height, tr_color.r, tr_color.g, tr_color.b, tr_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},  
-        {xpos, ypos + height, tl_color.r, tl_color.g, tl_color.b, tl_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y},
-        {xpos, ypos, bl_color.r, bl_color.g, bl_color.b, bl_color.a, roundness, half_size.X, half_size.Y, center.X, center.Y}
+    float vertices[6][16] = {
+        {xpos, ypos,                    tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
+        {xpos + width, ypos,            tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
+        {xpos + width, ypos + height,   tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
+       
+        {xpos + width, ypos + height,   tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
+        {xpos, ypos + height,           tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
+        {xpos, ypos,                    tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
+    glEnableVertexAttribArray(5);
+    glEnableVertexAttribArray(6);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 6);    
+    
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
+    glDisableVertexAttribArray(5);
+    glDisableVertexAttribArray(6);
+
     glBindVertexArray(0);
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -336,7 +374,7 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     
     unsigned int error = glGetError();
     RenderText(trm, label, scale, HMM_Vec3{255.0f / 255.0f, 231.0f / 255.0f, 147.0f / 255.0f}, HMM_Vec2{textPos.X, textPos.Y});
-    error = glGetError();
+    // PrintGLError();
     return result;
 }
 

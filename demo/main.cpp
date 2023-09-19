@@ -93,7 +93,7 @@ int main(void)
 
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "What am I doing?", NULL, NULL);
+    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zeta Physics Engine Demo", NULL, NULL);
     if (!window)
     {
         printf("window not created\n");

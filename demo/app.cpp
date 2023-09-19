@@ -991,33 +991,30 @@ void app_update(float &time_step, float dt){
     }
 #endif
 
-    float x_pos = 0.0f;
+    float x_pos = (WINDOW_WIDTH / 2.0) - (BUTTON_WIDTH / 2.0);
     float y_pos = 0.0f;
     static float rad = 50.0f;
 
     // x_pos = 200 + HMM_SinF(rad) * 20;
     // y_pos = 100 + HMM_SinF(rad) * 20;
     
-    x_pos = 25;
-    y_pos = 100;
+    y_pos = 150;
     
     // rad += 10 * dt;
     
-    if(Button(app_update, &im, &trm,  Create_String("BUTTON 1"), x_pos, y_pos, 30.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+    if(Button((void *)1, &im, &trm,  Create_String("SETTINGS"), x_pos, y_pos + 200.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
         printf("Button 1!\n");
     }
 
-    if(Button(app_update, &im, &trm,  Create_String("BUTTON 2"), x_pos + 320.0f, y_pos, 25.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+    if(Button((void *)2, &im, &trm,  Create_String("SAVE"), x_pos, y_pos + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
         printf("Button 2!\n");
     }
 
-    if(Button(app_update, &im, &trm,  Create_String("BUTTON 3"), x_pos, y_pos + 200.0f, 0.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+    if(Button((void *)3, &im, &trm,  Create_String("QUIT"), x_pos, y_pos, {0.3f, 0.3f, 0.3f, 1.0f})){
         printf("Button 3!\n");
     }
 
-    if(Button(app_update, &im, &trm,  Create_String("BUTTON 3"), x_pos + 320.0f, y_pos + 200.0f, 5.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
-        printf("Button 3!\n");
-    }
+    Text(&trm, &im, 0.4f, Create_String("F P S : "), {100.0f, WINDOW_HEIGHT - 100.0f},  {255.0f, 100.0f, 0.0f});
 
 }
 
