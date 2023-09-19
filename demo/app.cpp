@@ -1001,17 +1001,21 @@ void app_update(float &time_step, float dt){
     y_pos = 150;
     
     // rad += 10 * dt;
-    
-    if(Button((void *)1, &im, &trm,  Create_String("SETTINGS"), x_pos, y_pos + 200.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
-        printf("Button 1!\n");
-    }
 
-    if(Button((void *)2, &im, &trm,  Create_String("SAVE"), x_pos, y_pos + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
-        printf("Button 2!\n");
-    }
+    if(g_editor_mode){
+        Text(&trm, &im, 0.35f, Create_String("Click Escape to Exit Editor Mode "), {x_pos, WINDOW_HEIGHT - 200.0f},  {255.0f, 100.0f, 0.0f});
 
-    if(Button((void *)3, &im, &trm,  Create_String("QUIT"), x_pos, y_pos, {0.3f, 0.3f, 0.3f, 1.0f})){
-        printf("Button 3!\n");
+        if(Button((void *)1, &im, &trm,  Create_String("SETTINGS"), x_pos, y_pos + 200.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+            printf("Settings!\n");
+        }
+
+        if(Button((void *)2, &im, &trm,  Create_String("SAVE"), x_pos, y_pos + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
+            printf("Save!\n");
+        }
+
+        if(Button((void *)3, &im, &trm,  Create_String("QUIT"), x_pos, y_pos, {0.3f, 0.3f, 0.3f, 1.0f})){
+            printf("Quit!\n");
+        }
     }
 
     Text(&trm, &im, 0.4f, Create_String("F P S : "), {100.0f, WINDOW_HEIGHT - 100.0f},  {255.0f, 100.0f, 0.0f});
