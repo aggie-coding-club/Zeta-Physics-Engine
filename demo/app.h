@@ -65,5 +65,7 @@ void GameInputCamera(int key, int state);
 void SetCursorPosition(float x, float y);
 void SetScroll(float x_offset, float y_offset);
 
+
+void PrintGLError();
 void app_update(float &time_step, float dt);
 void app_start(void *window);
