@@ -15,8 +15,8 @@ namespace E_{
         float rotation_y = 0.0f;
         float rotation_z = 0.0f;
 
-        Primitives::RigidBody3D *rb = 0;
-        Primitives::StaticBody3D *sb = 0;
+        Zeta::RigidBody3D *rb = 0;
+        Zeta::StaticBody3D *sb = 0;
     };
 
     struct EntityManager{
@@ -27,19 +27,19 @@ namespace E_{
     void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
 
     Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
-            float rotation_x, float rotation_y, float rotation_z, Primitives::RigidBodyCollider colliderType, void *collider);
+            float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider);
 
     Entity_ *CreateEntity(EntityManager*em, HMM_Vec3 position, float scale, 
-        float rotation_x, float rotation_y, float rotation_z,  Primitives::StaticBodyCollider colliderType, void *collider);
+        float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider);
 
     // call after `AddCollider()`
     void Init(Entity_ *entity);
                 
     void Init(Entity_ *entity, RawModel model);
 
-    void AddCollider(Entity_ *entity, Primitives::RigidBodyCollider colliderType, void *collider);
+    void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider);
 
-    void AddCollider(Entity_ *entity, Primitives::StaticBodyCollider colliderType, void *collider);
+    void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider);
 
     void IncreaseRotation(Entity_ *entity, float dx, float dy, float dz);
 };

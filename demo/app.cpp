@@ -34,29 +34,29 @@ class Entity{
         float rotation_y = 0.0f;
         float rotation_z = 0.0f;
 
-        Primitives::RigidBody3D *rb = 0;
-        Primitives::StaticBody3D *sb = 0;
+        Zeta::RigidBody3D *rb = 0;
+        Zeta::StaticBody3D *sb = 0;
     
         Entity(HMM_Vec3 position, float scale, 
-            float rotation_x, float rotation_y, float rotation_z, Primitives::RigidBodyCollider colliderType, void *collider){
+            float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
             this->scale = scale;
             this->rotation_x = rotation_x;
             this->rotation_y = rotation_y;
             this->rotation_z = rotation_z;
 
-            this->rb = new Primitives::RigidBody3D(
+            this->rb = new Zeta::RigidBody3D(
                 {position.X, position.Y, position.Z}, 
                 100.0f, 0.1f, 1.0f, colliderType, collider);
         }
 
         Entity(HMM_Vec3 position, float scale, 
-            float rotation_x, float rotation_y, float rotation_z,  Primitives::StaticBodyCollider colliderType, void *collider){
+            float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
             this->scale = scale;
             this->rotation_x = rotation_x;
             this->rotation_y = rotation_y;
             this->rotation_z = rotation_z;
 
-            this->sb = new Primitives::StaticBody3D(
+            this->sb = new Zeta::StaticBody3D(
             {position.X, position.Y, position.Z}, 
             colliderType, collider);   
         }
@@ -165,18 +165,18 @@ class Entity{
             raw_model = model;
         }
 
-        void AddCollider(Primitives::RigidBodyCollider colliderType, void *collider){
-            if(colliderType == Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER){
-                Primitives::Cube *cube = (Primitives::Cube *)collider;
+        void AddCollider(Zeta::RigidBodyCollider colliderType, void *collider){
+            if(colliderType == Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER){
+                Zeta::Cube *cube = (Zeta::Cube *)collider;
 
                 // cube->pos = rb->pos;
                 rb->collider.cube = *cube;
             }
         }
 
-        void AddCollider(Primitives::StaticBodyCollider colliderType, void *collider){
-            if(colliderType == Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER){
-                Primitives::Cube *cube = (Primitives::Cube *)collider;
+        void AddCollider(Zeta::StaticBodyCollider colliderType, void *collider){
+            if(colliderType == Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER){
+                Zeta::Cube *cube = (Zeta::Cube *)collider;
 
                 sb->collider.cube = *cube;
             }
@@ -549,9 +549,9 @@ void render(Entity *entity, TexturesManager *textures_manager){
     
 }
 
-PhysicsHandler::Handler handler(ZMath::Vec3D(0, -5.8f, 0));
-// Primitives::RigidBody3D *test_body_1;
-// Primitives::StaticBody3D *ground_body;
+Zeta::Handler handler(ZMath::Vec3D(0, -5.8f, 0));
+// Zeta::RigidBody3D *test_body_1;
+// Zeta::StaticBody3D *ground_body;
 
 float time_btw_physics_updates = 1.0f / 60.0f;
 float count_down = time_btw_physics_updates;
@@ -853,36 +853,36 @@ void app_start(void *window){
     glUseProgram(0);
 
     // ========================================
-    Primitives::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
-    Primitives::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
+    Zeta::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
+    Zeta::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
 
     test_entity = new Entity(HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
-        Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
+        Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
     test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
     light_entity = new Entity(HMM_Vec3{13, 13, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
-        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
     ground_entity = new Entity(HMM_Vec3{0, -4, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
-        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
     dragon_entity = new Entity(HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
-        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     dragon_entity->color = {1.0f, 0.0f, 1.0f};
     dragon_entity->def_texture = TEXTURE_WHITE;
     
     stall_entity = new Entity(HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
-        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     stall_entity->color = {1.0f, 1.0f, 1.0f};
     stall_entity->def_texture = TEXTURE_STALL;
 
     test_cube_entity = new Entity(HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
-        Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
@@ -950,7 +950,7 @@ void app_update(float &time_step, float dt){
     int physics_updates = handler.update(time_step);
     
     ZMath::Vec3D normal = {};
-    float ground_cube_colliding = Collisions::CubeAndCube(test_entity->rb->collider.cube, ground_entity->sb->collider.cube, normal);
+    float ground_cube_colliding = Zeta::CubeAndCube(test_entity->rb->collider.cube, ground_entity->sb->collider.cube, normal);
     
     if(ground_cube_colliding){
         for(int i = 0; i < physics_updates; i++){

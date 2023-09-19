@@ -129,7 +129,7 @@ namespace E_{
     }
 
     Entity_ *Create_Entity(EntityManager *em, HMM_Vec3 position, float scale, 
-        float rotation_x, float rotation_y, float rotation_z, Primitives::RigidBodyCollider colliderType, void *collider){
+        float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
         Entity_ *result = &em->entities[em->index++];
 
         result->scale = scale;
@@ -137,7 +137,7 @@ namespace E_{
         result->rotation_y = rotation_y;
         result->rotation_z = rotation_z;
 
-        result->rb = new Primitives::RigidBody3D(
+        result->rb = new Zeta::RigidBody3D(
             {position.X, position.Y, position.Z}, 
             100.0f, 0.1f, 1.0f, colliderType, collider);
 
@@ -145,14 +145,14 @@ namespace E_{
     }
 
     Entity_ *Create_Entity(EntityManager *em, HMM_Vec3 position, float scale, 
-        float rotation_x, float rotation_y, float rotation_z,  Primitives::StaticBodyCollider colliderType, void *collider){
+        float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
         Entity_ *result = &em->entities[em->index++];
         result->scale = scale;
         result->rotation_x = rotation_x;
         result->rotation_y = rotation_y;
         result->rotation_z = rotation_z;
 
-        result->sb = new Primitives::StaticBody3D(
+        result->sb = new Zeta::StaticBody3D(
         {position.X, position.Y, position.Z}, 
         colliderType, collider);
 
@@ -263,18 +263,18 @@ namespace E_{
         entity->raw_model = model;
     }
 
-    void AddCollider(Entity_ *entity, Primitives::RigidBodyCollider colliderType, void *collider){
-        if(colliderType == Primitives::RigidBodyCollider::RIGID_CUBE_COLLIDER){
-            Primitives::Cube *cube = (Primitives::Cube *)collider;
+    void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider){
+        if(colliderType == Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER){
+            Zeta::Cube *cube = (Zeta::Cube *)collider;
 
             // cube->pos = rb->pos;
             entity->rb->collider.cube = *cube;
         }
     }
 
-    void AddCollider(Entity_ *entity, Primitives::StaticBodyCollider colliderType, void *collider){
-        if(colliderType == Primitives::StaticBodyCollider::STATIC_CUBE_COLLIDER){
-            Primitives::Cube *cube = (Primitives::Cube *)collider;
+    void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider){
+        if(colliderType == Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER){
+            Zeta::Cube *cube = (Zeta::Cube *)collider;
 
             entity->sb->collider.cube = *cube;
         }
