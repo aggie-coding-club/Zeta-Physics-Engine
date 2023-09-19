@@ -11,7 +11,7 @@ namespace Zeta {
     // * ===================================
 
     // Determine if a point lies on a line.
-    bool PointAndLine(ZMath::Vec3D const &point, Line3D const &line) {
+    static bool PointAndLine(ZMath::Vec3D const &point, Line3D const &line) {
         // ? Determine the distance between the line and point using the projection of that point to a point on the line.
         // ? D = ||PQ x u||/||u||
         // ? If this distance is 0, we know it lies on the line.
@@ -27,7 +27,7 @@ namespace Zeta {
     };
 
     // Determine if a point lies on a plane.
-    bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
+    static bool PointAndPlane(ZMath::Vec3D const &point, Plane const &plane) {
         ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
         ZMath::Vec3D p = point - plane.pos; // allows for rotation
 
@@ -39,16 +39,16 @@ namespace Zeta {
     };
 
     // Determine if a point lies within a sphere.
-    bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.c.distSq(point) <= sphere.r*sphere.r; };
+    static bool PointAndSphere(ZMath::Vec3D const &point, Sphere const &sphere) { return sphere.c.distSq(point) <= sphere.r*sphere.r; };
 
     // Determine if a point lies within an unrotated cube.
-    bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb) {
+    static bool PointAndAABB(ZMath::Vec3D const &point, AABB const &aabb) {
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
         return point.x <= max.x && point.y <= max.y && point.z <= max.z && point.x >= min.x && point.y >= min.y && point.z >= min.z;
     };
 
     // Determine if a point lies within a rotated cube.
-    bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube) {
+    static bool PointAndCube(ZMath::Vec3D const &point, Cube const &cube) {
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
         ZMath::Vec3D p = point - cube.pos; // create a copy so we can rotate into our local cords
 
@@ -63,10 +63,10 @@ namespace Zeta {
     // * ===================================
 
     // Determine if a line intersects a point.
-    bool LineAndPoint(Line3D const &line, ZMath::Vec3D const &point) { return PointAndLine(point, line); };
+    static bool LineAndPoint(Line3D const &line, ZMath::Vec3D const &point) { return PointAndLine(point, line); };
 
     // Determine if a line intersects another line.
-    bool LineAndLine(Line3D const &line1, Line3D const &line2) {
+    static bool LineAndLine(Line3D const &line1, Line3D const &line2) {
         // ? First check if the lines are parallel.
         // ? If the lines are parallel, we check to ensure overlap and that the start point of line2 lies on line1 if the lines were infinite.
         // ? If the lines are not parallel, we then solve for the point of intersection using the parametric equations for a 3D line.
@@ -128,7 +128,7 @@ namespace Zeta {
     };
 
     // Determine if a line intersects a plane.
-    bool LineAndPlane(Line3D const &line, Plane const &plane) {
+    static bool LineAndPlane(Line3D const &line, Plane const &plane) {
         Line3D l(line.start - plane.pos, line.end - plane.pos); // copy so we can rotate it
 
         // rotate the line into the plane's local coordinates
@@ -159,7 +159,7 @@ namespace Zeta {
     };
 
     // Determine if a line intersects a sphere.
-    bool LineAndSphere(Line3D const &line, Sphere const &sphere) {
+    static bool LineAndSphere(Line3D const &line, Sphere const &sphere) {
         // ? Use the parametric equations for a 3D line.
         // ? Relate the parametric equations with the distance squared to the center of the sphere.
         // ? Since we define our start point as the point at t_0 and end point as the point at t_1,
@@ -188,7 +188,7 @@ namespace Zeta {
 
     // Determine if a line intersects an unrotated cube.
     // todo this might not work
-    bool LineAndAABB(Line3D const &line, AABB const &aabb) {
+    static bool LineAndAABB(Line3D const &line, AABB const &aabb) {
         // ? Check if the line has any point within the AABB's bounds.
 
         ZMath::Vec3D minL = line.getMin(), maxL = line.getMax();
@@ -199,7 +199,7 @@ namespace Zeta {
 
     // Determine if a line intersects a cube.
     // todo this might not work
-    bool LineAndCube(Line3D const &line, Cube const &cube) {
+    static bool LineAndCube(Line3D const &line, Cube const &cube) {
         // ? Rotate into the Cube's UVW coordinates.
         // ? Check to see if the line is within the cube's bounds.
 
@@ -225,7 +225,7 @@ namespace Zeta {
     // Determine if a ray intersects a plane.
     // dist will be modified to equal the distance from the ray it hits the plane.
     // dist is set to -1 if there is no intersection.
-    bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {
+    static bool raycast(Plane const &plane, Ray3D const &ray, float &dist) {
         float dot = plane.normal * ray.dir;
 
         // check if the ray is parallel to the plane
@@ -247,7 +247,7 @@ namespace Zeta {
     // Determine if a ray intersects a sphere.
     // dist will be modified to equal the distance from the ray it hits the sphere.
     // dist is set to -1 if there is no intersection.
-    bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {
+    static bool raycast(Sphere const &sphere, Ray3D const &ray, float &dist) {
         // todo at some point we may want to get the hit point.
         // todo if we do, we simply do hit = ray.origin + dist*ray.dir;
 
@@ -296,7 +296,7 @@ namespace Zeta {
     // Determine if a ray intersects an AABB.
     // dist will be modified to equal the distance from the ray it hits the AABB.
     // dist is set to -1 if there is no intersection.
-    bool raycast(AABB const &aabb, Ray3D const &ray, float &dist) {
+    static bool raycast(AABB const &aabb, Ray3D const &ray, float &dist) {
         // ? We can determine the distance from the ray to a certain edge by dividing a select min or max vector component
         // ?  by the corresponding component from the unit directional vector.
         // ? We know if tMin > tMax, then we have no intersection and if tMax is negative the AABB is behind us and we do not have a hit.
@@ -340,7 +340,7 @@ namespace Zeta {
     // Determine if a ray intersects a cube.
     // dist will be modified to equal the distance from the ray it hits the cube.
     // dist is set to -1 if there is no intersection.
-    bool raycast(Cube const &cube, Ray3D const &ray, float &dist) {
+    static bool raycast(Cube const &cube, Ray3D const &ray, float &dist) {
         // http://groups.csail.mit.edu/graphics/classes/6.837/F02/lectures/6.837-10_rayCast.pdf
         // Slide 47, basically they recommend to convert ray to object space and check aabb, dunno
         // if its faster but MIT slides says its a good start
@@ -371,13 +371,13 @@ namespace Zeta {
     // * ===================================
 
     // Determine if a plane intersects a point.
-    bool PlaneAndPoint(Plane const &plane, ZMath::Vec3D const &point) { return PointAndPlane(point, plane); };
+    static bool PlaneAndPoint(Plane const &plane, ZMath::Vec3D const &point) { return PointAndPlane(point, plane); };
 
     // Determine if a plane intersects a line.
-    bool PlaneAndLine(Plane const &plane, Line3D const &line) { return LineAndPlane(line, plane); };
+    static bool PlaneAndLine(Plane const &plane, Line3D const &line) { return LineAndPlane(line, plane); };
 
     // Determine if a plane intersects a sphere.
-    bool PlaneAndSphere(Plane const &plane, Sphere const &sphere) {
+    static bool PlaneAndSphere(Plane const &plane, Sphere const &sphere) {
         // ? A line from the center of the sphere along the normal of the plane will eventually
         // ?  intersect an infinite plane at the closest point of intersection.
         // ? Using this, we can take the distance to the plane from that point using the equation
@@ -402,7 +402,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool PlaneAndSphere(Plane const &plane, Sphere const &sphere, ZMath::Vec3D &normal) {
+    static bool PlaneAndSphere(Plane const &plane, Sphere const &sphere, ZMath::Vec3D &normal) {
         ZMath::Vec3D closest(sphere.c - plane.pos);
         ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
 
@@ -421,7 +421,7 @@ namespace Zeta {
     };
 
     // Determine if a plane intersects an unrotated cube.
-    bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {
+    static bool PlaneAndAABB(Plane const &plane, AABB const &aabb) {
         // halfsize of the plane (A) and aabb (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
         ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = aabb.getHalfSize();
@@ -450,7 +450,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool PlaneAndAABB(Plane const &plane, AABB const &aabb, ZMath::Vec3D &normal) {
+    static bool PlaneAndAABB(Plane const &plane, AABB const &aabb, ZMath::Vec3D &normal) {
         // halfsize of the plane (A) and aabb (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
         ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = aabb.getHalfSize();
@@ -520,7 +520,7 @@ namespace Zeta {
     };
 
     // Determine if a plane intersects a cube.
-    bool PlaneAndCube(Plane const &plane, Cube const &cube) {
+    static bool PlaneAndCube(Plane const &plane, Cube const &cube) {
         // halfsize of the plane (A) and cube (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
         ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = cube.getHalfSize();
@@ -562,7 +562,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool PlaneAndCube(Plane const &plane, Cube const &cube, ZMath::Vec3D &normal) {
+    static bool PlaneAndCube(Plane const &plane, Cube const &cube, ZMath::Vec3D &normal) {
         // halfsize of the plane (A) and cube (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
         ZMath::Vec3D hA(planeH.x, planeH.y, 0.0f), hB = cube.getHalfSize();
@@ -649,16 +649,16 @@ namespace Zeta {
     // * ===================================
 
     // Determine if a sphere intersects a point.
-    bool SphereAndPoint(Sphere const &sphere, ZMath::Vec3D const &point) { return PointAndSphere(point, sphere); };
+    static bool SphereAndPoint(Sphere const &sphere, ZMath::Vec3D const &point) { return PointAndSphere(point, sphere); };
 
     // Determine if a sphere intersects a line.
-    bool SphereAndLine(Sphere const &sphere, Line3D const &line) { return LineAndSphere(line, sphere); };
+    static bool SphereAndLine(Sphere const &sphere, Line3D const &line) { return LineAndSphere(line, sphere); };
 
     // Determine if a sphere intersects a plane.
-    bool SphereAndPlane(Sphere const &sphere, Plane const &plane) { return PlaneAndSphere(plane, sphere); };
+    static bool SphereAndPlane(Sphere const &sphere, Plane const &plane) { return PlaneAndSphere(plane, sphere); };
 
     // Determine if a sphere intersects another sphere.
-    bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {
+    static bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2) {
         float r = sphere1.r + sphere2.r;
         return sphere1.c.distSq(sphere2.c) <= r*r;
     };
@@ -666,7 +666,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2, ZMath::Vec3D &normal) {
+    static bool SphereAndSphere(Sphere const &sphere1, Sphere const &sphere2, ZMath::Vec3D &normal) {
         float r = sphere1.r + sphere2.r;
         ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
 
@@ -677,7 +677,7 @@ namespace Zeta {
     };
 
     // Determine if a sphere intersects an unrotated cube.
-    bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {
+    static bool SphereAndAABB(Sphere const &sphere, AABB const &aabb) {
         // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
         // ?  from the center is less than or equal to the radius of the sphere.
         // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
@@ -693,7 +693,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool SphereAndAABB(Sphere const &sphere, AABB const & aabb, ZMath::Vec3D &normal) {
+    static bool SphereAndAABB(Sphere const &sphere, AABB const & aabb, ZMath::Vec3D &normal) {
         ZMath::Vec3D closest = sphere.c;
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
 
@@ -708,7 +708,7 @@ namespace Zeta {
     };
 
     // Determine if a sphere intersects a cube.
-    bool SphereAndCube(Sphere const &sphere, Cube const &cube) {
+    static bool SphereAndCube(Sphere const &sphere, Cube const &cube) {
         // ? We can use the same approach as for SphereAndAABB, just we have to rotate the sphere into the Cube's UVW coordinates.
 
         ZMath::Vec3D closest = sphere.c - cube.pos;
@@ -725,7 +725,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool SphereAndCube(Sphere const &sphere, Cube const &cube, ZMath::Vec3D &normal) {
+    static bool SphereAndCube(Sphere const &sphere, Cube const &cube, ZMath::Vec3D &normal) {
         ZMath::Vec3D closest = sphere.c - cube.pos;
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
 
@@ -753,28 +753,28 @@ namespace Zeta {
     // * ===================================
 
     // Determine if an unrotated cube intersects a point.
-    bool AABBAndPoint(AABB const &aabb, ZMath::Vec3D const &point) { return PointAndAABB(point, aabb); };
+    static bool AABBAndPoint(AABB const &aabb, ZMath::Vec3D const &point) { return PointAndAABB(point, aabb); };
 
     // Determine if an unrotated cube intersects a line.
-    bool AABBAndLine(AABB const &aabb, Line3D const &line) { return LineAndAABB(line, aabb); };
+    static bool AABBAndLine(AABB const &aabb, Line3D const &line) { return LineAndAABB(line, aabb); };
 
     // Determine if an unrotated cube intersects a plane.
-    bool AABBAndPlane(AABB const &aabb, Plane const &plane) { return PlaneAndAABB(plane, aabb); };
+    static bool AABBAndPlane(AABB const &aabb, Plane const &plane) { return PlaneAndAABB(plane, aabb); };
 
     // Determine if an unrotated cube intersects a sphere.
-    bool AABBAndSphere(AABB const &aabb, Sphere const &sphere) { return SphereAndAABB(sphere, aabb); };
+    static bool AABBAndSphere(AABB const &aabb, Sphere const &sphere) { return SphereAndAABB(sphere, aabb); };
 
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool AABBAndSphere(AABB const &aabb, Sphere const &sphere, ZMath::Vec3D &normal) {
+    static bool AABBAndSphere(AABB const &aabb, Sphere const &sphere, ZMath::Vec3D &normal) {
         bool hit = SphereAndAABB(sphere, aabb, normal);
         normal = -normal;
         return hit;
     };
 
     // Determine if an unrotated cube intersects another unrotated cube.
-    bool AABBAndAABB(AABB const &aabb1, AABB const &aabb2) {
+    static bool AABBAndAABB(AABB const &aabb1, AABB const &aabb2) {
         // ? Check if there's overlap for the AABBs on all three axes.
         // ? If there is, we know the two AABBs intersect.
 
@@ -787,7 +787,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool AABBAndAABB(AABB const &aabb1, AABB const &aabb2, ZMath::Vec3D &normal) {
+    static bool AABBAndAABB(AABB const &aabb1, AABB const &aabb2, ZMath::Vec3D &normal) {
         // half size of AABB a and b respectively
         ZMath::Vec3D hA = aabb1.getHalfSize(), hB = aabb2.getHalfSize();
 
@@ -834,7 +834,7 @@ namespace Zeta {
     };
 
     // Determine if an unrotated cube intersects a cube.
-    bool AABBAndCube(AABB const &aabb, Cube const &cube) {
+    static bool AABBAndCube(AABB const &aabb, Cube const &cube) {
         // ? Use the separating axis theorem to determine if there is an intersection between the AABB and cube.
 
         // half size of the aabb and cube respectively (A = AABB, B = Cube)
@@ -861,7 +861,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool AABBAndCube(AABB const &aabb, Cube const &cube, ZMath::Vec3D &normal) {
+    static bool AABBAndCube(AABB const &aabb, Cube const &cube, ZMath::Vec3D &normal) {
         // ? Use the separating axis theorem to determine if there is an intersection between the AABB and cube.
 
         // half size of the aabb and cube respectively (A = AABB, B = Cube)
@@ -933,40 +933,40 @@ namespace Zeta {
     // * ===================================
 
     // Determine if a cube intersects a point.
-    bool CubeAndPoint(Cube const &cube, ZMath::Vec3D const &point) { return PointAndCube(point, cube); };
+    static bool CubeAndPoint(Cube const &cube, ZMath::Vec3D const &point) { return PointAndCube(point, cube); };
 
     // Determine if a cube intersects a line.
-    bool CubeAndLine(Cube const &cube, Line3D const &line) { return LineAndCube(line, cube); };
+    static bool CubeAndLine(Cube const &cube, Line3D const &line) { return LineAndCube(line, cube); };
 
     // Determine if a cube intersects a plane.
-    bool CubeAndPlane(Cube const &cube, Plane const &plane) { return PlaneAndCube(plane, cube); };
+    static bool CubeAndPlane(Cube const &cube, Plane const &plane) { return PlaneAndCube(plane, cube); };
 
     // Determine if a cube intersects a sphere.
-    bool CubeAndSphere(Cube const &cube, Sphere const &sphere) { return SphereAndCube(sphere, cube); };
+    static bool CubeAndSphere(Cube const &cube, Sphere const &sphere) { return SphereAndCube(sphere, cube); };
 
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool CubeAndSphere(Cube const &cube, Sphere const &sphere, ZMath::Vec3D &normal) {
+    static bool CubeAndSphere(Cube const &cube, Sphere const &sphere, ZMath::Vec3D &normal) {
         bool hit = SphereAndCube(sphere, cube, normal);
         normal = -normal;
         return hit;
     };
 
     // Determine if a cube intersects an unrotated cube.
-    bool CubeAndAABB(Cube const &cube, AABB const &aabb) { return AABBAndCube(aabb, cube); };
+    static bool CubeAndAABB(Cube const &cube, AABB const &aabb) { return AABBAndCube(aabb, cube); };
 
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool CubeAndAABB(Cube const &cube, AABB const &aabb, ZMath::Vec3D &normal) {
+    static bool CubeAndAABB(Cube const &cube, AABB const &aabb, ZMath::Vec3D &normal) {
         bool hit = AABBAndCube(aabb, cube, normal);
         normal = -normal;
         return hit;
     };
 
     // Determine if a cube intersects another cube.
-    bool CubeAndCube(Cube const &cube1, Cube const &cube2) {
+    static bool CubeAndCube(Cube const &cube1, Cube const &cube2) {
         // ? Use the separating axis theorem to determine if there is an intersection between the cubes.
 
         // half size of cube a and b respectively
@@ -1004,7 +1004,7 @@ namespace Zeta {
     // Check for intersection and return the collision normal.
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
-    bool CubeAndCube(Cube const &cube1, Cube const &cube2, ZMath::Vec3D &normal) {
+    static bool CubeAndCube(Cube const &cube1, Cube const &cube2, ZMath::Vec3D &normal) {
         // ? Use the separating axis theorem to determine if there is an intersection between the cubes.
 
         // half size of cube a and b respectively
