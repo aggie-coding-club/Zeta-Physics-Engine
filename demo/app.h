@@ -54,7 +54,6 @@ struct VertexData{
 
 #define Assert(expression) if(!(expression)) {*(int *)0 = 0;}
 
-Texture LoadTextures(std::string filename);
 RawModel load_to_VAO(VertexData *vertex_data);
 void clean_up();
 

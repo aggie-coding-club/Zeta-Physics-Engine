@@ -30,7 +30,7 @@ namespace E_{
             float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider);
 
     Entity_ *CreateEntity(EntityManager*em, HMM_Vec3 position, float scale, 
-        float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider);
+            float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider);
 
     // call after `AddCollider()`
     void Init(Entity_ *entity);

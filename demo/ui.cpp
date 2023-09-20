@@ -125,13 +125,6 @@ void Setup2dRendering(TextRendererManager *trm){
 
     basic_2d_shader.program = LoadShaders("basic_2d_shader_vs.glsl", "basic_2d_shader_fs.glsl");
     glUseProgram(basic_2d_shader.program);
-    // BindLocation(&basic_2d_shader, 0, "position");
-    // BindLocation(&basic_2d_shader, 1, "color");
-    // BindLocation(&basic_2d_shader, 2, "center");
-    // BindLocation(&basic_2d_shader, 3, "half_size");
-    // BindLocation(&basic_2d_shader, 4, "border_color");
-    // BindLocation(&basic_2d_shader, 5, "border_width");
-    // BindLocation(&basic_2d_shader, 6, "roundess");
 
     unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "u_projection_matrix");
     SetUniformValue(u_projection_matrix, trm->projection_ortho);

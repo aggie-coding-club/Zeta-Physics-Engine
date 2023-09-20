@@ -2,7 +2,7 @@
 
 namespace E_{    
         
-    void AddVertexPosition(VertexData *vertex_data, float x, float y, float z){
+    static void AddVertexPosition(VertexData *vertex_data, float x, float y, float z){
         vertex_data->positions[vertex_data->index] = x; 
         vertex_data->positions[vertex_data->index + 1] = y;
         vertex_data->positions[vertex_data->index + 2] = z;
@@ -10,7 +10,7 @@ namespace E_{
         vertex_data->index += 3;
     }
 
-    void AddVertexNormal(VertexData *vertex_data, float x, float y, float z){
+    static void AddVertexNormal(VertexData *vertex_data, float x, float y, float z){
         vertex_data->normals[vertex_data->index] = x;
         vertex_data->normals[vertex_data->index + 1] = y;
         vertex_data->normals[vertex_data->index + 2] = z;
@@ -18,10 +18,8 @@ namespace E_{
         vertex_data->index += 3;
     }
 
-    void AddVertexIndice(VertexData *vertex_data, int x, float y, float z){
+    static void AddVertexIndice(VertexData *vertex_data, int x, float y, float z){
         
-        // indices->insert(indices->end(), {0,1,3});	
-        // indices->insert(indices->end(), {3,1,2});
         vertex_data->indices[vertex_data->index] = x;
         vertex_data->indices[vertex_data->index  + 1] = y;
         vertex_data->indices[vertex_data->index  + 2] = z;
@@ -29,7 +27,7 @@ namespace E_{
         vertex_data->index += 3;
     }
     
-    void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
+    static void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
         // TOP
         AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z); // front top left
         AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z); // front top right
@@ -128,7 +126,7 @@ namespace E_{
         vertex_data->index = 0;
     }
 
-    Entity_ *Create_Entity(EntityManager *em, HMM_Vec3 position, float scale, 
+    Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
         Entity_ *result = &em->entities[em->index++];
 
@@ -144,7 +142,7 @@ namespace E_{
         return result;
     }
 
-    Entity_ *Create_Entity(EntityManager *em, HMM_Vec3 position, float scale, 
+    Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
         Entity_ *result = &em->entities[em->index++];
         result->scale = scale;
@@ -263,7 +261,7 @@ namespace E_{
         entity->raw_model = model;
     }
 
-    void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider){
+    static void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider){
         if(colliderType == Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER){
             Zeta::Cube *cube = (Zeta::Cube *)collider;
 
@@ -272,7 +270,7 @@ namespace E_{
         }
     }
 
-    void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider){
+    static void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider){
         if(colliderType == Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER){
             Zeta::Cube *cube = (Zeta::Cube *)collider;
 
@@ -280,7 +278,7 @@ namespace E_{
         }
     }
 
-    void IncreaseRotation(Entity_ *entity, float dx, float dy, float dz){
+    static void IncreaseRotation(Entity_ *entity, float dx, float dy, float dz){
         entity->rotation_x += dx;
         entity->rotation_y += dy;
         entity->rotation_z += dz;
