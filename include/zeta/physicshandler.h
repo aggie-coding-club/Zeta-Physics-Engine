@@ -24,7 +24,7 @@ namespace Zeta {
     // * =========================
 
     // Resolve a collision between two rigidbodies.
-    void applyImpulse(RigidBody3D* rb1, RigidBody3D* rb2, CollisionManifold const &manifold) {
+    void applyImpulse(RigidBody3D* rb1, RigidBody3D* rb2, Manifold const &manifold) {
         // delta v = J/m
         // For this calculation we need to acocunt for the relative velocity between the two objects
         // v_r = v_1 - v_2
@@ -42,7 +42,7 @@ namespace Zeta {
 
     // todo test if this is reasonable for the impulse resolution
     // Resolve a collision between a rigidbody and a staticbody.
-    void applyImpulse(RigidBody3D* rb, StaticBody3D* sb, CollisionManifold const &manifold) {
+    void applyImpulse(RigidBody3D* rb, StaticBody3D* sb, Manifold const &manifold) {
         float J = ((ZMath::abs(rb->vel) * -(1 + rb->cor)) * manifold.normal)/rb->invMass;
         rb->vel -= manifold.normal * (rb->invMass * J);
     };
@@ -73,7 +73,7 @@ namespace Zeta {
     typedef struct RigidCollisionWrapper {
         RigidBody3D** bodies1 = nullptr; // list of colliding bodies (Object A)
         RigidBody3D** bodies2 = nullptr; // list of colliding bodies (Object B)
-        CollisionManifold* manifolds = nullptr; // list of the collision manifolds between the objects
+        Manifold* manifolds = nullptr; // list of the collision manifolds between the objects
 
         int capacity; // current max capacity
         int count; // number of collisions
@@ -82,7 +82,7 @@ namespace Zeta {
     typedef struct RigidStaticCollisionWrapper {
         RigidBody3D** rbs = nullptr;
         StaticBody3D** sbs = nullptr;
-        CollisionManifold* manifolds = nullptr;
+        Manifold* manifolds = nullptr;
 
         int capacity;
         int count;
@@ -112,13 +112,13 @@ namespace Zeta {
             // * Functions for Ease of Use
             // * ==============================
 
-            inline void addCollision(RigidBody3D* rb1, RigidBody3D* rb2, CollisionManifold const &manifold) {
+            inline void addCollision(RigidBody3D* rb1, RigidBody3D* rb2, Manifold const &manifold) {
                 if (rCol.count == rCol.capacity) { // 99.9% of the time this part of the code will not execute. This is for an edge case.
                     rCol.capacity *= 2;
 
                     RigidBody3D** temp1 = new RigidBody3D*[rCol.capacity];
                     RigidBody3D** temp2 = new RigidBody3D*[rCol.capacity];
-                    CollisionManifold* temp3 = new CollisionManifold[rCol.capacity];
+                    Manifold* temp3 = new Manifold[rCol.capacity];
 
                     for (int i = 0; i < rCol.count; i++) {
                         temp1[i] = rCol.bodies1[i];
@@ -140,13 +140,13 @@ namespace Zeta {
                 rCol.manifolds[rCol.count++] = manifold;
             };
 
-            inline void addCollision(RigidBody3D* rb, StaticBody3D* sb, CollisionManifold const &manifold) {
+            inline void addCollision(RigidBody3D* rb, StaticBody3D* sb, Manifold const &manifold) {
                 if (rsCol.count == rsCol.capacity) {
                     rsCol.capacity *= 2;
 
                     RigidBody3D** temp1 = new RigidBody3D*[rsCol.capacity];
                     StaticBody3D** temp2 = new StaticBody3D*[rsCol.capacity];
-                    CollisionManifold* temp3 = new CollisionManifold[rsCol.capacity];
+                    Manifold* temp3 = new Manifold[rsCol.capacity];
 
                     for (int i = 0; i < rsCol.count; ++i) {
                         temp1[i] = rsCol.rbs[i];
@@ -183,7 +183,7 @@ namespace Zeta {
 
                 rCol.bodies1 = new RigidBody3D*[halfRbs];
                 rCol.bodies2 = new RigidBody3D*[halfRbs];
-                rCol.manifolds = new CollisionManifold[halfRbs];
+                rCol.manifolds = new Manifold[halfRbs];
 
                 rCol.capacity = halfRbs;
                 rCol.count = 0;
@@ -199,7 +199,7 @@ namespace Zeta {
 
                 rsCol.rbs = new RigidBody3D*[halfRbs];
                 rsCol.sbs = new StaticBody3D*[halfRbs];
-                rsCol.manifolds = new CollisionManifold[halfRbs];
+                rsCol.manifolds = new Manifold[halfRbs];
 
                 rsCol.capacity = halfRbs;
                 rsCol.count = 0;
@@ -243,13 +243,13 @@ namespace Zeta {
 
                 rCol.bodies1 = new RigidBody3D*[halfStartingSlots];
                 rCol.bodies2 = new RigidBody3D*[halfStartingSlots];
-                rCol.manifolds = new CollisionManifold[halfStartingSlots];
+                rCol.manifolds = new Manifold[halfStartingSlots];
                 rCol.capacity = halfStartingSlots;
                 rCol.count = 0;
 
                 rsCol.rbs = new RigidBody3D*[halfStartingSlots];
                 rsCol.sbs = new StaticBody3D*[halfStartingSlots];
-                rsCol.manifolds = new CollisionManifold[halfStartingSlots];
+                rsCol.manifolds = new Manifold[halfStartingSlots];
                 rsCol.capacity = halfStartingSlots;
                 rsCol.count = 0;
             };
@@ -402,12 +402,12 @@ namespace Zeta {
                     // Broad phase: collision detection
                     for (int i = 0; i < rbs.count - 1; ++i) {
                         for (int j = i + 1; j < rbs.count; ++j) {
-                            CollisionManifold result = findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
+                            Manifold result = findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
                             if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
                         }
 
                         for (int j = 0; j < sbs.count; ++j) {
-                            CollisionManifold result = findCollisionFeatures(sbs.staticBodies[j], rbs.rigidBodies[i]);
+                            Manifold result = findCollisionFeatures(sbs.staticBodies[j], rbs.rigidBodies[i]);
                             if (result.hit) { addCollision(rbs.rigidBodies[i], sbs.staticBodies[j], result); }
                         }
                     }

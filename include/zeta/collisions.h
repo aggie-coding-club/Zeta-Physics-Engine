@@ -12,13 +12,13 @@ namespace Zeta {
 
     // ? Note: if we have objects A and B colliding, the collison normal will point towards B and away from A.
 
-    struct CollisionManifold {
+    typedef struct CollisionManifold {
         ZMath::Vec3D normal; // collision normal
         ZMath::Vec3D* contactPoints; // contact points of the collision
         float pDist; // penetration distance
         int numPoints; // number of contact points
         bool hit; // do they intersect
-    };
+    } Manifold;
 
     // * Enums used for denotating the edges of the cubes
     enum Axis {
@@ -38,8 +38,8 @@ namespace Zeta {
 
     // todo go through and replace direct assignment of vectors to using .set()
 
-    CollisionManifold findCollisionFeatures(Plane const &plane, Sphere const &sphere) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(Plane const &plane, Sphere const &sphere) {
+        Manifold result;
 
         ZMath::Vec3D closest = sphere.c - plane.pos;
         ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
@@ -271,8 +271,8 @@ namespace Zeta {
     };
 
 
-    CollisionManifold findCollisionFeatures(Plane const &plane, AABB const &aabb) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(Plane const &plane, AABB const &aabb) {
+        Manifold result;
 
         // halfsize of the plane (A) and aabb (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
@@ -551,8 +551,8 @@ namespace Zeta {
         return result;
     };
 
-    CollisionManifold findCollisionFeatures(Plane const &plane, Cube const &cube) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(Plane const &plane, Cube const &cube) {
+        Manifold result;
 
         // halfsize of the plane (A) and cube (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
@@ -844,8 +844,8 @@ namespace Zeta {
         return result;
     };
 
-    CollisionManifold findCollisionFeatures(Sphere const &sphere1, Sphere const &sphere2) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(Sphere const &sphere1, Sphere const &sphere2) {
+        Manifold result;
 
         float r = sphere1.r + sphere2.r;
         ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
@@ -867,8 +867,8 @@ namespace Zeta {
         return result;
     };
 
-    CollisionManifold findCollisionFeatures(Sphere const &sphere, AABB const &aabb) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(Sphere const &sphere, AABB const &aabb) {
+        Manifold result;
 
         // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
         // ?  from the center is less than or equal to the radius of the sphere.
@@ -900,8 +900,8 @@ namespace Zeta {
         return result;
     };
 
-    CollisionManifold findCollisionFeatures(Sphere const &sphere, Cube const &cube) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(Sphere const &sphere, Cube const &cube) {
+        Manifold result;
 
         ZMath::Vec3D closest = sphere.c - cube.pos;
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
@@ -936,8 +936,8 @@ namespace Zeta {
 
     // ? Normal points towards B and away from A
 
-    CollisionManifold findCollisionFeatures(AABB const &aabb1, AABB const &aabb2) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(AABB const &aabb1, AABB const &aabb2) {
+        Manifold result;
 
         // half size of AABB a and b respectively
         ZMath::Vec3D hA = aabb1.getHalfSize(), hB = aabb2.getHalfSize();
@@ -1091,8 +1091,8 @@ namespace Zeta {
 
     // ? Normal points towards B and away from A
 
-    CollisionManifold findCollisionFeatures(AABB const &aabb, Cube const &cube) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(AABB const &aabb, Cube const &cube) {
+        Manifold result;
 
         // half size of a and b respectively
         ZMath::Vec3D hA = aabb.getHalfSize(), hB = cube.getHalfSize();
@@ -1322,8 +1322,8 @@ namespace Zeta {
 
     // ? Normal points towards B and away from A.
 
-    CollisionManifold findCollisionFeatures(Cube const &cube1, Cube const &cube2) {
-        CollisionManifold result;
+    Manifold findCollisionFeatures(Cube const &cube1, Cube const &cube2) {
+        Manifold result;
 
         // half size of cube a and b respectively
         ZMath::Vec3D hA = cube1.getHalfSize(), hB = cube2.getHalfSize();
@@ -1571,7 +1571,7 @@ namespace Zeta {
     };
 
     // Find the collision features and resolve the impulse between two rigidbodies.
-    CollisionManifold findCollisionFeatures(RigidBody3D* rb1, RigidBody3D* rb2) {
+    Manifold findCollisionFeatures(RigidBody3D* rb1, RigidBody3D* rb2) {
         switch (rb1->colliderType) {
             case RIGID_SPHERE_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.sphere); }
@@ -1583,7 +1583,7 @@ namespace Zeta {
 
             case RIGID_AABB_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.aabb);
+                    Manifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.aabb);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
@@ -1596,13 +1596,13 @@ namespace Zeta {
 
             case RIGID_CUBE_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.cube);
+                    Manifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
                 if (rb2->colliderType == RIGID_AABB_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.aabb, rb1->collider.cube);
+                    Manifold manifold = findCollisionFeatures(rb2->collider.aabb, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
@@ -1620,7 +1620,7 @@ namespace Zeta {
 
     // Find the collision features and resolve the impulse between a staticbody and a rigidbody.
     // The collision normal will point towards the rigid body and away from the static body.
-    CollisionManifold findCollisionFeatures(StaticBody3D* sb, RigidBody3D* rb) {
+    Manifold findCollisionFeatures(StaticBody3D* sb, RigidBody3D* rb) {
         // ? The normal points towards B and away from A so we want to pass the rigid body's colliders second.
 
         switch (sb->colliderType) {
@@ -1647,7 +1647,7 @@ namespace Zeta {
             case STATIC_AABB_COLLIDER: {
                 switch (rb->colliderType) {
                     case RIGID_SPHERE_COLLIDER: {
-                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.aabb);
+                        Manifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.aabb);
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
@@ -1662,13 +1662,13 @@ namespace Zeta {
             case STATIC_CUBE_COLLIDER: {
                 switch (rb->colliderType) {
                     case RIGID_SPHERE_COLLIDER: {
-                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.cube);
+                        Manifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.cube);
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
 
                     case RIGID_AABB_COLLIDER: {
-                        CollisionManifold manifold = findCollisionFeatures(rb->collider.aabb, sb->collider.cube);
+                        Manifold manifold = findCollisionFeatures(rb->collider.aabb, sb->collider.cube);
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
