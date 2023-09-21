@@ -338,7 +338,7 @@ namespace Zeta {
             // Remove a static body.
             // This returns 1 if the static body is found and removed and 0 if it was not found.
             // If the static body is found, the data pointed to by sb gets deleted by this function.
-            bool removeRigidBody(StaticBody3D* sb) {
+            bool removeStaticBody(StaticBody3D* sb) {
                 for (int i = rbs.count; i >= 0; --i) {
                     if (sbs.staticBodies[i] == sb) {
                         delete sb;
