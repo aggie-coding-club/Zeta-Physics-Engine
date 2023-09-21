@@ -397,21 +397,31 @@ namespace Zeta {
             int update(float &dt) {
                 int count = 0;
 
+                // todo combine the loops together later with an equation
                 while (dt >= updateStep) {
                     // Broad phase: collision detection
-                    for (int i = 0; i < rbs.count - 1; i++) {
-                        for (int j = i + 1; j < rbs.count; j++) {
+                    for (int i = 0; i < rbs.count - 1; ++i) {
+                        for (int j = i + 1; j < rbs.count; ++j) {
                             CollisionManifold result = findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
                             if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
+                        }
+
+                        for (int j = 0; j < sbs.count; ++j) {
+                            CollisionManifold result = findCollisionFeatures(sbs.staticBodies[j], rbs.rigidBodies[i]);
+                            if (result.hit) { addCollision(rbs.rigidBodies[i], sbs.staticBodies[j], result); }
                         }
                     }
 
                     // todo update to not be through iterative deepening -- look into this in the future
                     // todo use spacial partitioning
                     // Narrow phase: Impulse resolution
-                    for (int k = 0; k < IMPULSE_ITERATIONS; k++) {
-                        for (int i = 0; i < rCol.count; i++) {
+                    for (int k = 0; k < IMPULSE_ITERATIONS; ++k) {
+                        for (int i = 0; i < rCol.count; ++i) {
                             applyImpulse(rCol.bodies1[i], rCol.bodies2[i], rCol.manifolds[i]);
+                        }
+
+                        for (int i = 0; i < rsCol.count; ++i) {
+                            applyImpulse(rsCol.rbs[i], rsCol.sbs[i], rsCol.manifolds[i]);
                         }
                     }
 
