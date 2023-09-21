@@ -137,11 +137,36 @@ namespace Zeta {
 
                 rCol.bodies1[rCol.count] = rb1;
                 rCol.bodies2[rCol.count] = rb2;
-                rCol.manifolds[rCol.count] = manifold;
-                rCol.count++;
+                rCol.manifolds[rCol.count++] = manifold;
             };
 
-            // todo add in the function
+            inline void addCollision(RigidBody3D* rb, StaticBody3D* sb, CollisionManifold const &manifold) {
+                if (rsCol.count == rsCol.capacity) {
+                    rsCol.capacity *= 2;
+
+                    RigidBody3D** temp1 = new RigidBody3D*[rsCol.capacity];
+                    StaticBody3D** temp2 = new StaticBody3D*[rsCol.capacity];
+                    CollisionManifold* temp3 = new CollisionManifold[rsCol.capacity];
+
+                    for (int i = 0; i < rsCol.count; ++i) {
+                        temp1[i] = rsCol.rbs[i];
+                        temp2[i] = rsCol.sbs[i];
+                        temp3[i] = std::move(rsCol.manifolds[i]);
+                    }
+
+                    delete[] rsCol.rbs;
+                    delete[] rsCol.sbs;
+                    delete[] rsCol.manifolds;
+
+                    rsCol.rbs = temp1;
+                    rsCol.sbs = temp2;
+                    rsCol.manifolds = temp3;
+                }
+
+                rsCol.rbs[rsCol.count] = rb;
+                rsCol.sbs[rsCol.count] = sb;
+                rsCol.manifolds[rsCol.count++] = manifold;
+            };
 
             inline void clearCollisions() {
                 // ? We do not need to check for nullptrs because if this function is reached it is guarenteed none of the pointers inside of here will be NULL
