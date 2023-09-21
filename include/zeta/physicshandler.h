@@ -191,7 +191,18 @@ namespace Zeta {
 
                 // * rsCol
 
+                delete[] rsCol.rbs;
+                delete[] rsCol.sbs;
 
+                for (int i = 0; i < rsCol.count; ++i) { delete[] rsCol.manifolds[i].contactPoints; }
+                delete[] rsCol.manifolds;
+
+                rsCol.rbs = new RigidBody3D*[halfRbs];
+                rsCol.sbs = new StaticBody3D*[halfRbs];
+                rsCol.manifolds = new CollisionManifold[halfRbs];
+
+                rsCol.capacity = halfRbs;
+                rsCol.count = 0;
             };
 
         public:
