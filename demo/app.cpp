@@ -614,11 +614,11 @@ void app_update(float &time_step, float dt){
     
     // ************
     render(light_entity, &textures_manager);    
+    render(test_cube_entity, &textures_manager);
     render(test_entity, &textures_manager);
     render(ground_entity, &textures_manager);
-    render(dragon_entity, &textures_manager);
-    render(stall_entity, &textures_manager);
-    render(test_cube_entity, &textures_manager);
+    // render(dragon_entity, &textures_manager);
+    // render(stall_entity, &textures_manager);
     
     // **************
     
@@ -652,21 +652,22 @@ void app_update(float &time_step, float dt){
     AddToString(&dt_string, dt_avg);
 #endif
 
-    float x_pos = (WINDOW_WIDTH / 2.0) - (BUTTON_WIDTH / 2.0);
-    float y_pos = 150;
+    float x_pos = 30.0f;
+    float y_pos = WINDOW_HEIGHT - 60.0f;
+
+    float button_width = 220.0f;
+    float button_height = 50.0f;
+    float roundness = 5.0f;
+    float border_width = 2.0f;
     
     if(g_editor_mode){
         Text(&trm, &im, 0.35f, Create_String("Click Escape to Exit Editor Mode "), {x_pos, WINDOW_HEIGHT - 200.0f},  {255.0f, 100.0f, 0.0f});
 
-        if(Button((void *)1, &im, &trm,  Create_String("SETTINGS"), x_pos, y_pos + 200.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
-            printf("Settings!\n");
+        if(Button((void *)1, &im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
+            printf("Collision Detection Scene!\n");
         }
 
-        if(Button((void *)2, &im, &trm,  Create_String("SAVE"), x_pos, y_pos + 100.0f, {0.3f, 0.3f, 0.3f, 1.0f})){
-            printf("Save!\n");
-        }
-
-        if(Button((void *)3, &im, &trm,  Create_String("QUIT"), x_pos, y_pos, {0.3f, 0.3f, 0.3f, 1.0f})){
+        if(Button((void *)3, &im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
             printf("Quit!\n");
         }
     }

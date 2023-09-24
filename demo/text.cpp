@@ -141,7 +141,6 @@ void SetupTextRenderer(TextRendererManager *trm){
         character->size = {(float)trm->faces[0]->glyph->bitmap.width, (float)trm->faces[0]->glyph->bitmap.rows};
         character->bearing = {(float)trm->faces[0]->glyph->bitmap_left, (float)trm->faces[0]->glyph->bitmap_top};
         character->advance = (float)trm->faces[0]->glyph->advance.x;
-        int x = 0;
     }
 
     glBindTexture(GL_TEXTURE_2D, 0);

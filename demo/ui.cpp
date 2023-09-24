@@ -227,16 +227,15 @@ unsigned int UI_End(InputManager *im){
     return true;
 }
 
-#define BUTTON_PADDING 5.0f;
-unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String label, float xpos, float ypos, Color color){
-    float roundness = 15.0f;
-    float border_width = 5.0f;
+#define BUTTON_PADDING 50.0f
+unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String label, float roundness, float border_width, float xpos, float ypos, float width, float height, Color color){
     int result = 0;
-    float scale = 1.0f; // should be passed in 
+    float scale = 0.4f; // Note (Lenny) : should be passed in? 
     
+    String label_part_to_render = Create_String("");
     Character tallest = {};
     char c = '0';
-    float textWidth = 0.0f;
+    float text_width = 0.0f;
     for(int i = 0; i < label.length; i++){
         c = label.val[i];
         // Note (Lenny) : should have variable for active character table
@@ -245,15 +244,21 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
             tallest = ch;
         }
 
-        textWidth += (ch.advance >> 6) * scale;
+        if((text_width + (ch.advance >> 6) * scale + BUTTON_PADDING) < width){
+            AddToString(&label_part_to_render, c);
+            text_width += (ch.advance >> 6) * scale;
+        }else{
+            AddCharsToString(&label_part_to_render, "..");
+            ch = trm->cts[0].characters['.'];
+            text_width += (ch.advance >> 6) * scale * 2;
+            break;
+        }
     }
+    
+    HMM_Vec2 textPos = {};
+    textPos.X = xpos + width / 2.0f - text_width / 2.0f;
+    textPos.Y = ypos + (height / 2.0f) - ((tallest.size.Y * scale) / 2.0f);
 
-    // float width = textWidth + 30.0f;
-    // float height = DEFAULT_TEXT_PIXEL_HEIGHT + 20.0f;
-    float width = BUTTON_WIDTH;
-    float height = BUTTON_HEIGHT;
-
-    float textXPos = xpos + width / 2.0f - textWidth / 2.0f;
     HMM_Vec2 pos = {xpos, ypos};
     int state = glfwGetMouseButton(im->window, GLFW_MOUSE_BUTTON_LEFT);
 
@@ -295,10 +300,6 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     if(im->active_ui == id){
         color = BUTTON_ACTIVE_COLOR;
     }
-
-    float textYPos = ypos + (height / 2.0f) - (tallest.size.Y / 2.0f);
-
-    HMM_Vec2 textPos = {textXPos, textYPos};
 
     // draw rect
     glUseProgram(basic_2d_shader.program);
@@ -365,9 +366,10 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     glEnable(GL_DEPTH_TEST);
     glUseProgram(0);
     
-    unsigned int error = glGetError();
-    RenderText(trm, label, scale, HMM_Vec3{255.0f / 255.0f, 231.0f / 255.0f, 147.0f / 255.0f}, HMM_Vec2{textPos.X, textPos.Y});
-    // PrintGLError();
+    RenderText(trm, label_part_to_render, scale, HMM_Vec3{255.0f / 255.0f, 231.0f / 255.0f, 147.0f / 255.0f}, HMM_Vec2{textPos.X, textPos.Y});
+    DeleteString(&label_part_to_render);
+    DeleteString(&label);
+    
     return result;
 }
 
