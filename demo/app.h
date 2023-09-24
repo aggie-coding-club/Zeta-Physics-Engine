@@ -9,10 +9,12 @@
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
 #include <emscripten.h>
+#else
+#include <glad/glad.h>
 #endif
 
 #define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#define WINDOW_HEIGHT 640
 #define DEFAULT_FOV 70
 
 // Textures
@@ -52,7 +54,6 @@ struct VertexData{
 
 #define Assert(expression) if(!(expression)) {*(int *)0 = 0;}
 
-Texture LoadTextures(std::string filename);
 RawModel load_to_VAO(VertexData *vertex_data);
 void clean_up();
 
@@ -63,5 +64,7 @@ void GameInputCamera(int key, int state);
 void SetCursorPosition(float x, float y);
 void SetScroll(float x_offset, float y_offset);
 
+
+void PrintGLError();
 void app_update(float &time_step, float dt);
 void app_start(void *window);

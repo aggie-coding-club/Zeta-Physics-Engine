@@ -38,8 +38,8 @@ namespace Zeta {
 
     // todo go through and replace direct assignment of vectors to using .set()
 
-    Manifold findCollisionFeatures(Plane const &plane, Sphere const &sphere) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(Plane const &plane, Sphere const &sphere) {
+        CollisionManifold result;
 
         ZMath::Vec3D closest = sphere.c - plane.pos;
         ZMath::Vec2D min = plane.getLocalMin(), max = plane.getLocalMax();
@@ -220,7 +220,7 @@ namespace Zeta {
      * @param offset2 Distance to the side corresponding with side normal 2.
      * @return (int) The number of clipping points. If this does not return 4, there is not an intersection on this axis.
      */
-    int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
+    static int clipSegmentToLine(ZMath::Vec3D vOut[4], ZMath::Vec3D vIn[4], const ZMath::Vec3D &n1, const ZMath::Vec3D &n2, float offset1, float offset2) {
         // begin with 0 output points
         int np = 0;
 
@@ -271,8 +271,8 @@ namespace Zeta {
     };
 
 
-    Manifold findCollisionFeatures(Plane const &plane, AABB const &aabb) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(Plane const &plane, AABB const &aabb) {
+        CollisionManifold result;
 
         // halfsize of the plane (A) and aabb (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
@@ -551,8 +551,8 @@ namespace Zeta {
         return result;
     };
 
-    Manifold findCollisionFeatures(Plane const &plane, Cube const &cube) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(Plane const &plane, Cube const &cube) {
+        CollisionManifold result;
 
         // halfsize of the plane (A) and cube (B)
         ZMath::Vec2D planeH = plane.getHalfSize();
@@ -844,8 +844,8 @@ namespace Zeta {
         return result;
     };
 
-    Manifold findCollisionFeatures(Sphere const &sphere1, Sphere const &sphere2) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(Sphere const &sphere1, Sphere const &sphere2) {
+        CollisionManifold result;
 
         float r = sphere1.r + sphere2.r;
         ZMath::Vec3D sphereDiff = sphere2.c - sphere1.c;
@@ -867,8 +867,8 @@ namespace Zeta {
         return result;
     };
 
-    Manifold findCollisionFeatures(Sphere const &sphere, AABB const &aabb) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(Sphere const &sphere, AABB const &aabb) {
+        CollisionManifold result;
 
         // ? We know a sphere and AABB would intersect if the distance from the closest point to the center on the AABB
         // ?  from the center is less than or equal to the radius of the sphere.
@@ -900,8 +900,8 @@ namespace Zeta {
         return result;
     };
 
-    Manifold findCollisionFeatures(Sphere const &sphere, Cube const &cube) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(Sphere const &sphere, Cube const &cube) {
+        CollisionManifold result;
 
         ZMath::Vec3D closest = sphere.c - cube.pos;
         ZMath::Vec3D min = cube.getLocalMin(), max = cube.getLocalMax();
@@ -936,8 +936,8 @@ namespace Zeta {
 
     // ? Normal points towards B and away from A
 
-    Manifold findCollisionFeatures(AABB const &aabb1, AABB const &aabb2) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(AABB const &aabb1, AABB const &aabb2) {
+        CollisionManifold result;
 
         // half size of AABB a and b respectively
         ZMath::Vec3D hA = aabb1.getHalfSize(), hB = aabb2.getHalfSize();
@@ -1091,8 +1091,8 @@ namespace Zeta {
 
     // ? Normal points towards B and away from A
 
-    Manifold findCollisionFeatures(AABB const &aabb, Cube const &cube) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(AABB const &aabb, Cube const &cube) {
+        CollisionManifold result;
 
         // half size of a and b respectively
         ZMath::Vec3D hA = aabb.getHalfSize(), hB = cube.getHalfSize();
@@ -1322,8 +1322,8 @@ namespace Zeta {
 
     // ? Normal points towards B and away from A.
 
-    Manifold findCollisionFeatures(Cube const &cube1, Cube const &cube2) {
-        Manifold result;
+    static CollisionManifold findCollisionFeatures(Cube const &cube1, Cube const &cube2) {
+        CollisionManifold result;
 
         // half size of cube a and b respectively
         ZMath::Vec3D hA = cube1.getHalfSize(), hB = cube2.getHalfSize();
@@ -1571,7 +1571,7 @@ namespace Zeta {
     };
 
     // Find the collision features and resolve the impulse between two rigidbodies.
-    Manifold findCollisionFeatures(RigidBody3D* rb1, RigidBody3D* rb2) {
+    static CollisionManifold findCollisionFeatures(RigidBody3D* rb1, RigidBody3D* rb2) {
         switch (rb1->colliderType) {
             case RIGID_SPHERE_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.sphere); }
@@ -1620,7 +1620,7 @@ namespace Zeta {
 
     // Find the collision features and resolve the impulse between a staticbody and a rigidbody.
     // The collision normal will point towards the rigid body and away from the static body.
-    Manifold findCollisionFeatures(StaticBody3D* sb, RigidBody3D* rb) {
+    static CollisionManifold findCollisionFeatures(StaticBody3D* sb, RigidBody3D* rb) {
         // ? The normal points towards B and away from A so we want to pass the rigid body's colliders second.
 
         switch (sb->colliderType) {

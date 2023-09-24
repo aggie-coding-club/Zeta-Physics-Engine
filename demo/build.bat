@@ -206,7 +206,8 @@ if %ENV% == GNU (
 
 if %ENV% == MSVC (
     @REM Compiling with MSVC
-    cl /std:c++17 ..\main.cpp ..\app.cpp /EHsc /Zi /I../../include /link /LIBPATH:../../libs freetype.lib libglfw3.a Opengl32.lib 
+    cl /std:c++17  ..\main.cpp ..\shader.cpp ..\entity.cpp ..\app.cpp^
+     /EHsc /Zi /I../../include /link /LIBPATH:../../libs freetype.lib libglfw3.a Opengl32.lib 
 )
 
 if %ENV% == WEB (

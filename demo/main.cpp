@@ -93,7 +93,7 @@ int main(void)
 
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "What am I doing?", NULL, NULL);
+    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zeta Physics Engine Demo", NULL, NULL);
     if (!window)
     {
         printf("window not created\n");
@@ -139,6 +139,7 @@ int main(void)
         glEnable(GL_DEPTH_TEST);
         glClearColor(CLEAR_COLOR);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         app_update(time_step, dt);
 
