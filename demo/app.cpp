@@ -452,7 +452,10 @@ void SetEditMode(int mode){
     if(g_editor_mode){
         ShowCursor(last_mouse_x, last_mouse_y);
     }else{
-        HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+        // -		cursor_position	{X=1225.00000 Y=788.000000 Z=0.00000000 ...}	HMM_Vec3
+
+        // HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+        HideCursor(1225.0f, 788.0f);
     }   
 }
 
@@ -509,12 +512,10 @@ void app_start(void *window){
     textures_manager.AddTexture("white.png", TEXTURE_WHITE);
     textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL);
     
-    camera.position.X = 1.0f;
-    camera.position.Y = 50.0f;
-    camera.position.Z = 10.0f;
-    camera.pitch = -60.0f;
-    camera.yaw = -90.0f;
     camera.speed = 10000.0f;
+    camera.position.X = -29.0; 
+    camera.position.Y = 21.0; 
+    camera.position.Z = -53.0;
 
     CreateProjectionMatrix();
 

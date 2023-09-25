@@ -13,8 +13,8 @@
 #include <glad/glad.h>
 #endif
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 640
+#define WINDOW_WIDTH 1250
+#define WINDOW_HEIGHT 980
 #define DEFAULT_FOV 70
 
 // Textures
