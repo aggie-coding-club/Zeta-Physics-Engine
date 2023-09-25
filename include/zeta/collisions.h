@@ -12,13 +12,13 @@ namespace Zeta {
 
     // ? Note: if we have objects A and B colliding, the collison normal will point towards B and away from A.
 
-    struct CollisionManifold {
+    typedef struct CollisionManifold {
         ZMath::Vec3D normal; // collision normal
         ZMath::Vec3D* contactPoints; // contact points of the collision
         float pDist; // penetration distance
         int numPoints; // number of contact points
         bool hit; // do they intersect
-    };
+    } Manifold;
 
     // * Enums used for denotating the edges of the cubes
     enum Axis {
@@ -1583,7 +1583,7 @@ namespace Zeta {
 
             case RIGID_AABB_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.aabb);
+                    Manifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.aabb);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
@@ -1596,13 +1596,13 @@ namespace Zeta {
 
             case RIGID_CUBE_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.cube);
+                    Manifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
                 if (rb2->colliderType == RIGID_AABB_COLLIDER) {
-                    CollisionManifold manifold = findCollisionFeatures(rb2->collider.aabb, rb1->collider.cube);
+                    Manifold manifold = findCollisionFeatures(rb2->collider.aabb, rb1->collider.cube);
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
@@ -1647,7 +1647,7 @@ namespace Zeta {
             case STATIC_AABB_COLLIDER: {
                 switch (rb->colliderType) {
                     case RIGID_SPHERE_COLLIDER: {
-                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.aabb);
+                        Manifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.aabb);
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
@@ -1662,13 +1662,13 @@ namespace Zeta {
             case STATIC_CUBE_COLLIDER: {
                 switch (rb->colliderType) {
                     case RIGID_SPHERE_COLLIDER: {
-                        CollisionManifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.cube);
+                        Manifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.cube);
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
 
                     case RIGID_AABB_COLLIDER: {
-                        CollisionManifold manifold = findCollisionFeatures(rb->collider.aabb, sb->collider.cube);
+                        Manifold manifold = findCollisionFeatures(rb->collider.aabb, sb->collider.cube);
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
