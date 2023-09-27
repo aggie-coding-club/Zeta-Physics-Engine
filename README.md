@@ -23,7 +23,13 @@ ___
 
 ___
 
-## Future Additions
+## A 2D Version
+* [Zeta2D](https://github.com/Salamence064/Zeta2D) is a 2D version of this physics engine.
+* Check it out if you're working on a 2D project.
+
+___
+
+## Planned Additions
 * Kinematic Bodies
 * Rotational Kinematics
 * Add source files and move the header-only version to a branch
