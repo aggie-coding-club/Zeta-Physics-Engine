@@ -21,6 +21,7 @@ void PrintGLError(){
     printf("GL Error %i \n", gl_error);
 }
 
+// NOTE(Lenny) - break this into functions
 class TexturesManager{
 
     public:
@@ -70,6 +71,16 @@ class TexturesManager{
 
             result.def_name = def_name;
             textures.push_back(result);
+        }
+
+        void BindTexture(Texture *texture,  unsigned int slot){
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, texture->id);
+        }
+        
+        void UnBindTexture(){
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
         }
 
         // massive optimization to be done here
@@ -437,8 +448,29 @@ void render(E_::Entity_ *entity, TexturesManager *textures_manager){
     glEnableVertexAttribArray(2);    
     glEnableVertexAttribArray(3);    
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->def_texture));
+    unsigned int u_texture_0 = GetUniformLocation(&test_shader, "tex_sampler");
+    SetUniformValue(u_texture_0, (int)0);
+    unsigned int u_texture_1 = GetUniformLocation(&test_shader, "texture_1");
+    SetUniformValue(u_texture_1, (int)1);
+    unsigned int u_texture_2 = GetUniformLocation(&test_shader, "texture_2");
+    SetUniformValue(u_texture_2, (int)2);
+    unsigned int u_texture_3 = GetUniformLocation(&test_shader, "texture_3");
+    SetUniformValue(u_texture_3, (int)3);
+    unsigned int u_texture_4 = GetUniformLocation(&test_shader, "texture_4");
+    SetUniformValue(u_texture_4, (int)4);
+
+    if(entity->textureIndex > 0){
+
+        for(int i = 0; i < entity->textureIndex; i++){
+            glActiveTexture(GL_TEXTURE0 + i + 1);
+            glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->textures[i]));
+        } 
+
+    } else {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->def_texture));
+    }
+
 
     glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
     
@@ -447,7 +479,8 @@ void render(E_::Entity_ *entity, TexturesManager *textures_manager){
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
     glBindVertexArray(0);
-    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Zeta::Handler handler(ZMath::Vec3D(0, -5.8f, 0));
@@ -684,6 +717,8 @@ void app_start(void *window){
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
+    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
+    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
 
     Init(test_entity);
     
