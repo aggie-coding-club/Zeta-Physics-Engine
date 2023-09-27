@@ -126,6 +126,10 @@ namespace E_{
         vertex_data->index = 0;
     }
 
+    void AddTexture(Entity_ *entity, unsigned int texture){
+        entity->textures[entity->textureIndex++] = texture;
+    }
+
     Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
         Entity_ *result = &em->entities[em->index++];

@@ -12,6 +12,7 @@ void SetUniformValue(unsigned int uniform_location, HMM_Vec4 value);
 void SetUniformValue(unsigned int uniform_location, HMM_Vec3 value);
 void SetUniformValue(unsigned int uniform_location, HMM_Vec2 value);
 void SetUniformValue(unsigned int uniform_location, float value);
+void SetUniformValue(unsigned int uniform_location, int value);
 
 void BindLocation(Shader *shader, unsigned int location, char *value);
 

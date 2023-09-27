@@ -3,11 +3,14 @@
 #include <zeta/physicshandler.h>
 
 #define MAX_ENTITIES 100
+#define MAX_ENTITY_TEXTURES 4
 
 namespace E_{
     struct Entity_{
         RawModel raw_model;
         unsigned int def_texture;
+        unsigned int textures[MAX_ENTITY_TEXTURES];
+        unsigned int textureIndex;
         
         HMM_Vec4 color = {};
         float scale = 0.0f;
@@ -36,6 +39,9 @@ namespace E_{
     void Init(Entity_ *entity);
                 
     void Init(Entity_ *entity, RawModel model);
+
+    // order matters
+    void AddTexture(Entity_ *entity, unsigned int texture);
 
     void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider);
 

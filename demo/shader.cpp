@@ -32,6 +32,10 @@ void SetUniformValue(unsigned int uniform_location, float value){
         glUniform1f(uniform_location, value);
 }
 
+void SetUniformValue(unsigned int uniform_location, int value){
+        glUniform1i(uniform_location, value);
+}
+
 void BindLocation(Shader *shader, unsigned int location, char *value){
     glBindAttribLocation(shader->program, location, value);
 }
