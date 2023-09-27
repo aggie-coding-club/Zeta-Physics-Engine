@@ -1,11 +1,11 @@
 #version 300 es
 in vec3 position;
-in vec2 tex_coords;
+in vec3 tex_coords;
 in vec3 normal;
 in vec3 color;
 
 out vec3 f_color;
-out vec2 f_tex_coords;
+out vec3 f_tex_coords;
 out vec3 f_surface_normal;
 
 out vec3 f_current_position;
@@ -19,7 +19,7 @@ void main(void){
     vec4 world_position = transformation_matrix * vec4(position, 1.0);
     gl_Position = projection_matrix * view_matrix * world_position;
     
-    f_tex_coords = tex_coords;
+    f_tex_coords = vec3(tex_coords.x, tex_coords.y, tex_coords.z);
 
     f_surface_normal = mat3(transpose(inverse(transformation_matrix))) * normal;
     

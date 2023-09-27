@@ -22,6 +22,8 @@
 
 #define TEXTURE_WHITE 1
 #define TEXTURE_STALL 2
+#define TEXTURE_PINE_LEAVES 3
+#define TEXTURE_TREE_BARK 4
 
 // ================
 

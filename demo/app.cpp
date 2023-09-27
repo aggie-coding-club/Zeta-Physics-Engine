@@ -116,16 +116,17 @@ std::vector<std::string> SplitString(const std::string &s, char delim) {
 
 
 // makes sure all the normals and vertex data are lined up together
-void ProcessVertex(std::vector<std::string> vertexData, std::vector<int> *indices, std::vector<HMM_Vec2> *textures,
-    std::vector<HMM_Vec3> *normals, std::vector<float> *texturesArray, std::vector<float> *normalsArray){
+void ProcessVertex(std::vector<std::string> vertexData, std::vector<int> *indices, std::vector<HMM_Vec3> *textures,
+    std::vector<HMM_Vec3> *normals, std::vector<float> *texturesArray, std::vector<float> *normalsArray, float textureIndex){
     
     int currentVertexPointer = (int)std::stof(vertexData[0]) - 1;
     indices->push_back(currentVertexPointer);
 
-    HMM_Vec2 currentTex = textures->at((int)std::stof(vertexData[1]) - 1);
+    HMM_Vec3 currentTex = textures->at((int)std::stof(vertexData[1]) - 1);
 
-    texturesArray->at(currentVertexPointer * 2) = currentTex.X;
-    texturesArray->at(currentVertexPointer * 2 + 1) = 1 - currentTex.Y;
+    texturesArray->at(currentVertexPointer * 3) = currentTex.X;
+    texturesArray->at(currentVertexPointer * 3 + 1) = 1 - currentTex.Y;
+    texturesArray->at(currentVertexPointer * 3 + 2) = textureIndex;
 
     HMM_Vec3 currentNormal = normals->at((int)std::stof(vertexData[2]) - 1);
 
@@ -151,7 +152,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
     std::string objLine;
 
     std::vector<HMM_Vec3> vertices;
-    std::vector<HMM_Vec2> textures; // tex coords
+    std::vector<HMM_Vec3> textures; // tex coords
     std::vector<HMM_Vec3> normals;
 
     std::vector<int> indicesArray;
@@ -172,13 +173,14 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
             // NOTE(Lenny) : Inefficient....BAD CODE...REWRITE
             texturesArray.push_back(0);
             texturesArray.push_back(0);
+            texturesArray.push_back(0);
             
             normalsArray.push_back(0);
             normalsArray.push_back(0);
             normalsArray.push_back(0);
 
         } else if (s[0] == "vt"){ // texture coord
-            HMM_Vec2 textureCoord = {std::stof(s[1]), std::stof(s[2])};
+            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0};
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
@@ -202,10 +204,122 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
             std::vector<std::string> vertex2 = SplitString(s[2], '/');
             std::vector<std::string> vertex3 = SplitString(s[3], '/');
 
-            ProcessVertex(vertex1, &indicesArray, &textures, &normals, &texturesArray, &normalsArray);
-            ProcessVertex(vertex2, &indicesArray, &textures, &normals, &texturesArray, &normalsArray);
-            ProcessVertex(vertex3, &indicesArray, &textures, &normals, &texturesArray, &normalsArray);
+            ProcessVertex(vertex1, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, 0);
+            ProcessVertex(vertex2, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, 0);
+            ProcessVertex(vertex3, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, 0);
             // break;
+        } 
+    };
+
+    // Close the file
+    objFile.close();
+
+    index = 0;
+    for(HMM_Vec3 vertex:vertices){
+        verticesArray.push_back(vertex.X);
+        verticesArray.push_back(vertex.Y);
+        verticesArray.push_back(vertex.Z);
+
+        colorsArray.push_back(color.X);
+        colorsArray.push_back(color.Y);
+        colorsArray.push_back(color.Z);
+    }
+
+    VertexData vertexData = {};
+    vertexData.normals = &normalsArray[0];
+    vertexData.positions = &verticesArray[0];
+    vertexData.colors = &colorsArray[0];
+    vertexData.len_colors = colorsArray.size();
+    vertexData.len_normals = normalsArray.size();
+    vertexData.len_positions = verticesArray.size();
+
+    vertexData.indices = &indicesArray[0];
+    vertexData.len_indices = indicesArray.size();
+    vertexData.tex_coords = &texturesArray[0];
+    vertexData.len_tex_coords = texturesArray.size();
+
+    RawModel result = load_to_VAO(&vertexData);
+
+
+    return result;
+}
+
+RawModel load_obj_model(std::string fileName, HMM_Vec4 color, int texturesCount){
+    // NOTE (Lenny) : Check for invalid files
+
+    #if __EMSCRIPTEN__
+    std::ifstream objFile("vendor/" + fileName);
+    #else
+    std::ifstream objFile(fileName);
+    #endif
+
+    if(!objFile){
+        printf("Error loading obj file -> \n", &fileName[0]);
+    }
+    std::string objData;
+
+    std::string objLine;
+
+    std::vector<HMM_Vec3> vertices;
+    std::vector<HMM_Vec3> textures; // tex coords
+    std::vector<HMM_Vec3> normals;
+
+    std::vector<int> indicesArray;
+    std::vector<float> verticesArray;
+    std::vector<float> normalsArray;
+    std::vector<float> texturesArray;
+    std::vector<float> colorsArray;
+
+    int textureIndex = 0;
+    int index = 0;
+    // Use a while loop together with the getline() function to read the file line by  line
+    while (std::getline (objFile, objLine)) {
+        std::vector<std::string> s = SplitString(objLine, ' ');
+            
+        if(s[0] == "v"){ // vertex position
+            HMM_Vec3 vertex = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            vertices.push_back(vertex);
+            
+            // NOTE(Lenny) : Inefficient....BAD CODE...REWRITE
+            texturesArray.push_back(0);
+            texturesArray.push_back(0);
+            texturesArray.push_back(0);
+            
+            normalsArray.push_back(0);
+            normalsArray.push_back(0);
+            normalsArray.push_back(0);
+
+        } else if (s[0] == "vt"){ // texture coord
+            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0.0f};
+            textures.push_back(textureCoord);
+            
+        } else if(s[0] == "vn"){ // vertex normal
+            // HMM_Vec3 normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            HMM_Vec3 normal = {};
+
+            normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
+            // normal = {1.0f, 0.0f, 0.0f};
+
+            normals.push_back(normal);
+            index++;
+            // printf("x : %f, y : %f, z : %f", normal.x, normal.y, normal.z);
+        
+        } else if(s[0] == "f"){ // indicies
+            // for(int i = 0; i < s.size(); i++){
+            //     PrintString(s[i]);
+            // }
+            
+            // printf("\n"); 
+            std::vector<std::string> vertex1 = SplitString(s[1], '/');
+            std::vector<std::string> vertex2 = SplitString(s[2], '/');
+            std::vector<std::string> vertex3 = SplitString(s[3], '/');
+
+            ProcessVertex(vertex1, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, textureIndex - 1);
+            ProcessVertex(vertex2, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, textureIndex - 1);
+            ProcessVertex(vertex3, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, textureIndex - 1);
+            // break;
+        } else if(s[0] == "usemtl"){
+            textureIndex++;
         }
     };
 
@@ -289,7 +403,7 @@ RawModel load_to_VAO(VertexData *vertex_data){
     createIndicesBuffer(vertex_data->indices, vertex_data->len_indices * sizeof(int));
 
     store_data_in_attribute_list(0, vertex_data->positions, 3, vertex_data->len_positions * sizeof(float));
-    store_data_in_attribute_list(1, vertex_data->tex_coords, 2, vertex_data->len_tex_coords * sizeof(float));
+    store_data_in_attribute_list(1, vertex_data->tex_coords, 3, vertex_data->len_tex_coords * sizeof(float));
     store_data_in_attribute_list(2, vertex_data->normals, 3, vertex_data->len_normals * sizeof(float));
     store_data_in_attribute_list(3, vertex_data->colors, 3, vertex_data->len_colors * sizeof(float));
     
@@ -350,6 +464,7 @@ E_::Entity_ *ground_entity = 0;
 E_::Entity_ *dragon_entity = 0;
 E_::Entity_ *stall_entity = 0;
 E_::Entity_ *test_cube_entity = 0;
+E_::Entity_ *pine_5_entity = 0;
 
 E_::EntityManager em = {};
 
@@ -511,6 +626,8 @@ void app_start(void *window){
     // >>>>>> Texture Stuff
     textures_manager.AddTexture("white.png", TEXTURE_WHITE);
     textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL);
+    textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES);
+    // textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK);
     
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -537,13 +654,13 @@ void app_start(void *window){
     test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
-    light_entity = E_::CreateEntity(&em, HMM_Vec3{13, 13, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
+    light_entity = E_::CreateEntity(&em, HMM_Vec3{13, 43, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
         
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
-    ground_entity = E_::CreateEntity(&em, HMM_Vec3{0, -4, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
+    ground_entity = E_::CreateEntity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
@@ -563,6 +680,11 @@ void app_start(void *window){
     test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
+    pine_5_entity = E_::CreateEntity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    pine_5_entity->color = {1.0f, 1.0f, 1.0f};
+    pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
+
     Init(test_entity);
     
     handler.addRigidBody(test_entity->rb);
@@ -570,6 +692,9 @@ void app_start(void *window){
     RawModel dragon_model = load_obj_model("thin/stall.obj", dragon_entity->color);
     RawModel stall_model = load_obj_model("thin/stall.obj", stall_entity->color);
     RawModel test_cube_model = load_obj_model("cube.obj", {1.0f, 1.0f, 1.0f, 1.0f});
+    // RawModel pine_5_model = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f});
+    RawModel pine_5_model_2 = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
+    Init(pine_5_entity, pine_5_model_2);
     Init(dragon_entity, dragon_model);
     Init(stall_entity, stall_model);
 
@@ -589,7 +714,7 @@ float dt_avg = 1.0f;
 int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
-    im.dt += 1 * dt;
+    im.dt += dt;
 #if 1
     glUseProgram(test_shader.program);
 
@@ -618,6 +743,7 @@ void app_update(float &time_step, float dt){
     render(test_cube_entity, &textures_manager);
     render(test_entity, &textures_manager);
     render(ground_entity, &textures_manager);
+    render(pine_5_entity, &textures_manager);
     // render(dragon_entity, &textures_manager);
     // render(stall_entity, &textures_manager);
     
@@ -653,7 +779,7 @@ void app_update(float &time_step, float dt){
     AddToString(&dt_string, dt_avg);
 #endif
 
-    float x_pos = 30.0f;
+    float x_pos = 100.0f;
     float y_pos = WINDOW_HEIGHT - 60.0f;
 
     float button_width = 220.0f;
@@ -662,7 +788,7 @@ void app_update(float &time_step, float dt){
     float border_width = 2.0f;
     
     if(g_editor_mode){
-        Text(&trm, &im, 0.35f, Create_String("Click Escape to Exit Editor Mode "), {x_pos, WINDOW_HEIGHT - 200.0f},  {255.0f, 100.0f, 0.0f});
+        Text(&trm, &im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
 
         if(Button((void *)1, &im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
             printf("Collision Detection Scene!\n");
@@ -673,8 +799,11 @@ void app_update(float &time_step, float dt){
         }
     }
 
-    Text(&trm, &im, 0.4f, Create_String("F P S : "), {100.0f, WINDOW_HEIGHT - 100.0f},  {255.0f, 100.0f, 0.0f});
-
+    String fps_string = Create_String("F P S : ");
+    AddToString(&fps_string, 1 / dt_avg);
+    Text(&trm, &im, 0.4f, fps_string, {x_pos + 470.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 0.0f});
+    DeleteString(&dt_string);
+    DeleteString(&fps_string);
 }
 
 void clean_up() {
