@@ -24,7 +24,7 @@ namespace Zeta {
     // * =========================
 
     // Resolve a collision between two rigidbodies.
-    void applyImpulse(RigidBody3D* rb1, RigidBody3D* rb2, Manifold const &manifold) {
+    static void applyImpulse(RigidBody3D* rb1, RigidBody3D* rb2, CollisionManifold const &manifold) {
         // delta v = J/m
         // For this calculation we need to acocunt for the relative velocity between the two objects
         // v_r = v_1 - v_2
@@ -42,7 +42,7 @@ namespace Zeta {
 
     // todo test if this is reasonable for the impulse resolution
     // Resolve a collision between a rigidbody and a staticbody.
-    void applyImpulse(RigidBody3D* rb, StaticBody3D* sb, Manifold const &manifold) {
+    static void applyImpulse(RigidBody3D* rb, StaticBody3D* sb, CollisionManifold const &manifold) {
         float J = ((ZMath::abs(rb->vel) * -(1 + rb->cor)) * manifold.normal)/rb->invMass;
         rb->vel -= manifold.normal * (rb->invMass * J);
     };
