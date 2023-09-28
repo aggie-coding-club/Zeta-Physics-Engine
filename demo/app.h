@@ -19,6 +19,8 @@
 
 // Textures
 // ================
+#define TEX_FORMAT_PNG 1
+#define TEX_FORMAT_JPG 2
 
 #define TEXTURE_WHITE 1
 #define TEXTURE_STALL 2

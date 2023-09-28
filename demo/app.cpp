@@ -33,7 +33,7 @@ class TexturesManager{
         }
 
     public:
-        void AddTexture(std::string path, unsigned int def_name){
+        void AddTexture(std::string path, unsigned int def_name, unsigned int format){
             textures_count++;
 
             Texture result = {};
@@ -47,9 +47,13 @@ class TexturesManager{
 
             // Note(Lenny) : might need to be flipped
             #if __EMSCRIPTEN__
+            
             unsigned char *data = stbi_load(&web_texture_src[0], &width, &height, &nr_channels, 0);
+            
             #else
+            
             unsigned char *data = stbi_load(&texture_src[0], &width, &height, &nr_channels, 0);
+            
             #endif
             if(data){
                 std::cout << "loaded png \n" << texture_src << std::endl;
@@ -62,9 +66,18 @@ class TexturesManager{
             glBindTexture(GL_TEXTURE_2D, result.id);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            
+            if(format == TEX_FORMAT_PNG){
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                    GL_UNSIGNED_BYTE, data);
+            } else if(format == TEX_FORMAT_JPG){
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                    GL_UNSIGNED_BYTE, data);
+            } else{
+                std::cout << "failed to load file type\n" << texture_src << std::endl;
+                Assert(!"Failed to load texture!");
+            }
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                GL_UNSIGNED_BYTE, data);
             glBindTexture(GL_TEXTURE_2D, 0);
 
             stbi_image_free(data);
@@ -657,10 +670,10 @@ void app_start(void *window){
     glFrontFace(GL_CCW); 
 
     // >>>>>> Texture Stuff
-    textures_manager.AddTexture("white.png", TEXTURE_WHITE);
-    textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL);
-    textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES);
-    // textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK);
+    textures_manager.AddTexture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
     
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -718,7 +731,7 @@ void app_start(void *window){
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
     E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
-    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
+    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
     Init(test_entity);
     
