@@ -33,7 +33,7 @@ class TexturesManager{
         }
 
     public:
-        void AddTexture(std::string path, unsigned int def_name){
+        void AddTexture(std::string path, unsigned int def_name, unsigned int format){
             textures_count++;
 
             Texture result = {};
@@ -47,9 +47,13 @@ class TexturesManager{
 
             // Note(Lenny) : might need to be flipped
             #if __EMSCRIPTEN__
+            
             unsigned char *data = stbi_load(&web_texture_src[0], &width, &height, &nr_channels, 0);
+            
             #else
+            
             unsigned char *data = stbi_load(&texture_src[0], &width, &height, &nr_channels, 0);
+            
             #endif
             if(data){
                 std::cout << "loaded png \n" << texture_src << std::endl;
@@ -62,9 +66,18 @@ class TexturesManager{
             glBindTexture(GL_TEXTURE_2D, result.id);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            
+            if(format == TEX_FORMAT_PNG){
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                    GL_UNSIGNED_BYTE, data);
+            } else if(format == TEX_FORMAT_JPG){
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                    GL_UNSIGNED_BYTE, data);
+            } else{
+                std::cout << "failed to load file type\n" << texture_src << std::endl;
+                Assert(!"Failed to load texture!");
+            }
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                GL_UNSIGNED_BYTE, data);
             glBindTexture(GL_TEXTURE_2D, 0);
 
             stbi_image_free(data);
@@ -498,6 +511,7 @@ E_::Entity_ *dragon_entity = 0;
 E_::Entity_ *stall_entity = 0;
 E_::Entity_ *test_cube_entity = 0;
 E_::Entity_ *pine_5_entity = 0;
+E_::Entity_ *birch_10_entity = 0;
 
 E_::EntityManager em = {};
 
@@ -657,10 +671,11 @@ void app_start(void *window){
     glFrontFace(GL_CCW); 
 
     // >>>>>> Texture Stuff
-    textures_manager.AddTexture("white.png", TEXTURE_WHITE);
-    textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL);
-    textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES);
-    // textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK);
+    textures_manager.AddTexture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
     
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -718,7 +733,15 @@ void app_start(void *window){
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
     E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
-    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
+    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+
+    
+    birch_10_entity = E_::CreateEntity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    birch_10_entity->color = {1.0f, 1.0f, 1.0f};
+    birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
+    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
+    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
     Init(test_entity);
     
@@ -729,6 +752,8 @@ void app_start(void *window){
     RawModel test_cube_model = load_obj_model("cube.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     // RawModel pine_5_model = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     RawModel pine_5_model_2 = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
+    RawModel birch_10_model = load_obj_model("Birch_10.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
+    Init(birch_10_entity, birch_10_model);
     Init(pine_5_entity, pine_5_model_2);
     Init(dragon_entity, dragon_model);
     Init(stall_entity, stall_model);
@@ -773,17 +798,21 @@ void app_update(float &time_step, float dt){
     unsigned int u_light_color = GetUniformLocation(&test_shader, "light_color");
     SetUniformValue(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
     
+    glEnable(GL_BLEND);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
     // ************
-    render(light_entity, &textures_manager);    
-    render(test_cube_entity, &textures_manager);
-    render(test_entity, &textures_manager);
-    render(ground_entity, &textures_manager);
+    // render(light_entity, &textures_manager);    
+    // render(test_cube_entity, &textures_manager);
+    // render(test_entity, &textures_manager);
+    // render(ground_entity, &textures_manager);
     render(pine_5_entity, &textures_manager);
+    // render(birch_10_entity, &textures_manager);
     // render(dragon_entity, &textures_manager);
     // render(stall_entity, &textures_manager);
     
     // **************
-    
+    glDisable(GL_BLEND);
+
     int physics_updates = handler.update(time_step);
     
     ZMath::Vec3D normal = {};

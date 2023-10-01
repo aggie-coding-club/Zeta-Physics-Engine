@@ -27,7 +27,7 @@ namespace E_{
         Entity_ entities[MAX_ENTITIES];
     };
         
-    void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
+    static void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
 
     Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
             float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider);
@@ -43,9 +43,9 @@ namespace E_{
     // order matters
     void AddTexture(Entity_ *entity, unsigned int texture);
 
-    void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider);
+    static void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider);
 
-    void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider);
+    static void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider);
 
-    void IncreaseRotation(Entity_ *entity, float dx, float dy, float dz);
+    static void IncreaseRotation(Entity_ *entity, float dx, float dy, float dz);
 };
