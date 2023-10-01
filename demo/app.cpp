@@ -511,6 +511,7 @@ E_::Entity_ *dragon_entity = 0;
 E_::Entity_ *stall_entity = 0;
 E_::Entity_ *test_cube_entity = 0;
 E_::Entity_ *pine_5_entity = 0;
+E_::Entity_ *birch_10_entity = 0;
 
 E_::EntityManager em = {};
 
@@ -672,6 +673,7 @@ void app_start(void *window){
     // >>>>>> Texture Stuff
     textures_manager.AddTexture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
     textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
+    textures_manager.AddTexture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
     textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
     textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
     
@@ -733,6 +735,14 @@ void app_start(void *window){
     E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
     E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
+    
+    birch_10_entity = E_::CreateEntity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    birch_10_entity->color = {1.0f, 1.0f, 1.0f};
+    birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
+    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
+    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+
     Init(test_entity);
     
     handler.addRigidBody(test_entity->rb);
@@ -742,6 +752,8 @@ void app_start(void *window){
     RawModel test_cube_model = load_obj_model("cube.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     // RawModel pine_5_model = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     RawModel pine_5_model_2 = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
+    RawModel birch_10_model = load_obj_model("Birch_10.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
+    Init(birch_10_entity, birch_10_model);
     Init(pine_5_entity, pine_5_model_2);
     Init(dragon_entity, dragon_model);
     Init(stall_entity, stall_model);
@@ -786,17 +798,21 @@ void app_update(float &time_step, float dt){
     unsigned int u_light_color = GetUniformLocation(&test_shader, "light_color");
     SetUniformValue(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
     
+    glEnable(GL_BLEND);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
     // ************
-    render(light_entity, &textures_manager);    
-    render(test_cube_entity, &textures_manager);
-    render(test_entity, &textures_manager);
-    render(ground_entity, &textures_manager);
+    // render(light_entity, &textures_manager);    
+    // render(test_cube_entity, &textures_manager);
+    // render(test_entity, &textures_manager);
+    // render(ground_entity, &textures_manager);
     render(pine_5_entity, &textures_manager);
+    // render(birch_10_entity, &textures_manager);
     // render(dragon_entity, &textures_manager);
     // render(stall_entity, &textures_manager);
     
     // **************
-    
+    glDisable(GL_BLEND);
+
     int physics_updates = handler.update(time_step);
     
     ZMath::Vec3D normal = {};

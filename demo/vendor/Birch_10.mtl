@@ -1,7 +1,7 @@
-# Blender 3.4.1 MTL File: 'Pine_5.blend'
+# Blender 3.4.1 MTL File: 'Birch_10.blend'
 # www.blender.org
 
-newmtl Bark
+newmtl Birch_Bark
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
@@ -9,9 +9,9 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd C:/Users/Lanny/Downloads/Textured Stylized Trees - May 2020/Textures/Tree_Bark.jpg
+map_Kd C:/Users/Lanny/Downloads/Textured Stylized Trees - May 2020/Blends/Bark2.png
 
-newmtl Pine_Leaves
+newmtl Birch_Leaves
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000

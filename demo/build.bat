@@ -2,7 +2,7 @@
 
 
 @REM ENV (environment) can either be GNU, MSVC, or WEB
-set ENV= MSVC
+set ENV= GNU
 set makecall= mingw32-make
 
 if not exist ".\build" (
@@ -201,7 +201,8 @@ pushd "./build"
 
 if %ENV% == GNU (
     @REM Compiling with g++
-    g++ -g -std=c++14 ..\main.cpp ..\app.cpp -o app -I..\..\include -L..\..\libs -l:libglfw3.a -l:libfreetype.a -lOpengl32
+    echo dir
+    g++ -g -std=c++14 ..\main.cpp ..\shader.cpp ..\entity.cpp ..\app.cpp -o app -I..\..\include -L..\..\libs -l:libglfw3.a -l:libfreetype.a -lOpengl32
 )
 
 if %ENV% == MSVC (
