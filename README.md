@@ -101,6 +101,7 @@ ___
  * Thomas Ducote
  * Lenny Tanui
  * Thomas Masha
+ * Hailey Trinh
  * Franco Martinez
  * Adrian Cortes
  * Sai Sudarshan Barath
