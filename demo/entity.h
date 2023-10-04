@@ -9,8 +9,9 @@ namespace E_{
     struct Entity_{
         RawModel raw_model;
         unsigned int def_texture;
-        unsigned int textures[MAX_ENTITY_TEXTURES];
+        unsigned int textures[MAX_ENTITY_TEXTURES] = {};
         unsigned int textureIndex;
+        int isTransparent;
         
         HMM_Vec4 color = {};
         float scale = 0.0f;

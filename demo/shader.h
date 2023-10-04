@@ -5,6 +5,9 @@ struct Shader{
     unsigned int program;
 };
 
+void EnableCulling();
+void DisableCulling();
+
 unsigned int GetUniformLocation(Shader *shader, char *name);
 
 void SetUniformValue(unsigned int uniform_location, HMM_Mat4 value);

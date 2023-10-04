@@ -11,6 +11,17 @@ unsigned int GetUniformLocation(Shader *shader, char *name){
     return result;
 }
 
+
+void EnableCulling(){
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+}
+
+void DisableCulling(){
+    glDisable(GL_CULL_FACE);
+}
+
 // must have a shader bound to have set uniform value
 void SetUniformValue(unsigned int uniform_location, HMM_Mat4 value){
     glUniformMatrix4fv(uniform_location, 1, false, &value[0][0]);

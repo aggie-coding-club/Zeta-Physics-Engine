@@ -165,30 +165,30 @@ namespace E_{
     void Init(Entity_ *entity){
                 
         std::vector<float> tex_coords = {
-            0,0,
-            0,1,
-            1,1,
-            1,0,			
-            0,0,
-            0,1,
-            1,1,
-            1,0,			
-            0,0,
-            0,1,
-            1,1,
-            1,0,
-            0,0,
-            0,1,
-            1,1,
-            1,0,
-            0,0,
-            0,1,
-            1,1,
-            1,0,
-            0,0,
-            0,1,
-            1,1,
-            1,0
+            0.0 , 0.0, 0.0, 
+            0.0 , 1.0, 0.0, 
+            1.0 , 1.0, 0.0, 
+            1.0 , 0.0, 0.0, 			
+            0.0 , 0.0, 0.0, 
+            0.0 , 1.0, 0.0, 
+            1.0 , 1.0, 0.0, 
+            1.0 , 0.0, 0.0, 			
+            0.0 , 0.0, 0.0, 
+            0.0 , 1.0, 0.0, 
+            1.0 , 1.0, 0.0, 
+            1.0 , 0.0, 0.0, 
+            0.0 , 0.0, 0.0, 
+            0.0 , 1.0, 0.0, 
+            1.0 , 1.0, 0.0, 
+            1.0 , 0.0, 0.0, 
+            0.0 , 0.0, 0.0, 
+            0.0 , 1.0, 0.0, 
+            1.0 , 1.0, 0.0, 
+            1.0 , 0.0, 0.0, 
+            0.0 , 0.0, 0.0, 
+            0.0 , 1.0, 0.0, 
+            1.0 , 1.0, 0.0, 
+            1.0 , 0.0, 0.0
         };
 
         HMM_Vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -236,8 +236,8 @@ namespace E_{
         vertex_data.colors = new float[3 * 4 * 6 * sizeof(float)]();
         vertex_data.indices = new int[3 * 2 * 6 * sizeof(int)]();
 
-        vertex_data.tex_coords = new float[2 * 4 * 6 * sizeof(float)];
-        vertex_data.len_tex_coords = 2 * 4 * 6;
+        vertex_data.tex_coords = new float[3 * 4 * 6 * sizeof(float)];
+        vertex_data.len_tex_coords = 3 * 4 * 6;
 
         if(entity->sb){
             ZetaVertsToEq(entity->sb->collider.cube.getVertices(), &vertex_data);
@@ -250,7 +250,7 @@ namespace E_{
         vertex_data.colors = &cube_colors[0];
         vertex_data.len_colors = vertex_data.len_positions;
         vertex_data.tex_coords = &tex_coords[0];
-        vertex_data.len_tex_coords = 48;
+        vertex_data.len_tex_coords = 72;
 
         if(entity->sb){
             entity->sb->collider.cube.pos = entity->sb->pos;
