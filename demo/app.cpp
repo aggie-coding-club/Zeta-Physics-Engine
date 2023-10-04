@@ -6,9 +6,9 @@
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "shader.h"
 #include "entity.h"
+#include "renderer.h"
 
 std::vector<unsigned int> vaos;
 std::vector<unsigned int> vbos;
@@ -20,106 +20,6 @@ void PrintGLError(){
     int gl_error = glGetError(); 
     printf("GL Error %i \n", gl_error);
 }
-
-// NOTE(Lenny) - break this into functions
-class TexturesManager{
-
-    public:
-        int textures_count = 0;
-        std::vector<Texture> textures;
-        
-        TexturesManager(){
-
-        }
-
-    public:
-        void AddTexture(std::string path, unsigned int def_name, unsigned int format){
-            textures_count++;
-
-            Texture result = {};
-            result.file_path = path;
-            std::string texture_src = path;
-            std::string web_texture_src = "vendor/" + texture_src;
-
-            int width = 0;
-            int height = 0;
-            int nr_channels = 0;
-
-            // Note(Lenny) : might need to be flipped
-            #if __EMSCRIPTEN__
-            
-            unsigned char *data = stbi_load(&web_texture_src[0], &width, &height, &nr_channels, 0);
-            
-            #else
-            
-            unsigned char *data = stbi_load(&texture_src[0], &width, &height, &nr_channels, 0);
-            
-            #endif
-            if(data){
-                std::cout << "loaded png \n" << texture_src << std::endl;
-            } else {
-                std::cout << "failed to load png \n" << texture_src << std::endl;
-            }
-
-            glGenTextures(1, &result.id);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, result.id);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            
-            if(format == TEX_FORMAT_PNG){
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                    GL_UNSIGNED_BYTE, data);
-            } else if(format == TEX_FORMAT_JPG){
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                    GL_UNSIGNED_BYTE, data);
-            } else{
-                std::cout << "failed to load file type\n" << texture_src << std::endl;
-                Assert(!"Failed to load texture!");
-            }
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            stbi_image_free(data);
-
-            result.def_name = def_name;
-            textures.push_back(result);
-        }
-
-        void BindTexture(Texture *texture,  unsigned int slot){
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, texture->id);
-        }
-        
-        void UnBindTexture(){
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-
-        // massive optimization to be done here
-        // perhaps use a fancy finding algorithm
-        unsigned int GetTextureIdentifier(unsigned int def_name){
-            unsigned int result = 0;
-            for(int i = 0; i < textures.size(); i++){
-                if(textures.at(i).def_name == def_name){
-                    result = textures.at(i).id;
-                    break;
-                }
-            }
-            return result;
-        }
-
-        Texture GetTexture(unsigned int identifer){
-            Texture result = {};
-            for(int i = 0; i < textures.size(); i++){
-                if(textures.at(i).def_name == identifer){
-                    result = textures.at(i);
-                    break;
-                }
-            }
-            return result;
-        }
-};
 
 Shader test_shader = {};
 
@@ -204,7 +104,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
             normalsArray.push_back(0);
 
         } else if (s[0] == "vt"){ // texture coord
-            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0};
+            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0.0};
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
@@ -314,7 +214,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color, int texturesCount)
             normalsArray.push_back(0);
 
         } else if (s[0] == "vt"){ // texture coord
-            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0.0f};
+            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), (float)textureIndex};
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
@@ -433,67 +333,6 @@ RawModel load_to_VAO(VertexData *vertex_data){
     
     unbind_VAO();
     return result;
-}
-
-void render(E_::Entity_ *entity, TexturesManager *textures_manager){
-    
-    HMM_Mat4 transformation;
-    if(entity->sb){
-        transformation = HMM_Translate({entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z});
-    } else {
-        transformation = HMM_Translate({entity->rb->pos.x, entity->rb->pos.y, entity->rb->pos.z});
-    }
-    
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
-    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{entity->scale, entity->scale, entity->scale}));
-    
-    unsigned int u_transform_matrix = GetUniformLocation(&test_shader, "transformation_matrix");
-    SetUniformValue(u_transform_matrix, transformation);
-    unsigned int u_entity_color = GetUniformLocation(&test_shader, "u_color");
-    SetUniformValue(u_entity_color, entity->color);
-
-    glBindVertexArray(entity->raw_model.vao_ID);
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);    
-    glEnableVertexAttribArray(2);    
-    glEnableVertexAttribArray(3);    
-
-    unsigned int u_texture_0 = GetUniformLocation(&test_shader, "tex_sampler");
-    SetUniformValue(u_texture_0, (int)0);
-    unsigned int u_texture_1 = GetUniformLocation(&test_shader, "texture_1");
-    SetUniformValue(u_texture_1, (int)1);
-    unsigned int u_texture_2 = GetUniformLocation(&test_shader, "texture_2");
-    SetUniformValue(u_texture_2, (int)2);
-    unsigned int u_texture_3 = GetUniformLocation(&test_shader, "texture_3");
-    SetUniformValue(u_texture_3, (int)3);
-    unsigned int u_texture_4 = GetUniformLocation(&test_shader, "texture_4");
-    SetUniformValue(u_texture_4, (int)4);
-
-    if(entity->textureIndex > 0){
-
-        for(int i = 0; i < entity->textureIndex; i++){
-            glActiveTexture(GL_TEXTURE0 + i + 1);
-            glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->textures[i]));
-        } 
-
-    } else {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->def_texture));
-    }
-
-
-    glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
-    
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-    glBindVertexArray(0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Zeta::Handler handler(ZMath::Vec3D(0, -5.8f, 0));
@@ -665,10 +504,6 @@ void app_start(void *window){
 
     test_shader.program = LoadShaders("web_v_shader.glsl", "web_f_shader.glsl");
     glUseProgram(test_shader.program);
-    
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); 
 
     // >>>>>> Texture Stuff
     textures_manager.AddTexture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
@@ -730,6 +565,7 @@ void app_start(void *window){
 
     pine_5_entity = E_::CreateEntity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    pine_5_entity->isTransparent = true;
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
     E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
@@ -739,6 +575,7 @@ void app_start(void *window){
     birch_10_entity = E_::CreateEntity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     birch_10_entity->color = {1.0f, 1.0f, 1.0f};
+    birch_10_entity->isTransparent = true;
     birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
     E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
     E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
@@ -798,20 +635,18 @@ void app_update(float &time_step, float dt){
     unsigned int u_light_color = GetUniformLocation(&test_shader, "light_color");
     SetUniformValue(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
     
-    glEnable(GL_BLEND);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
     // ************
-    // render(light_entity, &textures_manager);    
-    // render(test_cube_entity, &textures_manager);
-    // render(test_entity, &textures_manager);
-    // render(ground_entity, &textures_manager);
-    render(pine_5_entity, &textures_manager);
-    // render(birch_10_entity, &textures_manager);
-    // render(dragon_entity, &textures_manager);
-    // render(stall_entity, &textures_manager);
+    // render(pine_5_entity, &textures_manager, &test_shader);
+    // render(birch_10_entity, &textures_manager, &test_shader);
+    render(light_entity, &textures_manager, &test_shader);    
+    render(test_cube_entity, &textures_manager, &test_shader);
+    render(test_entity, &textures_manager, &test_shader);
+    render(ground_entity, &textures_manager, &test_shader);
+    render(dragon_entity, &textures_manager, &test_shader);
+    render(stall_entity, &textures_manager, &test_shader);
     
+
     // **************
-    glDisable(GL_BLEND);
 
     int physics_updates = handler.update(time_step);
     
