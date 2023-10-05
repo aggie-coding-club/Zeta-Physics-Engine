@@ -41,7 +41,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     if ((key == GLFW_KEY_D || key == GLFW_KEY_A 
         || key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_Z 
-        || key == GLFW_KEY_X || key == GLFW_KEY_R || key == GLFW_KEY_ESCAPE) 
+        || key == GLFW_KEY_X || key == GLFW_KEY_R || key == GLFW_KEY_ESCAPE 
+        || key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT || key == GLFW_KEY_UP
+        || key == GLFW_KEY_DOWN)
             && (action == GLFW_REPEAT || action == GLFW_PRESS)){
 
         GameInputCamera(key, GLFW_PRESS);

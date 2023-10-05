@@ -460,6 +460,8 @@ void SetEditMode(int mode){
     }   
 }
 
+void TempLightMovement(int key, int state);
+
 // TODO: not smooth
 void GameInputCamera(int key, int state){
 
@@ -489,6 +491,26 @@ void GameInputCamera(int key, int state){
         if (key == GLFW_KEY_S){
             camera.position -= camera_front * temp_speed;
         }
+
+
+        TempLightMovement(key, state);
+    }
+}
+
+
+void TempLightMovement(int key, int state){
+    if(key == GLFW_KEY_LEFT){
+        printf("right,...\n");
+        light_entity->sb->pos.x += 1000 * global_dt;
+    } else if(key == GLFW_KEY_RIGHT){
+        printf("left,...\n");
+        light_entity->sb->pos.x -= 1000 * global_dt;
+    }else if(key == GLFW_KEY_UP){    
+        printf("right,...\n");
+        light_entity->sb->pos.y += 1000 * global_dt;
+    } else if(key == GLFW_KEY_DOWN){
+        printf("left,...\n");
+        light_entity->sb->pos.y -= 1000 * global_dt;
     }
 }
 
