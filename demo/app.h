@@ -30,7 +30,6 @@
 
 // ================
 
-
 struct Texture{
     std::string file_path;
     unsigned int def_name;
@@ -55,6 +54,17 @@ struct VertexData{
     float *tex_coords;
     float len_indices;
     float len_tex_coords;
+};
+
+
+struct Camera{
+    HMM_Vec3 position;
+    HMM_Vec3 front;
+    HMM_Vec3 world_up;
+    float speed;
+    float pitch;
+    float yaw;
+    float roll;
 };
 
 #define Assert(expression) if(!(expression)) {*(int *)0 = 0;}

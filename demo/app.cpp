@@ -21,8 +21,6 @@ void PrintGLError(){
     printf("GL Error %i \n", gl_error);
 }
 
-Shader test_shader = {};
-
 template <typename Out>
 void SplitString(const std::string &s, char delim, Out result) {
     std::istringstream iss(s);
@@ -354,23 +352,13 @@ E_::Entity_ *birch_10_entity = 0;
 
 E_::EntityManager em = {};
 
-HMM_Mat4 projection;
-HMM_Mat4 view_matrix;
-
-struct Camera{
-    HMM_Vec3 position;
-    float speed;
-    float pitch;
-    float yaw;
-    float roll;
-};
+// HMM_Mat4 projection;
+// HMM_Mat4 view_matrix;
 
 HMM_Vec4 mouse_ndc = {};
 
 Camera camera = {};
-float projection_fov = DEFAULT_FOV;
-HMM_Vec3 world_up = {0.0f, 1.0f, 0.0f};
-HMM_Vec3 camera_front = {0.0f, 0.0f, -1.0f};
+// float projection_fov = DEFAULT_FOV;
 bool first_mouse = 1;
 float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
@@ -379,18 +367,7 @@ float g_editor_mode = 0;
 TexturesManager textures_manager;
 TextRendererManager trm = {};
 InputManager im = {};
-
-void CreateViewMatrix(){
-    view_matrix = HMM_LookAt_RH(camera.position, camera.position + camera_front, world_up);
-}
-
-void CreateProjectionMatrix(){
-    float near_plane = 0.1f;
-    float far_plane = 1000.0f;
-
-    projection = HMM_Perspective_RH_ZO(HMM_DegToRad * projection_fov, WINDOW_WIDTH/WINDOW_HEIGHT, near_plane, far_plane);
-}
-
+RendererData rd = {};
 
 void SetCursorPosition(float x, float y){
     cursor_position.X = x;
@@ -432,18 +409,18 @@ void SetCursorPosition(float x, float y){
         camera_direction.Y =  HMM_SinF(HMM_DegToRad * camera.pitch);
         camera_direction.Z = HMM_SinF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
 
-        camera_front = HMM_Norm(camera_direction);
+        camera.front = HMM_Norm(camera_direction);
     }
 }
 
 void SetScroll(float x_offset, float y_offset){
-    projection_fov -= (float)y_offset;
-    if(projection_fov < 1.0f){
-        projection_fov = 1.0f;
+    rd.projection_fov -= (float)y_offset;
+    if(rd.projection_fov < 1.0f){
+        rd.projection_fov = 1.0f;
     }
 
-    if(projection_fov > DEFAULT_FOV){
-        projection_fov = DEFAULT_FOV;
+    if(rd.projection_fov > DEFAULT_FOV){
+        rd.projection_fov = DEFAULT_FOV;
     }
 }
 
@@ -477,19 +454,19 @@ void GameInputCamera(int key, int state){
     if(!g_editor_mode){  
         // hide cursor
         if (key == GLFW_KEY_D){
-            camera.position += HMM_Norm(HMM_Cross(camera_front, world_up)) * temp_speed;
+            camera.position += HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
         }
 
         if (key == GLFW_KEY_A){
-            camera.position -= HMM_Norm(HMM_Cross(camera_front, world_up)) * temp_speed; 
+            camera.position -= HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed; 
         }
 
         if (key == GLFW_KEY_W){
-            camera.position += camera_front * temp_speed;
+            camera.position += camera.front * temp_speed;
         }
 
         if (key == GLFW_KEY_S){
-            camera.position -= camera_front * temp_speed;
+            camera.position -= camera.front * temp_speed;
         }
 
 
@@ -519,36 +496,41 @@ void app_start(void *window){
 
     printf("Program Started\n");
     textures_manager = TexturesManager();
+    rd.main_shader.program = LoadShaders("web_v_shader.glsl", "web_f_shader.glsl");
+    rd.projection_fov = DEFAULT_FOV;
 
-
-    // Shader Stuff
+    // >>>>>> Shader Stuff
     // =====================================
 
-    test_shader.program = LoadShaders("web_v_shader.glsl", "web_f_shader.glsl");
-    glUseProgram(test_shader.program);
+    glUseProgram(rd.main_shader.program);
 
+    unsigned int u_specular_strength = GetUniformLocation(&rd.main_shader, "specular_strength");
+    unsigned int u_reflectivity = GetUniformLocation(&rd.main_shader, "reflectivity");
+    
+    SetUniformValue(u_specular_strength, 0.25f);
+    SetUniformValue(u_reflectivity, 64.0f);
+    
+    glUseProgram(0);
+    
     // >>>>>> Texture Stuff
+    // =====================================
     textures_manager.AddTexture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
     textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
     textures_manager.AddTexture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
     textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
     textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
-    
+
+    // >>>>>> View Stuff
+    // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
     camera.position.Y = 21.0; 
     camera.position.Z = -53.0;
 
-    CreateProjectionMatrix();
-
-    unsigned int u_specular_strength = GetUniformLocation(&test_shader, "specular_strength");
-    unsigned int u_reflectivity = GetUniformLocation(&test_shader, "reflectivity");
+    camera.world_up = {0.0f, 1.0f, 0.0f};
+    camera.front = {0.0f, 0.0f, -1.0f};
     
-    SetUniformValue(u_specular_strength, 0.25f);
-    SetUniformValue(u_reflectivity, 64.0f);
-
-    glUseProgram(0);
-
+    // >>>>>> Entity Stufff
     // ========================================
     Zeta::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
     Zeta::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
@@ -634,42 +616,22 @@ int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
     im.dt += dt;
+
+    prepare_renderer(&rd, &camera);
 #if 1
-    glUseProgram(test_shader.program);
-
-    CreateViewMatrix();
-
-    CreateProjectionMatrix();
-    // test_shader->LoadProjectionMatrix(projection);
-    unsigned int u_projection_matrix = GetUniformLocation(&test_shader, "projection_matrix");
-    SetUniformValue(u_projection_matrix, projection);
-    // test_shader->LoadViewMatrix(view_matrix);    
-    unsigned int u_view_matrix = GetUniformLocation(&test_shader, "view_matrix");
-    SetUniformValue(u_view_matrix, view_matrix);
-    // test_shader->LoadCameraPosition(camera.position);
-    // test_shader->LoadLight({light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z}, {1.0f, 1.0f, 1.0f, 1.0f});
-    unsigned int u_camera_position = GetUniformLocation(&test_shader, "camera_position");
-    SetUniformValue(u_camera_position, camera.position);
-    
-    unsigned int u_light_position = GetUniformLocation(&test_shader, "light_position");
-    SetUniformValue(u_light_position, HMM_Vec3{light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z});
-    
-    unsigned int u_light_color = GetUniformLocation(&test_shader, "light_color");
-    SetUniformValue(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
-    
+    rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
-    // render(pine_5_entity, &textures_manager, &test_shader);
-    // render(birch_10_entity, &textures_manager, &test_shader);
-    render(light_entity, &textures_manager, &test_shader);    
-    render(test_cube_entity, &textures_manager, &test_shader);
-    render(test_entity, &textures_manager, &test_shader);
-    render(ground_entity, &textures_manager, &test_shader);
-    render(dragon_entity, &textures_manager, &test_shader);
-    render(stall_entity, &textures_manager, &test_shader);
+    // render(pine_5_entity, &textures_manager, &rd.main_shader);
+    // render(birch_10_entity, &textures_manager, &rd.main_shader);
+    render(light_entity, &textures_manager, &rd.main_shader);    
+    render(test_cube_entity, &textures_manager, &rd.main_shader);
+    render(test_entity, &textures_manager, &rd.main_shader);
+    render(ground_entity, &textures_manager, &rd.main_shader);
+    render(dragon_entity, &textures_manager, &rd.main_shader);
+    render(stall_entity, &textures_manager, &rd.main_shader);
     
 
     // **************
-
     int physics_updates = handler.update(time_step);
     
     ZMath::Vec3D normal = {};
@@ -695,7 +657,6 @@ void app_update(float &time_step, float dt){
         dt_ticks = 0;
     }
     
-    glUseProgram(0);
     String dt_string = Create_String("dt : ");
     AddToString(&dt_string, dt_avg);
 #endif
