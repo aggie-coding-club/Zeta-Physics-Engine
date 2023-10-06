@@ -6,7 +6,7 @@
 #define MAX_ENTITY_TEXTURES 4
 
 namespace E_{
-    struct Entity_{
+    struct Entity{
         RawModel raw_model;
         unsigned int def_texture;
         unsigned int textures[MAX_ENTITY_TEXTURES] = {};
@@ -25,28 +25,28 @@ namespace E_{
 
     struct EntityManager{
         unsigned int index;
-        Entity_ entities[MAX_ENTITIES];
+        Entity entities[MAX_ENTITIES];
     };
         
-    static void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
+    static void zeta_verts_to_eq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
 
-    Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
+    Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
             float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider);
 
-    Entity_ *CreateEntity(EntityManager*em, HMM_Vec3 position, float scale, 
+    Entity *create_entity(EntityManager*em, HMM_Vec3 position, float scale, 
             float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider);
 
-    // call after `AddCollider()`
-    void Init(Entity_ *entity);
+    // call after `add_collider()`
+    void init(Entity *entity);
                 
-    void Init(Entity_ *entity, RawModel model);
+    void init(Entity *entity, RawModel model);
 
     // order matters
-    void AddTexture(Entity_ *entity, unsigned int texture);
+    void add_texture(Entity *entity, unsigned int texture);
 
-    static void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider);
+    static void add_collider(Entity *entity, Zeta::RigidBodyCollider colliderType, void *collider);
 
-    static void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider);
+    static void add_collider(Entity *entity, Zeta::StaticBodyCollider colliderType, void *collider);
 
-    static void IncreaseRotation(Entity_ *entity, float dx, float dy, float dz);
+    static void increase_rotation(Entity *entity, float dx, float dy, float dz);
 };

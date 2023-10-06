@@ -1,6 +1,6 @@
 #include "shader.h"
 
-unsigned int GetUniformLocation(Shader *shader, char *name){
+unsigned int get_uniform_location(Shader *shader, char *name){
     unsigned int result = 0;
     result = glGetUniformLocation(shader->program, name);
     if(result == -1){
@@ -12,42 +12,42 @@ unsigned int GetUniformLocation(Shader *shader, char *name){
 }
 
 
-void EnableCulling(){
+void enable_culling(){
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 }
 
-void DisableCulling(){
+void disable_culling(){
     glDisable(GL_CULL_FACE);
 }
 
 // must have a shader bound to have set uniform value
-void SetUniformValue(unsigned int uniform_location, HMM_Mat4 value){
+void set_uniform_value(unsigned int uniform_location, HMM_Mat4 value){
     glUniformMatrix4fv(uniform_location, 1, false, &value[0][0]);
 }
 
-void SetUniformValue(unsigned int uniform_location, HMM_Vec4 value){
+void set_uniform_value(unsigned int uniform_location, HMM_Vec4 value){
     glUniform4f(uniform_location, value.X, value.Y, value.Z, value.W);
 }
 
-void SetUniformValue(unsigned int uniform_location, HMM_Vec3 value){
+void set_uniform_value(unsigned int uniform_location, HMM_Vec3 value){
     glUniform3f(uniform_location, value.X, value.Y, value.Z);
 }
 
-void SetUniformValue(unsigned int uniform_location, HMM_Vec2 value){
+void set_uniform_value(unsigned int uniform_location, HMM_Vec2 value){
     glUniform2f(uniform_location, value.X, value.Y);
 }
 
-void SetUniformValue(unsigned int uniform_location, float value){
+void set_uniform_value(unsigned int uniform_location, float value){
         glUniform1f(uniform_location, value);
 }
 
-void SetUniformValue(unsigned int uniform_location, int value){
+void set_uniform_value(unsigned int uniform_location, int value){
         glUniform1i(uniform_location, value);
 }
 
-void BindLocation(Shader *shader, unsigned int location, char *value){
+void bind_location(Shader *shader, unsigned int location, char *value){
     glBindAttribLocation(shader->program, location, value);
 }
 
@@ -94,7 +94,7 @@ unsigned int LoadShader(GLenum shaderType, std::string path){
     return result;
 }
 
-unsigned int LoadShaders(std::string v_shader_path, std::string f_shader_path){
+unsigned int load_shaders(std::string v_shader_path, std::string f_shader_path){
     unsigned int v_shader = LoadShader(GL_VERTEX_SHADER, v_shader_path);
     unsigned int f_shader = LoadShader(GL_FRAGMENT_SHADER, f_shader_path);
 

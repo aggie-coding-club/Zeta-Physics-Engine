@@ -9,8 +9,11 @@
 struct RendererData{
     HMM_Mat4 view_matrix;
     HMM_Mat4 projection_matrix;
+    HMM_Mat4 shadow_view_matrix;
+    HMM_Mat4 shadow_projection_matrix;
 
     Shader main_shader;
+    Shader shadow_map_shader;
     float projection_fov;
 
     HMM_Vec3 main_light_pos;
@@ -38,7 +41,7 @@ class TexturesManager{
         }
 
     public:
-        void AddTexture(std::string path, unsigned int def_name, unsigned int format){
+        void add_texture(std::string path, unsigned int def_name, unsigned int format){
             textures_count++;
 
             Texture result = {};
@@ -127,9 +130,8 @@ class TexturesManager{
 };
 
 
-ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height);
 
-HMM_Mat4 create_projection_matrix(RendererData *rd);
+HMM_Mat4 create_projection_matrix(RendererData *rd, int width, int height);
 HMM_Mat4 create_view_matrix(HMM_Vec3 position, HMM_Vec3 front, HMM_Vec3 up);
 
 void bind_fbo(FBO *fbo);
@@ -137,5 +139,7 @@ void bind_fbo(FBO *fbo);
 void unbind_fbo();
 
 void prepare_renderer(RendererData *rd, Camera *camera);
+void prepare_shadow_renderer(RendererData *rd);
 
-void render(E_::Entity_ *entity, TexturesManager *textures_manager, Shader *shader);
+ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height);
+void render(E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
