@@ -5,18 +5,18 @@ struct Shader{
     unsigned int program;
 };
 
-void EnableCulling();
-void DisableCulling();
+void enable_culling();
+void disable_culling();
 
-unsigned int GetUniformLocation(Shader *shader, char *name);
+unsigned int get_uniform_location(Shader *shader, char *name);
 
-void SetUniformValue(unsigned int uniform_location, HMM_Mat4 value);
-void SetUniformValue(unsigned int uniform_location, HMM_Vec4 value);
-void SetUniformValue(unsigned int uniform_location, HMM_Vec3 value);
-void SetUniformValue(unsigned int uniform_location, HMM_Vec2 value);
-void SetUniformValue(unsigned int uniform_location, float value);
-void SetUniformValue(unsigned int uniform_location, int value);
+void set_uniform_value(unsigned int uniform_location, HMM_Mat4 value);
+void set_uniform_value(unsigned int uniform_location, HMM_Vec4 value);
+void set_uniform_value(unsigned int uniform_location, HMM_Vec3 value);
+void set_uniform_value(unsigned int uniform_location, HMM_Vec2 value);
+void set_uniform_value(unsigned int uniform_location, float value);
+void set_uniform_value(unsigned int uniform_location, int value);
 
-void BindLocation(Shader *shader, unsigned int location, char *value);
+void bind_location(Shader *shader, unsigned int location, char *value);
 
-unsigned int LoadShaders(std::string v_shader_path, std::string f_shader_path);
+unsigned int load_shaders(std::string v_shader_path, std::string f_shader_path);

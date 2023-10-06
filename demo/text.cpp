@@ -146,14 +146,14 @@ void SetupTextRenderer(TextRendererManager *trm){
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // load text shader
-    trm->shader.program = LoadShaders("text_basic_vs.glsl", "text_basic_fs.glsl");
+    trm->shader.program = load_shaders("shaders/text_basic_vs.glsl", "shaders/text_basic_fs.glsl");
     glUseProgram(trm->shader.program);
-    BindLocation(&trm->shader, 0, "position");
-    trm->u_projection_matrix = GetUniformLocation(&trm->shader, "projection_matrix");
-    trm->u_text_color = GetUniformLocation(&trm->shader, "text_color");
+    bind_location(&trm->shader, 0, "position");
+    trm->u_projection_matrix = get_uniform_location(&trm->shader, "projection_matrix");
+    trm->u_text_color = get_uniform_location(&trm->shader, "text_color");
 
-    SetUniformValue(trm->u_projection_matrix, trm->projection_ortho);
-    SetUniformValue(trm->u_text_color, HMM_Vec3{255.0f, 0.0f, 0.0f});
+    set_uniform_value(trm->u_projection_matrix, trm->projection_ortho);
+    set_uniform_value(trm->u_text_color, HMM_Vec3{255.0f, 0.0f, 0.0f});
     
     glGenVertexArrays(1, &trm->vao);
     glGenBuffers(1, &trm->vbo);
@@ -171,7 +171,7 @@ void SetupTextRenderer(TextRendererManager *trm){
 
 void RenderText(TextRendererManager *trm, String text, float scale, HMM_Vec3 color, HMM_Vec2 position){
     glUseProgram(trm->shader.program);
-    SetUniformValue(trm->u_text_color, color);
+    set_uniform_value(trm->u_text_color, color);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

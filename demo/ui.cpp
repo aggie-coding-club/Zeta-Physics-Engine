@@ -123,14 +123,14 @@ void NormalizeColor(Color *color){
 
 void Setup2dRendering(TextRendererManager *trm){
 
-    basic_2d_shader.program = LoadShaders("basic_2d_shader_vs.glsl", "basic_2d_shader_fs.glsl");
+    basic_2d_shader.program = load_shaders("shaders/basic_2d_shader_vs.glsl", "shaders/basic_2d_shader_fs.glsl");
     glUseProgram(basic_2d_shader.program);
 
-    unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "u_projection_matrix");
-    SetUniformValue(u_projection_matrix, trm->projection_ortho);
+    unsigned int u_projection_matrix = get_uniform_location(&basic_2d_shader, "u_projection_matrix");
+    set_uniform_value(u_projection_matrix, trm->projection_ortho);
 
-    unsigned int u_resolution = GetUniformLocation(&basic_2d_shader, "u_resolution");
-    SetUniformValue(u_resolution, HMM_Vec2{WINDOW_WIDTH, WINDOW_HEIGHT});
+    unsigned int u_resolution = get_uniform_location(&basic_2d_shader, "u_resolution");
+    set_uniform_value(u_resolution, HMM_Vec2{WINDOW_WIDTH, WINDOW_HEIGHT});
 
     glGenVertexArrays(1, &vao2d);
     glGenBuffers(1, &vbo2d);
@@ -178,8 +178,8 @@ void DrawRect(TextRendererManager *trm, HMM_Vec2 pos, float width, float height,
 
     glDisable(GL_DEPTH_TEST);
 
-    unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "u_projection_matrix");
-    SetUniformValue(u_projection_matrix, trm->projection_ortho);
+    unsigned int u_projection_matrix = get_uniform_location(&basic_2d_shader, "u_projection_matrix");
+    set_uniform_value(u_projection_matrix, trm->projection_ortho);
 
     glBindVertexArray(vao2d);
     
@@ -309,11 +309,11 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
 
     glDisable(GL_DEPTH_TEST);
 
-    unsigned int u_projection_matrix = GetUniformLocation(&basic_2d_shader, "projection_matrix");
-    SetUniformValue(u_projection_matrix, trm->projection_ortho);
+    unsigned int u_projection_matrix = get_uniform_location(&basic_2d_shader, "projection_matrix");
+    set_uniform_value(u_projection_matrix, trm->projection_ortho);
 
-    unsigned int u_cursor_pos = GetUniformLocation(&basic_2d_shader, "u_cursor_pos");
-    SetUniformValue(u_cursor_pos, HMM_Vec2{(float)im->cursorX, WINDOW_HEIGHT - (float)im->cursorY});
+    unsigned int u_cursor_pos = get_uniform_location(&basic_2d_shader, "u_cursor_pos");
+    set_uniform_value(u_cursor_pos, HMM_Vec2{(float)im->cursorX, WINDOW_HEIGHT - (float)im->cursorY});
 
     glBindVertexArray(vao2d);
     

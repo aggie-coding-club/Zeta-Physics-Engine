@@ -27,7 +27,7 @@ namespace E_{
         vertex_data->index += 3;
     }
     
-    static void ZetaVertsToEq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
+    static void zeta_verts_to_eq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
         // TOP
         AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z); // front top left
         AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z); // front top right
@@ -126,13 +126,13 @@ namespace E_{
         vertex_data->index = 0;
     }
 
-    void AddTexture(Entity_ *entity, unsigned int texture){
+    void add_texture(Entity *entity, unsigned int texture){
         entity->textures[entity->textureIndex++] = texture;
     }
 
-    Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
+    Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
-        Entity_ *result = &em->entities[em->index++];
+        Entity *result = &em->entities[em->index++];
 
         result->scale = scale;
         result->rotation_x = rotation_x;
@@ -146,9 +146,9 @@ namespace E_{
         return result;
     }
 
-    Entity_ *CreateEntity(EntityManager *em, HMM_Vec3 position, float scale, 
+    Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
-        Entity_ *result = &em->entities[em->index++];
+        Entity *result = &em->entities[em->index++];
         result->scale = scale;
         result->rotation_x = rotation_x;
         result->rotation_y = rotation_y;
@@ -161,8 +161,8 @@ namespace E_{
         return result;   
     }
 
-    // call after `AddCollider()`
-    void Init(Entity_ *entity){
+    // call after `add_collider()`
+    void init(Entity *entity){
                 
         std::vector<float> tex_coords = {
             0.0 , 0.0, 0.0, 
@@ -240,9 +240,9 @@ namespace E_{
         vertex_data.len_tex_coords = 3 * 4 * 6;
 
         if(entity->sb){
-            ZetaVertsToEq(entity->sb->collider.cube.getVertices(), &vertex_data);
+            zeta_verts_to_eq(entity->sb->collider.cube.getVertices(), &vertex_data);
         }else if(entity->rb){
-            ZetaVertsToEq(entity->rb->collider.cube.getVertices(), &vertex_data);
+            zeta_verts_to_eq(entity->rb->collider.cube.getVertices(), &vertex_data);
         }else{
             Assert(!"No RigidBody or StaticBody Attached");
         }
@@ -261,11 +261,11 @@ namespace E_{
         entity->raw_model = load_to_VAO(&vertex_data);
     }
 
-    void Init(Entity_ *entity, RawModel model){
+    void init(Entity *entity, RawModel model){
         entity->raw_model = model;
     }
 
-    static void AddCollider(Entity_ *entity, Zeta::RigidBodyCollider colliderType, void *collider){
+    static void add_collider(Entity *entity, Zeta::RigidBodyCollider colliderType, void *collider){
         if(colliderType == Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER){
             Zeta::Cube *cube = (Zeta::Cube *)collider;
 
@@ -274,7 +274,7 @@ namespace E_{
         }
     }
 
-    static void AddCollider(Entity_ *entity, Zeta::StaticBodyCollider colliderType, void *collider){
+    static void add_collider(Entity *entity, Zeta::StaticBodyCollider colliderType, void *collider){
         if(colliderType == Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER){
             Zeta::Cube *cube = (Zeta::Cube *)collider;
 
@@ -282,7 +282,7 @@ namespace E_{
         }
     }
 
-    static void IncreaseRotation(Entity_ *entity, float dx, float dy, float dz){
+    static void increase_rotation(Entity *entity, float dx, float dy, float dz){
         entity->rotation_x += dx;
         entity->rotation_y += dy;
         entity->rotation_z += dz;

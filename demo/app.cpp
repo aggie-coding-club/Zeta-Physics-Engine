@@ -341,14 +341,14 @@ float start_time = (float)glfwGetTime();
 
 RawModel model = {};
 RawModel ground_model = {};
-E_::Entity_ *test_entity = 0;
-E_::Entity_ *light_entity = 0;
-E_::Entity_ *ground_entity = 0;
-E_::Entity_ *dragon_entity = 0;
-E_::Entity_ *stall_entity = 0;
-E_::Entity_ *test_cube_entity = 0;
-E_::Entity_ *pine_5_entity = 0;
-E_::Entity_ *birch_10_entity = 0;
+E_::Entity *test_entity = 0;
+E_::Entity *light_entity = 0;
+E_::Entity *ground_entity = 0;
+E_::Entity *dragon_entity = 0;
+E_::Entity *stall_entity = 0;
+E_::Entity *test_cube_entity = 0;
+E_::Entity *pine_5_entity = 0;
+E_::Entity *birch_10_entity = 0;
 
 E_::EntityManager em = {};
 
@@ -496,7 +496,7 @@ void app_start(void *window){
 
     printf("Program Started\n");
     textures_manager = TexturesManager();
-    rd.main_shader.program = LoadShaders("web_v_shader.glsl", "web_f_shader.glsl");
+    rd.main_shader.program = load_shaders("shaders/web_v_shader.glsl", "shaders/web_f_shader.glsl");
     rd.projection_fov = DEFAULT_FOV;
 
     // >>>>>> Shader Stuff
@@ -504,21 +504,21 @@ void app_start(void *window){
 
     glUseProgram(rd.main_shader.program);
 
-    unsigned int u_specular_strength = GetUniformLocation(&rd.main_shader, "specular_strength");
-    unsigned int u_reflectivity = GetUniformLocation(&rd.main_shader, "reflectivity");
+    unsigned int u_specular_strength = get_uniform_location(&rd.main_shader, "specular_strength");
+    unsigned int u_reflectivity = get_uniform_location(&rd.main_shader, "reflectivity");
     
-    SetUniformValue(u_specular_strength, 0.25f);
-    SetUniformValue(u_reflectivity, 64.0f);
+    set_uniform_value(u_specular_strength, 0.25f);
+    set_uniform_value(u_reflectivity, 64.0f);
     
     glUseProgram(0);
     
     // >>>>>> Texture Stuff
     // =====================================
-    textures_manager.AddTexture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
+    textures_manager.add_texture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
+    textures_manager.add_texture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
+    textures_manager.add_texture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
+    textures_manager.add_texture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
+    textures_manager.add_texture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
 
     // >>>>>> View Stuff
     // =====================================
@@ -535,56 +535,56 @@ void app_start(void *window){
     Zeta::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
     Zeta::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
     
-    test_entity = E_::CreateEntity(&em, HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+    test_entity = E_::create_entity(&em, HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
 
     test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
-    light_entity = E_::CreateEntity(&em, HMM_Vec3{13, 43, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
+    light_entity = E_::create_entity(&em, HMM_Vec3{13, 43, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
         
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
-    ground_entity = E_::CreateEntity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
+    ground_entity = E_::create_entity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
-    dragon_entity = E_::CreateEntity(&em, HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+    dragon_entity = E_::create_entity(&em, HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     dragon_entity->color = {1.0f, 0.0f, 1.0f};
     dragon_entity->def_texture = TEXTURE_WHITE;
     
-    stall_entity = E_::CreateEntity(&em, HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+    stall_entity = E_::create_entity(&em, HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     stall_entity->color = {1.0f, 1.0f, 1.0f};
     stall_entity->def_texture = TEXTURE_STALL;
 
-    test_cube_entity = E_::CreateEntity(&em, HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+    test_cube_entity = E_::create_entity(&em, HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
-    pine_5_entity = E_::CreateEntity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+    pine_5_entity = E_::create_entity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     pine_5_entity->isTransparent = true;
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
-    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
-    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+    E_::add_texture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
+    E_::add_texture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
     
-    birch_10_entity = E_::CreateEntity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+    birch_10_entity = E_::create_entity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
     birch_10_entity->color = {1.0f, 1.0f, 1.0f};
     birch_10_entity->isTransparent = true;
     birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
-    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
-    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+    E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
+    E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
-    Init(test_entity);
+    init(test_entity);
     
     handler.addRigidBody(test_entity->rb);
 
@@ -594,14 +594,14 @@ void app_start(void *window){
     // RawModel pine_5_model = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     RawModel pine_5_model_2 = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
     RawModel birch_10_model = load_obj_model("Birch_10.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
-    Init(birch_10_entity, birch_10_model);
-    Init(pine_5_entity, pine_5_model_2);
-    Init(dragon_entity, dragon_model);
-    Init(stall_entity, stall_model);
+    init(birch_10_entity, birch_10_model);
+    init(pine_5_entity, pine_5_model_2);
+    init(dragon_entity, dragon_model);
+    init(stall_entity, stall_model);
 
-    Init(light_entity, test_cube_model);
-    Init(test_cube_entity, test_cube_model);
-    Init(ground_entity);
+    init(light_entity, test_cube_model);
+    init(test_cube_entity, test_cube_model);
+    init(ground_entity);
 
     SetupTextRenderer(&trm);
     Setup2dRendering(&trm);
