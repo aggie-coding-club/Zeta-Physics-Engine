@@ -4,6 +4,28 @@
 #include "shader.h"
 #include "stb_image.h"
 
+#define PROJECTION_FOV 
+
+struct RendererData{
+    HMM_Mat4 view_matrix;
+    HMM_Mat4 projection_matrix;
+
+    Shader main_shader;
+    float projection_fov;
+
+    HMM_Vec3 main_light_pos;
+};
+
+
+struct FBO{
+    unsigned int id, width, height;
+};
+
+struct ShadowMapFBO{
+    FBO fbo;
+    unsigned int shadowMap;
+};
+
 // NOTE(Lenny) - break this into functions
 class TexturesManager{
 
@@ -103,5 +125,17 @@ class TexturesManager{
             return result;
         }
 };
+
+
+ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height);
+
+HMM_Mat4 create_projection_matrix(RendererData *rd);
+HMM_Mat4 create_view_matrix(HMM_Vec3 position, HMM_Vec3 front, HMM_Vec3 up);
+
+void bind_fbo(FBO *fbo);
+
+void unbind_fbo();
+
+void prepare_renderer(RendererData *rd, Camera *camera);
 
 void render(E_::Entity_ *entity, TexturesManager *textures_manager, Shader *shader);
