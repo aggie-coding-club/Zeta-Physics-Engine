@@ -147,7 +147,7 @@ int main() {
     startTest(2);
 
     const char* testName2 = "Standard Removal of 10 Non-sequential Elements";
-    // result = handler.removeRigidBodies(remRbs2, size2);
+    result = handler.removeRigidBodies(remRbs2, size2);
     setSize -= size2;
 
     // check to see if the list size is as expected
