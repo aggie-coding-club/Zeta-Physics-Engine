@@ -1574,40 +1574,40 @@ namespace Zeta {
     static CollisionManifold findCollisionFeatures(RigidBody3D* rb1, RigidBody3D* rb2) {
         switch (rb1->colliderType) {
             case RIGID_SPHERE_COLLIDER: {
-                if (rb2->colliderType == RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.sphere); }
-                if (rb2->colliderType == RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.aabb); }
-                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.sphere, rb2->collider.cube); }
+                if (rb2->colliderType == RIGID_SPHERE_COLLIDER) { return findCollisionFeatures(*((Sphere*) rb1->collider), *((Sphere*) rb2->collider)); }
+                if (rb2->colliderType == RIGID_AABB_COLLIDER) { return findCollisionFeatures(*((Sphere*) rb1->collider), *((AABB*) rb2->collider)); }
+                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(*((Sphere*) rb1->collider), *((Cube*) rb2->collider)); }
 
                 break;
             }
 
             case RIGID_AABB_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
-                    Manifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.aabb);
+                    Manifold manifold = findCollisionFeatures(*((Sphere*) rb2->collider), *((AABB*) rb1->collider));
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2->colliderType == RIGID_AABB_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.aabb); }
-                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.aabb, rb2->collider.cube); }
+                if (rb2->colliderType == RIGID_AABB_COLLIDER) { return findCollisionFeatures(*((AABB*) rb1->collider), *((AABB*) rb2->collider)); }
+                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(*((AABB*) rb1->collider), *((Cube*) rb2->collider)); }
 
                 break;
             }
 
             case RIGID_CUBE_COLLIDER: {
                 if (rb2->colliderType == RIGID_SPHERE_COLLIDER) {
-                    Manifold manifold = findCollisionFeatures(rb2->collider.sphere, rb1->collider.cube);
+                    Manifold manifold = findCollisionFeatures(*((Sphere*) rb2->collider), *((Cube*) rb1->collider));
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
                 if (rb2->colliderType == RIGID_AABB_COLLIDER) {
-                    Manifold manifold = findCollisionFeatures(rb2->collider.aabb, rb1->collider.cube);
+                    Manifold manifold = findCollisionFeatures(*((AABB*) rb2->collider), *((Cube*) rb1->collider));
                     manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                     return manifold;
                 }
 
-                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(rb1->collider.cube, rb2->collider.cube); }
+                if (rb2->colliderType == RIGID_CUBE_COLLIDER) { return findCollisionFeatures(*((Cube*) rb1->collider), *((Cube*) rb2->collider)); }
 
                 break;
             }
@@ -1626,9 +1626,9 @@ namespace Zeta {
         switch (sb->colliderType) {
             case STATIC_PLANE_COLLIDER: {
                 switch (rb->colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.sphere); }
-                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.aabb); }
-                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.plane, rb->collider.cube); }
+                    case RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(*((Plane*) sb->collider), *((Sphere*) rb->collider)); }
+                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(*((Plane*) sb->collider), *((AABB*) rb->collider)); }
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(*((Plane*) sb->collider), *((Cube*) rb->collider)); }
                 }
 
                 break;
@@ -1636,9 +1636,9 @@ namespace Zeta {
 
             case STATIC_SPHERE_COLLIDER: {
                 switch (rb->colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.sphere); }
-                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.aabb); }
-                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.sphere, rb->collider.cube); }
+                    case RIGID_SPHERE_COLLIDER: { return findCollisionFeatures(*((Sphere*) sb->collider), *((Sphere*) rb->collider)); }
+                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(*((Sphere*) sb->collider), *((AABB*) rb->collider)); }
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(*((Sphere*) sb->collider), *((Cube*) rb->collider)); }
                 }
 
                 break;
@@ -1647,13 +1647,13 @@ namespace Zeta {
             case STATIC_AABB_COLLIDER: {
                 switch (rb->colliderType) {
                     case RIGID_SPHERE_COLLIDER: {
-                        Manifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.aabb);
+                        Manifold manifold = findCollisionFeatures(*((Sphere*) rb->collider), *((AABB*) sb->collider));
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
 
-                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(sb->collider.aabb, rb->collider.aabb); }
-                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.aabb, rb->collider.cube); }
+                    case RIGID_AABB_COLLIDER: { return findCollisionFeatures(*((AABB*) sb->collider), *((AABB*) rb->collider)); }
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(*((AABB*) sb->collider), *((Cube*) rb->collider)); }
                 }
 
                 break;
@@ -1662,18 +1662,18 @@ namespace Zeta {
             case STATIC_CUBE_COLLIDER: {
                 switch (rb->colliderType) {
                     case RIGID_SPHERE_COLLIDER: {
-                        Manifold manifold = findCollisionFeatures(rb->collider.sphere, sb->collider.cube);
+                        Manifold manifold = findCollisionFeatures(*((Sphere*) rb->collider), *((Cube*) sb->collider));
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
 
                     case RIGID_AABB_COLLIDER: {
-                        Manifold manifold = findCollisionFeatures(rb->collider.aabb, sb->collider.cube);
+                        Manifold manifold = findCollisionFeatures(*((AABB*) rb->collider), *((Cube*) sb->collider));
                         manifold.normal = -manifold.normal; // flip the direction as the original order passed in was reversed
                         return manifold;
                     }
 
-                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(sb->collider.cube, rb->collider.cube); }
+                    case RIGID_CUBE_COLLIDER: { return findCollisionFeatures(*((Cube*) sb->collider), *((Cube*) rb->collider)); }
                 }
 
                 break;
