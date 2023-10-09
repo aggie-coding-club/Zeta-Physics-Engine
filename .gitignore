@@ -17,5 +17,3 @@ include/freetype/*
 include/ft2build.h
 Passion_One.zip
 main.sln
-.github/
-unitTesting/
