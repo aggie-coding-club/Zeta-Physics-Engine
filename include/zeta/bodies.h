@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <utility>
 #include "primitives.h"
 
 namespace Zeta {
@@ -42,6 +43,86 @@ namespace Zeta {
                     : pos(pos), mass(mass), invMass(1.0f/mass), cor(cor), linearDamping(linearDamping), 
                       colliderType(colliderType), collider(collider) {};
 
+
+            // * ===================
+            // * Rule of 5 Stuff
+            // * ===================
+
+            // Create a 3D rigidbody from another 3D rigidbody.
+            RigidBody3D(RigidBody3D const &rb) {
+                pos = rb.pos;
+                mass = rb.mass;
+                invMass = rb.invMass;
+                cor = rb.cor;
+                linearDamping = rb.linearDamping;
+                colliderType = rb.colliderType;
+
+                switch(colliderType) {
+                    case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
+                    case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
+                    case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
+                }
+            };
+
+            // Create a 3D rigidbody from another 3D rigidbody.
+            RigidBody3D(RigidBody3D &&rb) {
+                pos = std::move(rb.pos);
+                mass = rb.mass;
+                invMass = rb.invMass;
+                cor = rb.cor;
+                linearDamping = rb.linearDamping;
+                colliderType = rb.colliderType;
+                collider = rb.collider;
+                rb.collider = nullptr;
+            };
+
+            RigidBody3D& operator = (RigidBody3D const &rb) {
+                if (collider) {
+                    switch(colliderType) {
+                        case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
+                        case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
+                        case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                    }
+                }
+
+                pos = rb.pos;
+                mass = rb.mass;
+                invMass = rb.invMass;
+                cor = rb.cor;
+                linearDamping = rb.linearDamping;
+                colliderType = rb.colliderType;
+
+                switch(colliderType) {
+                    case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
+                    case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
+                    case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
+                }
+            };
+
+            RigidBody3D& operator = (RigidBody3D &&rb) {
+                pos = std::move(rb.pos);
+                mass = rb.mass;
+                invMass = rb.invMass;
+                cor = rb.cor;
+                linearDamping = rb.linearDamping;
+                colliderType = rb.colliderType;
+                collider = rb.collider;
+                rb.collider = nullptr;
+            };
+
+            ~RigidBody3D() {
+                switch(colliderType) {
+                    case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
+                    case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
+                    case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                }
+            };
+
+
+            // * =======================
+            // * Fields and Functions
+            // * =======================
+
             // * Handle and store the collider.
 
             RigidBodyCollider colliderType;
@@ -77,9 +158,9 @@ namespace Zeta {
 
                 // Update the pos of the collider.
                 switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos; }
-                    case RIGID_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos; }
-                    case RIGID_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos; }
+                    case RIGID_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos; break; }
+                    case RIGID_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos; break; }
+                    case RIGID_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos; break; }
                 }
             };
     };
