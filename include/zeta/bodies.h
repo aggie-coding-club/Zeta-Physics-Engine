@@ -61,6 +61,7 @@ namespace Zeta {
                     case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
                     case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
                     case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
+                    case RIGID_NONE:            { collider = nullptr;                              break; }
                 }
             };
 
@@ -96,18 +97,25 @@ namespace Zeta {
                     case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
                     case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
                     case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
+                    case RIGID_NONE:            { collider = nullptr;                              break; }
                 }
+
+                return *this;
             };
 
             RigidBody3D& operator = (RigidBody3D &&rb) {
-                pos = std::move(rb.pos);
-                mass = rb.mass;
-                invMass = rb.invMass;
-                cor = rb.cor;
-                linearDamping = rb.linearDamping;
-                colliderType = rb.colliderType;
-                collider = rb.collider;
-                rb.collider = nullptr;
+                if (this != &rb) {
+                    pos = std::move(rb.pos);
+                    mass = rb.mass;
+                    invMass = rb.invMass;
+                    cor = rb.cor;
+                    linearDamping = rb.linearDamping;
+                    colliderType = rb.colliderType;
+                    collider = rb.collider;
+                    rb.collider = nullptr;
+                }
+
+                return *this;
             };
 
             ~RigidBody3D() {
@@ -179,6 +187,82 @@ namespace Zeta {
              */
             StaticBody3D(ZMath::Vec3D const &pos, StaticBodyCollider colliderType, void* collider)
                     : pos(pos), colliderType(colliderType), collider(collider) {};
+
+
+            // * ===================
+            // * Rule of 5 Stuff
+            // * ===================
+
+            // Create a 3D staticbody from another staticbody.
+            StaticBody3D(StaticBody3D const &sb) {
+                pos = sb.pos;
+                colliderType = sb.colliderType;
+
+                switch(colliderType) {
+                    case STATIC_PLANE_COLLIDER:  { collider = new Plane(*((Plane*) sb.collider));   break; }
+                    case STATIC_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) sb.collider)); break; }
+                    case STATIC_AABB_COLLIDER:   { collider = new AABB(*((AABB*) sb.collider));     break; }
+                    case STATIC_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) sb.collider));     break; }
+                    case STATIC_NONE:            { collider = nullptr;                              break; }
+                }
+            };
+
+            // Create a 3D staticbody from another staticbody.
+            StaticBody3D(StaticBody3D &&sb) {
+                pos = std::move(sb.pos);
+                colliderType = sb.colliderType;
+                collider = sb.collider;
+                sb.collider = nullptr;
+            };
+
+            StaticBody3D& operator = (StaticBody3D const &sb) {
+                if (collider) {
+                    switch(colliderType) {
+                        case STATIC_PLANE_COLLIDER:  { delete (Plane*) collider;  break; }
+                        case STATIC_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
+                        case STATIC_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
+                        case STATIC_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                    }
+                }
+
+                pos = sb.pos;
+                colliderType = sb.colliderType;
+
+                switch(colliderType) {
+                    case STATIC_PLANE_COLLIDER:  { collider = new Plane(*((Plane*) sb.collider));   break; }
+                    case STATIC_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) sb.collider)); break; }
+                    case STATIC_AABB_COLLIDER:   { collider = new AABB(*((AABB*) sb.collider));     break; }
+                    case STATIC_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) sb.collider));     break; }
+                    case STATIC_NONE:            { collider = nullptr;                              break; }
+                }
+
+                return *this;
+            };
+
+            StaticBody3D& operator = (StaticBody3D &&sb) {
+                if (this != &sb) {
+                    pos = std::move(sb.pos);
+                    colliderType = sb.colliderType;
+                    collider = sb.collider;
+                    sb.collider = nullptr;
+                }
+
+                return *this;
+            };
+
+            ~StaticBody3D() {
+                switch(colliderType) {
+                    case STATIC_PLANE_COLLIDER:  { delete (Plane*) collider;  break; }
+                    case STATIC_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
+                    case STATIC_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
+                    case STATIC_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                }
+            };
+
+
+            // * ========================
+            // * Fields and Functions
+            // * ========================
 
             // * Information related to the static body.
 
