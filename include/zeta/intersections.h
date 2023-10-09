@@ -1,9 +1,6 @@
 #pragma once
 
-// todo any of these involving planes may have issues regarding the z in the local coords. Remember to use Compare to the z value the plane is at in local coords.
-
 #include "bodies.h"
-// #include <iostream> // ! for debugging
 
 namespace Zeta {
     // * ===================================
