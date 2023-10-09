@@ -39,27 +39,13 @@ namespace Zeta {
              *                   cause undefined behvior to occur. If you specify RIGID_NONE, this should be set to nullptr. 
              */
             RigidBody3D(ZMath::Vec3D const &pos, float mass, float cor, float linearDamping, RigidBodyCollider colliderType, void* collider) 
-                    : pos(pos), mass(mass), invMass(1.0f/mass), cor(cor), linearDamping(linearDamping), colliderType(colliderType)
-            {
-                switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { this->collider.sphere = *((Sphere*) collider); }
-                    case RIGID_AABB_COLLIDER: { this->collider.aabb = *((AABB*) collider); }
-                    case RIGID_CUBE_COLLIDER: { this->collider.cube = *((Cube*) collider); }
-                    // * User defined colliders go here.
-                }
-            };
+                    : pos(pos), mass(mass), invMass(1.0f/mass), cor(cor), linearDamping(linearDamping), 
+                      colliderType(colliderType), collider(collider) {};
 
             // * Handle and store the collider.
 
             RigidBodyCollider colliderType;
-            union Collider {
-                Collider() {};
-
-                Sphere sphere;
-                AABB aabb;
-                Cube cube;
-                // * Add custom colliders here.
-            } collider;
+            void* collider;
 
             // * Handle and store the physics.
 
@@ -90,10 +76,11 @@ namespace Zeta {
                 netForce = ZMath::Vec3D();
 
                 // Update the pos of the collider.
-                // If statements are more readable than a switch here.
-                if      (colliderType == RIGID_SPHERE_COLLIDER) { collider.sphere.c = pos; }
-                else if (colliderType == RIGID_AABB_COLLIDER)   { collider.aabb.pos = pos; }
-                else if (colliderType == RIGID_CUBE_COLLIDER)   { collider.cube.pos = pos; }
+                switch(colliderType) {
+                    case RIGID_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos; }
+                    case RIGID_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos; }
+                    case RIGID_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos; }
+                }
             };
     };
 
@@ -109,15 +96,8 @@ namespace Zeta {
              * @param collider A pointer to the collider of the static body. If this does not match the colliderType specified, it will
              *                   cause undefined behvior to occur. If you specify STATIC_NONE, this should be set to nullptr. 
              */
-            StaticBody3D(ZMath::Vec3D const &pos, StaticBodyCollider colliderType, void* collider) : pos(pos), colliderType(colliderType) {
-                switch(colliderType) {
-                    case STATIC_PLANE_COLLIDER: { this->collider.plane = *((Plane*) collider); }
-                    case STATIC_SPHERE_COLLIDER: { this->collider.sphere = *((Sphere*) collider); }
-                    case STATIC_AABB_COLLIDER: { this->collider.aabb = *((AABB*) collider); }
-                    case STATIC_CUBE_COLLIDER: { this->collider.cube = *((Cube*) collider); }
-                    // * User defined colliders go here.
-                }
-            };
+            StaticBody3D(ZMath::Vec3D const &pos, StaticBodyCollider colliderType, void* collider)
+                    : pos(pos), colliderType(colliderType), collider(collider) {};
 
             // * Information related to the static body.
 
@@ -126,13 +106,6 @@ namespace Zeta {
             // * Handle and store the collider.
 
             StaticBodyCollider colliderType;
-            union Collider {
-                Collider() {};
-
-                Plane plane;
-                Sphere sphere;
-                AABB aabb;
-                Cube cube;
-            } collider;
+            void* collider;
         };
 }
