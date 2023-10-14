@@ -375,7 +375,7 @@ namespace Zeta {
             // This returns 1 if the static body is found and removed and 0 if it was not found.
             // If the static body is found, the data pointed to by sb gets deleted by this function.
             bool removeStaticBody(StaticBody3D* sb) {
-                for (int i = rbs.count; i >= 0; --i) {
+                for (int i = sbs.count; i >= 0; --i) {
                     if (sbs.staticBodies[i] == sb) {
                         delete sb;
                         for (int j = i; j < sbs.count - 1; ++j) { sbs.staticBodies[j] = sbs.staticBodies[j + 1]; }
@@ -387,6 +387,32 @@ namespace Zeta {
                 return 0;
             };
 
+            //Tries to remove all static bodies in an array of static bodies
+            //Returns 1 if all found in the handler and deleted
+            //Returns 0 if any of the bodies in sbs are not found in the handler (none of them are deleted in this case)
+            bool removeStaticBodies(StaticBody3D** sbs, int size) {
+                int* indices = new int[size];
+                for(int i = 0; i < size; ++i) {
+                    for(int j = 0; j < this->sbs.count; ++j) {
+                        if(this->sbs.staticBodies[j] == sbs[i]) {
+                            indices[i] = j;
+                            break;
+                        } else if(j == this->sbs.count - 1 && this->sbs.staticBodies[j] != sbs[i]) {
+                            delete[] indices;
+                            return 0;
+                        }
+                    }
+                }
+                for(int i = 0; i < size; ++i) {
+                    delete sbs[i];
+                    for(int j = indices[i]; j < this->sbs.count - 1; ++j) { 
+                        this->sbs.staticBodies[j] = this->sbs.staticBodies[j + 1]; 
+                    }
+                    this->sbs.count--;
+                }
+                delete[] indices;
+                return 1;
+            }
 
             // * ============================
             // * Main Physics Functions
