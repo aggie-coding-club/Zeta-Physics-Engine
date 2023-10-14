@@ -1,9 +1,6 @@
 #pragma once
 
-// todo any of these involving planes may have issues regarding the z in the local coords. Remember to use Compare to the z value the plane is at in local coords.
-
 #include "bodies.h"
-// #include <iostream> // ! for debugging
 
 namespace Zeta {
     // * ===================================
@@ -683,10 +680,8 @@ namespace Zeta {
         // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
         // ? From here, we can check the distance from this point to the sphere's center.
 
-        ZMath::Vec3D closest = sphere.c;
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
-
-        closest = ZMath::clamp(closest, min, max);
+        ZMath::Vec3D closest = ZMath::clamp(closest, min, max);
         return closest.distSq(sphere.c) <= sphere.r*sphere.r;
     };
 
@@ -694,10 +689,8 @@ namespace Zeta {
     // If there is not an intersection, the normal will be a junk value.
     // The normal will point towards B away from A.
     static bool SphereAndAABB(Sphere const &sphere, AABB const & aabb, ZMath::Vec3D &normal) {
-        ZMath::Vec3D closest = sphere.c;
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
-
-        closest = ZMath::clamp(closest, min, max);
+        ZMath::Vec3D closest = ZMath::clamp(closest, min, max);
         ZMath::Vec3D diff = closest - sphere.c;
 
         if (diff.magSq() > sphere.r*sphere.r) { return 0; }
