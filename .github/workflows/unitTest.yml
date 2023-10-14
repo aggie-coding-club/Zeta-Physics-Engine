@@ -1,0 +1,19 @@
+name: Remove Static Body Tests
+
+on:
+  push:
+    branches: [ remove-static-bodies ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Results
+      run: |
+        cd unitTesting
+        g++ removeSbsTest.cpp -I../include -o sbsTest
+        ./sbsTest
