@@ -45,7 +45,7 @@ inline bool checkPtrState(const char* test, Zeta::RigidBody3D** list, int size) 
     return 0;
 };
 
-inline bool checkResult(const char* test, bool expected, bool obtained) {
+inline bool checkResult(const char* test, int expected, int obtained) {
     if (expected != obtained) {
         std::cout << "[FAILED] " << test << ".\n\tFunction does not return expected value.\n\tExpected: "
                     << expected << "\n\tObtained: " << obtained << "\n";
@@ -83,23 +83,23 @@ int main() {
 
     // * create removal test sets
 
-    // set 1 will have elements of index 80-91 inclusive contained
+    // set 1 will have elements of index 80-91 inclusive contained return -1
     int size1 = 12;
     Zeta::RigidBody3D** remRbs1 = new Zeta::RigidBody3D*[size1];
     for (int i = 0; i < size1; ++i) { remRbs1[i] = rbs[i+80]; }
 
-    // set 2 will have elements of index 0-5 and index 9-12 inclusive contained (nonsequential)
+    // set 2 will have elements of index 0-5 and index 9-12 inclusive contained (nonsequential) return -1
     int size2 = 10;
     Zeta::RigidBody3D** remRbs2 = new Zeta::RigidBody3D*[size2];
     for (int i = 0; i < 6; ++i) { remRbs2[i] = rbs[i]; }
     for (int i = 6; i < size2; ++i) { remRbs2[i] = rbs[i+3]; }
 
-    // set 3 will have elements of index 77-80 inclusive and should return 0
+    // set 3 will have elements of index 77-80 inclusive and should return 3
     int size3 = 4;
     Zeta::RigidBody3D** remRbs3 = new Zeta::RigidBody3D*[size3];
     for (int i = 0; i < size3; ++i) { remRbs3[i] = rbs[i+77]; }
 
-    // set 4 will have elements of index 23-25 inslucive with a random rb at the end (should return 0) and not delete any before it breaks
+    // set 4 will have elements of index 23-25 inslucive with a random rb at the end (should return 3) and not delete any before it breaks
     int size4 = 4;
     Zeta::RigidBody3D** remRbs4 = new Zeta::RigidBody3D*[size4];
     for (int i = 0; i < size4-1; ++i) { remRbs4[i] = rbs[i+23]; }
@@ -112,8 +112,8 @@ int main() {
         new Zeta::Sphere(ZMath::Vec3D(-50.0f, 0.0f, 100.0f), 12.5f)
     );
 
-    // set 5 will simply call it for index 23 which should return 1
-    Zeta::RigidBody3D* rb5 = rbs[23];
+    // set 5 will simply call it for index 6 which should return 1
+    Zeta::RigidBody3D* rb5 = rbs[6];
 
     // set 6 will simply call it for index 2 which should return 0
     Zeta::RigidBody3D* rb6 = rbs[2];
@@ -124,7 +124,7 @@ int main() {
     startTest(1);
 
     const char* testName = "Standard Removal of 12 Sequential Elements";
-    bool result = handler.removeRigidBodies(remRbs1, size1);
+    int result = handler.removeRigidBodies(remRbs1, size1);
     setSize -= size1;
 
     // check to see if the list size is as expected
@@ -134,7 +134,7 @@ int main() {
     if (checkPtrState(testName, handler.rbs.rigidBodies, handler.rbs.count)) { return 2; } 
 
     // ensure the test returned the proper value
-    if (checkResult(testName, 1, result)) { return 3; }
+    if (checkResult(testName, -1, result)) { return 3; }
 
     passedTest(testName);
     endTest();
@@ -157,7 +157,7 @@ int main() {
     if (checkPtrState(testName2, handler.rbs.rigidBodies, handler.rbs.count)) { return 2; } 
 
     // ensure the test returned the proper value
-    if (checkResult(testName2, 1, result)) { return 3; }
+    if (checkResult(testName2, -1, result)) { return 3; }
 
     passedTest(testName2);
     endTest();
@@ -171,6 +171,7 @@ int main() {
 
     const char* testName3 = "Sequential with a Previously Removed Element";
     result = handler.removeRigidBodies(remRbs3, size3);
+    setSize -= 3;
 
     // check to see if the list size is as expected
     if (compareSize(testName3, setSize, handler.rbs.count)) { return 1; }
@@ -179,7 +180,7 @@ int main() {
     if (checkPtrState(testName3, handler.rbs.rigidBodies, handler.rbs.count)) { return 2; } 
 
     // ensure the test returned the proper value
-    if (checkResult(testName3, 0, result)) { return 3; }
+    if (checkResult(testName3, 3, result)) { return 3; }
 
     passedTest(testName3);
     endTest();
@@ -193,6 +194,7 @@ int main() {
 
     const char* testName4 = "Non-sequential with an Element not Contained in the Handler";
     result = handler.removeRigidBodies(remRbs4, size4);
+    setSize -= 3;
 
     // check to see if the list size is as expected
     if (compareSize(testName4, setSize, handler.rbs.count)) { return 1; }
@@ -201,7 +203,7 @@ int main() {
     if (checkPtrState(testName4, handler.rbs.rigidBodies, handler.rbs.count)) { return 2; } 
 
     // ensure the test returned the proper value
-    if (checkResult(testName4, 0, result)) { return 3; }
+    if (checkResult(testName4, 3, result)) { return 3; }
 
     passedTest(testName4);
     endTest();
