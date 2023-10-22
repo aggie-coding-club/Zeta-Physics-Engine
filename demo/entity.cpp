@@ -242,9 +242,9 @@ namespace E_{
         vertex_data.len_tex_coords = 3 * 4 * 6;
 
         if(entity->sb){
-            zeta_verts_to_eq(entity->sb->collider.cube.getVertices(), &vertex_data);
+            zeta_verts_to_eq(((Zeta::Cube *)entity->sb->collider)->getVertices(), &vertex_data);
         }else if(entity->rb){
-            zeta_verts_to_eq(entity->rb->collider.cube.getVertices(), &vertex_data);
+            zeta_verts_to_eq(((Zeta::Cube *)entity->rb->collider)->getVertices(), &vertex_data);
         }else{
             Assert(!"No RigidBody or StaticBody Attached");
         }
@@ -255,9 +255,9 @@ namespace E_{
         vertex_data.len_tex_coords = 72;
 
         if(entity->sb){
-            entity->sb->collider.cube.pos = entity->sb->pos;
+            ((Zeta::Cube *)(entity->sb->collider))->pos = entity->sb->pos;
         }else if(entity->rb){
-            entity->rb->collider.cube.pos = entity->rb->pos;
+            ((Zeta::Cube *)(entity->rb->collider))->pos = entity->rb->pos;
         }
         
         entity->raw_model = load_to_VAO(&vertex_data);
@@ -269,18 +269,13 @@ namespace E_{
 
     static void add_collider(Entity *entity, Zeta::RigidBodyCollider colliderType, void *collider){
         if(colliderType == Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER){
-            Zeta::Cube *cube = (Zeta::Cube *)collider;
-
-            // cube->pos = rb->pos;
-            entity->rb->collider.cube = *cube;
+            entity->rb->collider = collider;
         }
     }
 
     static void add_collider(Entity *entity, Zeta::StaticBodyCollider colliderType, void *collider){
         if(colliderType == Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER){
-            Zeta::Cube *cube = (Zeta::Cube *)collider;
-
-            entity->sb->collider.cube = *cube;
+            entity->sb->collider = collider;
         }
     }
 
