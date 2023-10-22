@@ -133,6 +133,7 @@ namespace E_{
     Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
         Entity *result = &em->entities[em->index++];
+        result->initialized = true;
 
         result->scale = scale;
         result->rotation_x = rotation_x;
@@ -149,6 +150,7 @@ namespace E_{
     Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
         Entity *result = &em->entities[em->index++];
+        result->initialized = true;
         result->scale = scale;
         result->rotation_x = rotation_x;
         result->rotation_y = rotation_y;

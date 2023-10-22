@@ -474,7 +474,6 @@ void GameInputCamera(int key, int state){
     }
 }
 
-
 void TempLightMovement(int key, int state){
     if(key == GLFW_KEY_LEFT){
         printf("right,...\n");
@@ -496,11 +495,12 @@ void app_start(void *window){
 
     printf("Program Started\n");
     textures_manager = TexturesManager();
-    rd.main_shader.program = load_shaders("shaders/web_v_shader.glsl", "shaders/web_f_shader.glsl");
     rd.projection_fov = DEFAULT_FOV;
 
     // >>>>>> Shader Stuff
     // =====================================
+    rd.main_shader.program = load_shaders("shaders/web_v_shader.glsl", "shaders/web_f_shader.glsl");
+    rd.shadow_map_shader.program = load_shaders("shaders/shadow_map_vs.glsl", "shaders/shadow_map_fs.glsl"); 
 
     glUseProgram(rd.main_shader.program);
 
@@ -515,12 +515,7 @@ void app_start(void *window){
     // >>>>>> Texture Stuff
     // =====================================
     textures_manager.add_texture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
-    textures_manager.add_texture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
-    textures_manager.add_texture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.add_texture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.add_texture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
-
-    // >>>>>> View Stuff
+    textures_manager.add_texture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG); 
     // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -604,9 +599,9 @@ void app_start(void *window){
     init(ground_entity);
 
     SetupTextRenderer(&trm);
-    Setup2dRendering(&trm);
+    Setup2dRendering(&trm, &textures_manager);
     im.window = (GLFWwindow *)window;
-    
+    init_renderer(&rd);
 }
 
 float angle = 0.0f;
@@ -617,20 +612,27 @@ void app_update(float &time_step, float dt){
     global_dt = dt;
     im.dt += dt;
 
-    prepare_renderer(&rd, &camera);
+    // prepare_renderer(&rd, &camera);
 #if 1
     rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
     // render(pine_5_entity, &textures_manager, &rd.main_shader);
     // render(birch_10_entity, &textures_manager, &rd.main_shader);
-    render(light_entity, &textures_manager, &rd.main_shader);    
-    render(test_cube_entity, &textures_manager, &rd.main_shader);
-    render(test_entity, &textures_manager, &rd.main_shader);
-    render(ground_entity, &textures_manager, &rd.main_shader);
-    render(dragon_entity, &textures_manager, &rd.main_shader);
-    render(stall_entity, &textures_manager, &rd.main_shader);
+    // prepare_shadow_renderer(&rd, &smf);
+    // prepare_renderer(&rd, &camera);
+    // render(&rd, &smf, &camera, light_entity, &textures_manager, &rd.main_shader);    
+    // render(&rd, &smf, &camera, test_cube_entity, &textures_manager, &rd.main_shader);
+    // render(&rd, &smf, &camera, test_entity, &textures_manager, &rd.main_shader);
+    // render(&rd, &smf, &camera, ground_entity, &textures_manager, &rd.main_shader);
+    // render(&rd, &smf, &camera, dragon_entity, &textures_manager, &rd.main_shader);
+    // render(&rd, &smf, &camera, stall_entity, &textures_manager, &rd.main_shader);
+    birch_10_entity->initialized = false;
+    pine_5_entity->initialized = false;
+    render_entities(&rd, &camera, &em.entities[0], &textures_manager);  
+    glBindTexture(GL_TEXTURE_2D, rd.db_tex);
+    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f}, rd.db_tex);  
+    glBindTexture(GL_TEXTURE_2D, 0);
     
-
     // **************
     int physics_updates = handler.update(time_step);
     

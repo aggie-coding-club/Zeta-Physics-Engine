@@ -7,6 +7,7 @@
 
 namespace E_{
     struct Entity{
+        bool initialized;
         RawModel raw_model;
         unsigned int def_texture;
         unsigned int textures[MAX_ENTITY_TEXTURES] = {};

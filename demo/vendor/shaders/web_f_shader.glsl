@@ -15,12 +15,27 @@ uniform sampler2D texture_1;
 uniform sampler2D texture_2;
 uniform sampler2D texture_3;
 uniform sampler2D texture_4;
+uniform sampler2D texture_shadow_map;
 uniform vec3 light_color;
 uniform vec3 light_position;
 uniform vec3 camera_position;
 
 uniform float specular_strength;
 uniform float reflectivity;
+
+float calculate_shadow_factor(){
+    vec3 proj_coords = light_position;
+    vec2 uv_coords;
+    float z = 0.5 *proj_coords.z + 0.5;
+    float depth = texture(texture_shadow_map, uv_coords).x;
+
+    float bias = 0.0025;
+    if(depth + bias < z){
+        return 0.5;
+    }else{
+        return 1.0;
+    }
+}
 
 void main(void){
 

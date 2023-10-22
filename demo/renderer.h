@@ -17,6 +17,7 @@ struct RendererData{
     float projection_fov;
 
     HMM_Vec3 main_light_pos;
+    unsigned int db_tex;
 };
 
 
@@ -26,7 +27,7 @@ struct FBO{
 
 struct ShadowMapFBO{
     FBO fbo;
-    unsigned int shadowMap;
+    unsigned int shadow_map;
 };
 
 // NOTE(Lenny) - break this into functions
@@ -130,7 +131,6 @@ class TexturesManager{
 };
 
 
-
 HMM_Mat4 create_projection_matrix(RendererData *rd, int width, int height);
 HMM_Mat4 create_view_matrix(HMM_Vec3 position, HMM_Vec3 front, HMM_Vec3 up);
 
@@ -138,8 +138,17 @@ void bind_fbo(FBO *fbo);
 
 void unbind_fbo();
 
+void init_renderer(RendererData *rd);
+
+ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height);
+
 void prepare_renderer(RendererData *rd, Camera *camera);
 void prepare_shadow_renderer(RendererData *rd);
 
-ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height);
-void render(E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
+
+void lighting_pass_render(E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
+void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
+
+void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
+void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, TexturesManager *tm);
+
