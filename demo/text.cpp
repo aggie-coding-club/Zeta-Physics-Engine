@@ -146,11 +146,11 @@ void SetupTextRenderer(TextRendererManager *trm){
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // load text shader
-    trm->shader.program = load_shaders("shaders/text_basic_vs.glsl", "shaders/text_basic_fs.glsl");
+    trm->shader.program = load_shaders((char *)"shaders/text_basic_vs.glsl", (char *)"shaders/text_basic_fs.glsl");
     glUseProgram(trm->shader.program);
-    bind_location(&trm->shader, 0, "position");
-    trm->u_projection_matrix = get_uniform_location(&trm->shader, "projection_matrix");
-    trm->u_text_color = get_uniform_location(&trm->shader, "text_color");
+    bind_location(&trm->shader, 0, (char *)"position");
+    trm->u_projection_matrix = get_uniform_location(&trm->shader, (char *)"projection_matrix");
+    trm->u_text_color = get_uniform_location(&trm->shader, (char *)"text_color");
 
     set_uniform_value(trm->u_projection_matrix, trm->projection_ortho);
     set_uniform_value(trm->u_text_color, HMM_Vec3{255.0f, 0.0f, 0.0f});

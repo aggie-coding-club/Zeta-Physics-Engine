@@ -499,13 +499,13 @@ void app_start(void *window){
 
     // >>>>>> Shader Stuff
     // =====================================
-    rd.main_shader.program = load_shaders("shaders/web_v_shader.glsl", "shaders/web_f_shader.glsl");
-    rd.shadow_map_shader.program = load_shaders("shaders/shadow_map_vs.glsl", "shaders/shadow_map_fs.glsl"); 
+    rd.main_shader.program = load_shaders((char *)"shaders/web_v_shader.glsl", (char *)"shaders/web_f_shader.glsl");
+    rd.shadow_map_shader.program = load_shaders((char *)"shaders/shadow_map_vs.glsl", (char *)"shaders/shadow_map_fs.glsl"); 
 
     glUseProgram(rd.main_shader.program);
 
-    unsigned int u_specular_strength = get_uniform_location(&rd.main_shader, "specular_strength");
-    unsigned int u_reflectivity = get_uniform_location(&rd.main_shader, "reflectivity");
+    unsigned int u_specular_strength = get_uniform_location(&rd.main_shader, (char *)"specular_strength");
+    unsigned int u_reflectivity = get_uniform_location(&rd.main_shader, (char *)"reflectivity");
     
     set_uniform_value(u_specular_strength, 0.25f);
     set_uniform_value(u_reflectivity, 64.0f);
@@ -514,8 +514,8 @@ void app_start(void *window){
     
     // >>>>>> Texture Stuff
     // =====================================
-    textures_manager.add_texture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
-    textures_manager.add_texture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG); 
+    textures_manager.add_texture((char *)"white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
+    textures_manager.add_texture((char *)"thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG); 
     // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -629,8 +629,8 @@ void app_update(float &time_step, float dt){
     birch_10_entity->initialized = false;
     pine_5_entity->initialized = false;
     render_entities(&rd, &camera, &em.entities[0], &textures_manager);  
-    glBindTexture(GL_TEXTURE_2D, rd.db_tex);
-    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f}, rd.db_tex);  
+    glBindTexture(GL_TEXTURE_2D, rd.smf.fbo.id);
+    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f}, rd.smf.fbo.id);  
     glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************

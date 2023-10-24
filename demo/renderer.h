@@ -6,6 +6,15 @@
 
 #define PROJECTION_FOV 
 
+struct FBO{
+    unsigned int id, width, height;
+};
+
+struct ShadowMapFBO{
+    FBO fbo;
+    unsigned int shadow_map;
+};
+
 struct RendererData{
     HMM_Mat4 view_matrix;
     HMM_Mat4 projection_matrix;
@@ -17,18 +26,10 @@ struct RendererData{
     float projection_fov;
 
     HMM_Vec3 main_light_pos;
-    unsigned int db_tex;
+
+    ShadowMapFBO smf;
 };
 
-
-struct FBO{
-    unsigned int id, width, height;
-};
-
-struct ShadowMapFBO{
-    FBO fbo;
-    unsigned int shadow_map;
-};
 
 // NOTE(Lenny) - break this into functions
 class TexturesManager{
@@ -146,7 +147,7 @@ void prepare_renderer(RendererData *rd, Camera *camera);
 void prepare_shadow_renderer(RendererData *rd);
 
 
-void lighting_pass_render(E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
+void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
 void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
 
 void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
