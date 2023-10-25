@@ -190,8 +190,8 @@ void prepare_shadow_renderer(RendererData *rd){
 }
 
 void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
-    glUseProgram(rd->shadow_map_shader.program);
     bind_fbo(&rd->smf.fbo);
+    glUseProgram(rd->shadow_map_shader.program);
     HMM_Mat4 transformation;
     if(entity->sb){
         transformation = HMM_Translate({entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z});
@@ -243,12 +243,12 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     
     prepare_shadow_renderer(rd);
     // // shadow pass
-    // for(int i = 0; i < MAX_ENTITIES; i++){
-    //     E_::Entity *entity = &entities[i];
-    //     if(entity->initialized == true){
-    //         shadow_pass_render(rd, entity, tm, &rd->main_shader);
-    //     }
-    // }
+    for(int i = 0; i < MAX_ENTITIES; i++){
+        E_::Entity *entity = &entities[i];
+        if(entity->initialized == true){
+            shadow_pass_render(rd, entity, tm, &rd->main_shader);
+        }
+    }
      
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, rd->db_tex);

@@ -89,7 +89,7 @@ void main(){
         }
 
         if(partOf == false){
-            discard;
+            // discard;
         }
     }
 
@@ -97,4 +97,5 @@ void main(){
 
     out_color = vec4(c, c, c, 1.0) * texture(tex, f_tex_coords);
     // out_color = vec4(color.xyz, 1.0) * texture(tex, f_tex_coords);
+    out_color = texture(tex, f_tex_coords);
 }

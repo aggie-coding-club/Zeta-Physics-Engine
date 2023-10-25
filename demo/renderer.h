@@ -26,6 +26,7 @@ struct RendererData{
     float projection_fov;
 
     HMM_Vec3 main_light_pos;
+    HMM_Vec3 main_light_dir;
 
     ShadowMapFBO smf;
 };
@@ -107,7 +108,7 @@ class TexturesManager{
         }
 
         // massive optimization to be done here
-        // perhaps use a fancy finding algorithm
+        // perhaps use a fancy search algorithm
         unsigned int GetTextureIdentifier(unsigned int def_name){
             unsigned int result = 0;
             for(int i = 0; i < textures.size(); i++){

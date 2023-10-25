@@ -629,8 +629,8 @@ void app_update(float &time_step, float dt){
     birch_10_entity->initialized = false;
     pine_5_entity->initialized = false;
     render_entities(&rd, &camera, &em.entities[0], &textures_manager);  
-    glBindTexture(GL_TEXTURE_2D, rd.smf.fbo.id);
-    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f}, rd.smf.fbo.id);  
+    glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
+    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
     glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************
