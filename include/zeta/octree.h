@@ -34,46 +34,139 @@ namespace Zeta {
                 int next;
             };
 
-            T* data;
+            FreeElement* data;
             int capacity;
             int count;
 
             int freeFirst;
 
+            // Helper grow function for ease of use.
+            inline void grow() {
+                capacity *= 2;
+                FreeElement* temp = new FreeElement[capacity];
+
+                for (int i = 0; i < count; ++i) { temp[i] = std::move(data[i]); }
+
+                delete[] data;
+                data = temp;
+            };
+
         public:
-            FreeList();
+            // By default, allocate 16 data slots.
+            // Cap must be strictly greater than 0.
+            inline FreeList(int cap = 16) : data(new FreeElement[cap]), capacity(cap), count(0), freeFirst(-1) {
+                static_assert(cap > 0, "The capacity must be strictly greater than 0.");
+            };
 
 
             // * ==================
             // * Rule of 5 Stuff
             // * ==================
 
-            FreeList(FreeList const &list);
-            FreeList(FreeList &&list);
-            
-            FreeList& operator = (FreeList const &list);
-            FreeList& operator = (FreeList &&list);
+            inline FreeList(FreeList const &list) {
+                capacity = list.capacity;
+                count = list.count;
+                freeFirst = list.freeFirst;
 
-            ~FreeList();
+                data = new FreeElement[capacity];
+                for (int i = 0; i < count; ++i) { data[i] = list.data[i]; }
+            };
+
+            inline FreeList(FreeList &&list) {
+                data = list.data;
+                capacity = list.capacity;
+                count = list.count;
+                freeFirst = list.freeFirst;
+                list.data = nullptr;
+            };
+            
+            inline FreeList& operator = (FreeList const &list) {
+                if (this != &list) {
+                    if (data) { delete[] data; }
+
+                    capacity = list.capacity;
+                    count = list.count;
+                    freeFirst = list.freeFirst;
+
+                    data = new FreeElement[capacity];
+                    for (int i = 0; i < count; ++i) { data[i] = list.data[i]; }
+                }
+
+                return *this;
+            };
+
+            inline FreeList& operator = (FreeList &&list) {
+                if (this != &list) {
+                    if (data) { delete[] data; }
+
+                    data = list.data;
+                    capacity = list.capacity;
+                    count = list.count;
+                    freeFirst = list.freeFirst;
+                    list.data = nullptr;
+                }
+
+                return *this;
+            };
+
+            inline ~FreeList() { delete[] data; };
 
 
             // * ===================
             // * Normal Functions
             // * ===================
 
-            int insert(T const &element);
-            int insert(T &&element);
+            // Insert an element to the list.
+            // Returns the index of the element inserted.
+            inline int insert(T const &element) {
+                if (freeFirst != -1) {
+                    int index = freeFirst;
+                    freeFirst = data[freeFirst].next;
+                    data[index].element = element;
+                    return index;
+                }
+
+                if (count == capacity) { grow(); }
+                data[count].element = element;
+                return count++;
+            };
+
+            // Insert an element to the list.
+            // Returns the index of the element inserted.
+            inline int insert(T &&element) {
+                if (freeFirst != -1) {
+                    int index = freeFirst;
+                    freeFirst = data[freeFirst].next;
+                    data[index].element = std::move(element);
+                    return index;
+                }
+
+                if (count == capacity) { grow(); }
+                data[count].element = std::move(element);
+                return count++;
+            };
 
             // Remove the nth element from the list.
-            void remove(int n);
+            inline void remove(int n) {
+                data[n].next = freeFirst;
+                freeFirst = n;
+            };
 
-            void clear();
+            // Clear all elements from the list.
+            inline void clear() {
+                delete[] data;
+
+                capacity = 16;
+                count = 0;
+                data = new FreeElement[capacity];
+                freeFirst = -1;
+            };
 
             // Returns the range of valid indices.
-            int range() const;
+            inline int range() const { return count; };
 
             // Returns the nth element.
-            T& operator[] (int n) const;
+            inline T& operator[] (int n) const { return data[n].element; };
     };
 
     // Data structure used for 3D spatial partitioning.
