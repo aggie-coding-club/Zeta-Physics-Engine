@@ -335,7 +335,26 @@ namespace Zeta {
                 return 0;
             };
 
-
+            // Will go through an array of rigid bodies, look for them in the handler and remove if founc
+            // Returns -1 if all rigid bodies found and removed
+            // If not all rigid bodies in the array are in the handler, it will return the index of the first rigid body not found in the handler 
+            int removeRigidBodies(RigidBody3D** rbs, int size) {
+                for(int i = 0; i < size; ++i) {
+                    for(int j = 0; j < this->rbs.count; ++j) {
+                        if(this->rbs.rigidBodies[j] == rbs[i]) {
+                            delete rbs[i];
+                            for(int k = j; k < this->rbs.count - 1; ++k) {
+                                this->rbs.rigidBodies[k] = this->rbs.rigidBodies[k + 1];
+                            }
+                            this->rbs.count--;
+                            break;
+                        } else if(j == this->rbs.count - 1 && this->rbs.rigidBodies[j] != rbs[i]) {
+                            return i;
+                        }
+                    }
+                }
+                return -1;
+            }
             // * ============================
             // * StaticBody List Functions
             // * ============================

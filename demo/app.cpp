@@ -635,7 +635,7 @@ void app_update(float &time_step, float dt){
     int physics_updates = handler.update(time_step);
     
     ZMath::Vec3D normal = {};
-    float ground_cube_colliding = Zeta::CubeAndCube(test_entity->rb->collider.cube, ground_entity->sb->collider.cube, normal);
+    float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(test_entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
     
     if(ground_cube_colliding){
         for(int i = 0; i < physics_updates; i++){
