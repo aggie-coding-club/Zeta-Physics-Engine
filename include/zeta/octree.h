@@ -24,9 +24,56 @@
 
 
 namespace Zeta {
+    // Array allowing removal of elements from anywhere with O(1) without invalidating indices.
+    // This can only be used for datatypes that are trivially constructible and destructible.
     template <typename T>
     class FreeList {
+        private:
+            union FreeElement {
+                T element;
+                int next;
+            };
 
+            T* data;
+            int capacity;
+            int count;
+
+            int freeFirst;
+
+        public:
+            FreeList();
+
+
+            // * ==================
+            // * Rule of 5 Stuff
+            // * ==================
+
+            FreeList(FreeList const &list);
+            FreeList(FreeList &&list);
+            
+            FreeList& operator = (FreeList const &list);
+            FreeList& operator = (FreeList &&list);
+
+            ~FreeList();
+
+
+            // * ===================
+            // * Normal Functions
+            // * ===================
+
+            int insert(T const &element);
+            int insert(T &&element);
+
+            // Remove the nth element from the list.
+            void remove(int n);
+
+            void clear();
+
+            // Returns the range of valid indices.
+            int range() const;
+
+            // Returns the nth element.
+            T& operator[] (int n) const;
     };
 
     // Data structure used for 3D spatial partitioning.
@@ -40,9 +87,6 @@ namespace Zeta {
 
                 // Stores the number of elements in the leaf or -1 if this node is not a leaf.
                 int32_t count;
-
-                // // the region the node encompasses
-                // AABB aabb;
             };
 
             struct Element {
