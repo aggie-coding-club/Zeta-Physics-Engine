@@ -7,7 +7,7 @@
 // todo I think I will use octrees as the approach of my choice
 // todo look through the document for more details and look into the other methods, too
 
-
+// todo also provide an implementation based on 3 fixed levels of dense grids with row based optimizations as an alternative
 
 // * ====================================
 // * Common Framerates for Handler

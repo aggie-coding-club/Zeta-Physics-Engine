@@ -2,65 +2,87 @@
 
 #include "intersections.h"
 
-// todo determine an ideal value -- for now will have 64 as a placeholder
-#define OCT_MAX_CAPACITY 64
+// todo determine an ideal value -- for now will have 16 as a placeholder
+// todo maybe whip up a quick OpenGL thing that I can use to stress test the engine
+#define OCT_MAX_CAPACITY 16
 
+// todo test with a benchmark OpenGL program to determine an ideal depth
+#define OCT_MAX_DEPTH 8
 
-// todo probably store the objects with a key
-// todo will update to do so later
-// todo probs will need to store ids for rigid bodies, static bodies, and kinematic bodies to ensure unique keys
+// todo test to see if caching the AABBs or computing them on the fly is faster when scenes are developed
+// todo computing on the fly may only be faster due to cahce misses when traversing the tree
+// todo but I feel computing AABBs that use floats will take longer as we can't use out bitwise operators
+
+// todo store children so that they are contiguous in memory
+// firstChild == index to first child
+// firstChild + 1 == index to second child
+// ...
+
+// todo deferred cleanup and constant time removal
+// todo look through the stack overflow post about this
+// todo apparently this makes moving objects simple, too
+
 
 namespace Zeta {
-    // Data structure used for 3D partitioning
     template <typename T>
+    class FreeList {
+
+    };
+
+    // Data structure used for 3D spatial partitioning.
+    // This Octree only stores indices.
+    // It is expected for you to store the list of objects where you use this Octree.
     class Octree {
         private:
-            // Represent a node of the octree.
-            // Check to ensure the count would not exceed the max capacity before adding.
-            // To add an object, do objects[count++] = <object>;
             struct Node {
-                Node* nodes[8] = { nullptr };
-                AABB region;
-                T objects[64];
-                int count = 0;
+                // index of the first child if this is a node or the first element if this is a leaf.
+                uint16_t firstChild;
 
-                Node(ZMath::Vec3D const &min, ZMath::Vec3D const &max);
-                Node(ZMath::Vec3D &&min, ZMath::Vec3D &&max);
-                Node(AABB const &aabb);
-                Node(AABB &&aabb);
+                // Stores the number of elements in the leaf or -1 if this node is not a leaf.
+                int32_t count;
+
+                // // the region the node encompasses
+                // AABB aabb;
             };
 
-            Node* root;
+            struct Element {
+                // Stores the element's ID
+                int id;
+
+                // Stores the AABB for the element
+                ZMath::Vec3D min, max;
+            };
+
+            struct ElementNode {
+                // Points to the next element in the leaf node.
+                // -1 indicates the end of the list
+                int next;
+
+                // stores the element index
+                int element;
+            };
+
 
         public:
-            Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max);
-            Octree(ZMath::Vec3D &&min, ZMath::Vec3D &&max);
+            FreeList<Element> elements; // Stores every element in the octree.
+            FreeList<ElementNode> elmNodes; // Stores every element node in the octree.
 
+            // Stores every node in the octree.
+            // The first node will always be the root.
+            Node* nodes;
+            int capacity;
+            int count;
 
-            // * ===================
-            // * Rule of 5 Stuff
-            // * ===================
+            // The bounds of the entire octree.
+            AABB bounds;
 
-            Octree(Octree const &tree);
-            Octree(Octree &&tree);
+            // ? For free node, we store the index for the first freed node in the octree.
+            // ? This allows us to implement a deferred cleanup approach, which reduces redundant operations.
+            // ? We will free nodes of the octree as 8 contiguous nodes at once.
+            // ? Whenever freeNode is -1, we will just insert 8 nodes to the back of the array.
 
-            Octree& operator = (Octree const &tree);
-            Octree& operator = (Octree &&tree);
-
-            ~Octree();
-
-
-            // * ===================
-            // * Normal Functions
-            // * ===================
-
-            bool contains();
-            bool empty();
-
-            T find();
-
-            void clear();
-            void insert();
-            void remove();
+            // Stores the first free node in the octree.
+            // -1 indicates that the free list is empty.
+            int freeNode;
     };
 }
