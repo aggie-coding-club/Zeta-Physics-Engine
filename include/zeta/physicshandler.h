@@ -4,8 +4,10 @@
 #include <stdexcept>
 
 // todo use a preprocessor directive to allow the user to choose if they want spatial partitioning or not
-// todo I think I will use quadtrees as the approach of my choice
+// todo I think I will use octrees as the approach of my choice
 // todo look through the document for more details and look into the other methods, too
+
+
 
 // * ====================================
 // * Common Framerates for Handler
