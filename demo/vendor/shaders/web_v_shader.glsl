@@ -1,4 +1,4 @@
-#version 300 es
+#version 330 core
 in vec3 position;
 in vec3 tex_coords;
 in vec3 normal;
