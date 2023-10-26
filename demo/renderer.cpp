@@ -84,13 +84,13 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
     set_uniform_value(u_entity_color, entity->color);
 
     if(entity->isTransparent){
-        disable_culling();
+        // disable_culling();
         
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    
 
     }else{
-        enable_culling();
+        // enable_culling();
     }
 
     glBindVertexArray(entity->raw_model.vao_ID);
@@ -167,6 +167,9 @@ void prepare_renderer(RendererData *rd, Camera *camera){
     
     unsigned int u_light_color = get_uniform_location(&rd->main_shader, (char *)"light_color");
     set_uniform_value(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
+
+    unsigned int u_light_direction = get_uniform_location(&rd->main_shader, (char *)"light_direction");
+    set_uniform_value(u_light_direction, HMM_Vec3{30.0f, 15.0f, 15.0f});
     glUseProgram(0);
 }
 
@@ -241,6 +244,7 @@ void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManage
 
 void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, TexturesManager *tm){
     
+    #if 0
     prepare_shadow_renderer(rd);
     // // shadow pass
     for(int i = 0; i < MAX_ENTITIES; i++){
@@ -249,6 +253,8 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
             shadow_pass_render(rd, entity, tm, &rd->main_shader);
         }
     }
+
+    #endif
      
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, rd->db_tex);

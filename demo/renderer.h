@@ -26,7 +26,7 @@ struct RendererData{
     float projection_fov;
 
     HMM_Vec3 main_light_pos;
-    HMM_Vec3 main_light_dir;
+    HMM_Vec3 light_dir;
 
     ShadowMapFBO smf;
 };

@@ -16,6 +16,7 @@ uniform sampler2D texture_2;
 uniform sampler2D texture_3;
 uniform sampler2D texture_4;
 uniform sampler2D texture_shadow_map;
+uniform vec3 light_direction;
 uniform vec3 light_color;
 uniform vec3 light_position;
 uniform vec3 camera_position;
@@ -40,7 +41,8 @@ float calculate_shadow_factor(){
 void main(void){
 
     vec3 unit_normal = normalize(f_surface_normal);
-    vec3 light_dir = normalize(light_position - f_current_position);
+    // vec3 light_dir = normalize(light_position - f_current_position);
+    vec3 light_dir = normalize(-light_direction);
 
     float dot1 = dot(unit_normal, light_dir);
     vec3 diffuse = light_color * max(dot1, 0.3);
