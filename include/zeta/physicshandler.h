@@ -780,26 +780,28 @@ namespace Zeta {
                 return 0;
             };
 
-            // Will go through an array of rigid bodies, look for them in the handler and remove if founc
+            // Will go through an array of rigid bodies, look for them in the handler and remove if found
             // Returns -1 if all rigid bodies found and removed
             // If not all rigid bodies in the array are in the handler, it will return the index of the first rigid body not found in the handler 
             int removeRigidBodies(RigidBody3D** rbs, int size) {
-                for(int i = 0; i < size; ++i) {
-                    for(int j = 0; j < this->rbs.count; ++j) {
-                        if(this->rbs.rigidBodies[j] == rbs[i]) {
+                for (int i = 0; i < size; ++i) {
+                    for (int j = 0; j < this->rbs.count; ++j) {
+                        if (this->rbs.rigidBodies[j] == rbs[i]) {
                             delete rbs[i];
-                            for(int k = j; k < this->rbs.count - 1; ++k) {
-                                this->rbs.rigidBodies[k] = this->rbs.rigidBodies[k + 1];
-                            }
-                            this->rbs.count--;
+                            for (int k = j; k < this->rbs.count - 1; ++k) { this->rbs.rigidBodies[k] = this->rbs.rigidBodies[k + 1]; }
+                            --this->rbs.count;
                             break;
-                        } else if(j == this->rbs.count - 1 && this->rbs.rigidBodies[j] != rbs[i]) {
+
+                        } else if (j == this->rbs.count - 1) {
                             return i;
                         }
                     }
                 }
+
                 return -1;
-            }
+            };
+
+
             // * ============================
             // * StaticBody List Functions
             // * ============================
@@ -850,32 +852,27 @@ namespace Zeta {
                 return 0;
             };
 
-            //Tries to remove all static bodies in an array of static bodies
-            //Returns 1 if all found in the handler and deleted
-            //Returns 0 if any of the bodies in sbs are not found in the handler (none of them are deleted in this case)
+            // Will go through an array of static bodies, look for them in the handler and remove if found
+            // Returns -1 if all static bodies found and removed
+            // If not all static bodies in the array are in the handler, it will return the index of the first static body not found in the handler 
             bool removeStaticBodies(StaticBody3D** sbs, int size) {
-                int* indices = new int[size];
-                for(int i = 0; i < size; ++i) {
-                    for(int j = 0; j < this->sbs.count; ++j) {
-                        if(this->sbs.staticBodies[j] == sbs[i]) {
-                            indices[i] = j;
+                for (int i = 0; i < size; ++i) {
+                    for (int j = 0; j < this->sbs.count; ++j) {
+                        if (this->sbs.staticBodies[j] == sbs[i]) {
+                            delete sbs[i];
+                            for (int k = j; k < this->sbs.count - 1; ++k) { this->sbs.staticBodies[k] = this->sbs.staticBodies[k + 1]; }
+                            --this->sbs.count;
                             break;
-                        } else if(j == this->sbs.count - 1 && this->sbs.staticBodies[j] != sbs[i]) {
-                            delete[] indices;
-                            return 0;
+
+                        } else if (j == this->sbs.count - 1) {
+                            return i;
                         }
                     }
                 }
-                for(int i = 0; i < size; ++i) {
-                    delete sbs[i];
-                    for(int j = indices[i]; j < this->sbs.count - 1; ++j) { 
-                        this->sbs.staticBodies[j] = this->sbs.staticBodies[j + 1]; 
-                    }
-                    this->sbs.count--;
-                }
-                delete[] indices;
-                return 1;
-            }
+
+                return -1;
+            };
+
 
             // * ============================
             // * Main Physics Functions

@@ -20,7 +20,7 @@ ___
     6. Cube (OBB)
  * Collision detection and resolution.
  * Common FPS rates as predefined constants (e.g. FPS_60).
- * Spatial Partitioning - can be disabled with `#define DISABLE_SPATIAL_PARTITIONING` in one .cpp file above `#include <zeta/physicshandler.h>`.
+ * Spatial Partitioning - can be disabled with `#define DISABLE_SPATIAL_PARTITIONING` in *one* .cpp file above `#include <zeta/physicshandler.h>`.
 
 ___
 
