@@ -237,57 +237,139 @@ namespace Zeta {
             /**
              * @brief Construct a new Octree object
              * 
-             * @param min 
-             * @param max 
-             * @param maxElementCapacity 
-             * @param maxDepth 
-             * @param nodeCap 
+             * @param min The minimum vertex of the region encompassed by the octree.
+             * @param max The maximum vertex of the region encompassed by the octree.
+             * @param maxElementCapacity The maximum number of elements allowed at each leaf node. Default of 16.
+             * @param maxDepth The maximum depth of the octree allowed. Default of 8.
+             * @param nodeCap The initial capacity of the node array. Default of 32.
              */
             Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max, int maxElementCapacity = OCT_MAX_CAPACITY,
-                    int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+                    int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32) : maxDepth(maxDepth), maxElementCapacity(maxElementCapacity)
+            {
+                bounds = std::move(AABB(min, max));
+                capacity = nodeCap;
+                count = 0;
+                nodes = new Node[capacity];
+            };
 
             /**
              * @brief Construct a new Octree object
              * 
-             * @param min 
-             * @param max 
-             * @param maxElementCapacity 
-             * @param maxDepth 
-             * @param nodeCap 
+             * @param aabb An AABB representing the region encompassed by the octree.
+             * @param maxElementCapacity The maximum number of elements allowed at each leaf node. Default of 16.
+             * @param maxDepth The maximum depth of the octree allowed. Default of 8.
+             * @param nodeCap The initial capacity of the node array. Default of 32.
              */
-            Octree(ZMath::Vec3D &&min, ZMath::Vec3D &&max, int maxElementCapacity = OCT_MAX_CAPACITY,
-                    int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+            Octree(AABB const &aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32) {
+                bounds = aabb;
+                capacity = nodeCap;
+                count = 0;
+                nodes = new Node[capacity];
+
+                this->maxDepth = maxDepth;
+                this->maxElementCapacity = maxElementCapacity;
+            };
 
             /**
              * @brief Construct a new Octree object
              * 
-             * @param aabb 
-             * @param maxElementCapacity 
-             * @param maxDepth 
-             * @param nodeCap 
+             * @param aabb An AABB representing the region encompassed by the octree.
+             * @param maxElementCapacity The maximum number of elements allowed at each leaf node. Default of 16.
+             * @param maxDepth The maximum depth of the octree allowed. Default of 8.
+             * @param nodeCap The initial capacity of the node array. Default of 32.
              */
-            Octree(AABB const &aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+            Octree(AABB &&aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32) {
+                bounds = std::move(aabb);
+                capacity = nodeCap;
+                count = 0;
+                nodes = new Node[capacity];
 
-            /**
-             * @brief Construct a new Octree object
-             * 
-             * @param aabb 
-             * @param maxElementCapacity 
-             * @param maxDepth 
-             * @param nodeCap 
-             */
-            Octree(AABB &&aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+                this->maxDepth = maxDepth;
+                this->maxElementCapacity = maxElementCapacity;
+            };
 
 
             // * ===================
             // * Rule of 5 Stuff
             // * ===================
 
-            Octree(Octree const &tree);
-            Octree(Octree &&tree);
-            Octree& operator = (Octree const &tree);
-            Octree& operator = (Octree &&tree);
-            ~Octree();
+            inline Octree(Octree const &tree) {
+                capacity = tree.capacity;
+                count = tree.count;
+                freeNode = tree.freeNode;
+                maxDepth = tree.maxDepth;
+                maxElementCapacity = tree.maxElementCapacity;
+
+                bounds = tree.bounds;
+
+                nodes = new Node[capacity];
+                for (int i = 0; i < count; ++i) { nodes[i] = tree.nodes[i]; }
+
+                elements = tree.elements;
+                elmNodes = tree.elmNodes;
+            };
+
+            inline Octree(Octree &&tree) {
+                nodes = tree.nodes;
+                capacity = tree.capacity;
+                count = tree.count;
+                freeNode = tree.freeNode;
+                maxDepth = tree.maxDepth;
+                maxElementCapacity = tree.maxElementCapacity;
+
+                bounds = std::move(tree.bounds);
+
+                elements = std::move(tree.elements);
+                elmNodes = std::move(tree.elmNodes);
+
+                tree.nodes = nullptr;
+            };
+
+            inline Octree& operator = (Octree const &tree) {
+                if (this != &tree) {
+                    if (nodes) { delete[] nodes; }
+
+                    capacity = tree.capacity;
+                    count = tree.count;
+                    freeNode = tree.freeNode;
+                    maxDepth = tree.maxDepth;
+                    maxElementCapacity = tree.maxElementCapacity;
+
+                    bounds = tree.bounds;
+
+                    nodes = new Node[capacity];
+                    for (int i = 0; i < count; ++i) { nodes[i] = tree.nodes[i]; }
+
+                    elements = tree.elements;
+                    elmNodes = tree.elmNodes;
+                }
+
+                return *this;
+            };
+
+            inline Octree& operator = (Octree &&tree) {
+                if (this != &tree) {
+                    if (nodes) { delete[] nodes; }
+
+                    nodes = tree.nodes;
+                    capacity = tree.capacity;
+                    count = tree.count;
+                    freeNode = tree.freeNode;
+                    maxDepth = tree.maxDepth;
+                    maxElementCapacity = tree.maxElementCapacity;
+
+                    bounds = std::move(tree.bounds);
+
+                    elements = std::move(tree.elements);
+                    elmNodes = std::move(tree.elmNodes);
+
+                    tree.nodes = nullptr;
+                }
+
+                return *this;
+            };
+
+            inline ~Octree() { delete[] nodes; };
 
 
             // * ===================
