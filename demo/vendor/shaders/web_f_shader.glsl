@@ -75,4 +75,5 @@ void main(void){
         out_color = vec4(f_current_position.x, f_current_position.y, f_current_position.z, 1.0); // just a debug color
     }
 
+    out_color = vec4(f_color.xyz, 1.0);
 }
