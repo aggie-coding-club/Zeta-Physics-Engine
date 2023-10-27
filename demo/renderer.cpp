@@ -108,8 +108,8 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
     set_uniform_value(u_texture_3, (int)2);
     unsigned int u_texture_4 = get_uniform_location(shader, (char *)"texture_4");
     set_uniform_value(u_texture_4, (int)3);
-    unsigned int u_texture_shadow_map = get_uniform_location(shader, (char *)"texture_shadow_map");
-    set_uniform_value(u_texture_shadow_map, (int)5);
+    // unsigned int u_texture_shadow_map = get_uniform_location(shader, (char *)"texture_shadow_map");
+    // set_uniform_value(u_texture_shadow_map, (int)5);
 
     if(entity->textureIndex > 0){
 
@@ -162,8 +162,8 @@ void prepare_renderer(RendererData *rd, Camera *camera){
     unsigned int u_camera_position = get_uniform_location(&rd->main_shader, (char *)"camera_position");
     set_uniform_value(u_camera_position, camera->position);
     
-    unsigned int u_light_position = get_uniform_location(&rd->main_shader, (char *)"light_position");
-    set_uniform_value(u_light_position, HMM_Vec3{rd->main_light_pos.X, rd->main_light_pos.Y, rd->main_light_pos.Z});
+    // unsigned int u_light_position = get_uniform_location(&rd->main_shader, (char *)"light_position");
+    // set_uniform_value(u_light_position, HMM_Vec3{rd->main_light_pos.X, rd->main_light_pos.Y, rd->main_light_pos.Z});
     
     unsigned int u_light_color = get_uniform_location(&rd->main_shader, (char *)"light_color");
     set_uniform_value(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
