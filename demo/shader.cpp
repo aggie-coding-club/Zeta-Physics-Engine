@@ -4,7 +4,7 @@ unsigned int get_uniform_location(Shader *shader, char *name){
     unsigned int result = 0;
     result = glGetUniformLocation(shader->program, name);
     if(result == -1){
-        printf("Failed to Get Uniform Location -> %s \n ", name);
+        // printf("Failed to Get Uniform Location -> %s \n ", name);
     }
     return result;
 }

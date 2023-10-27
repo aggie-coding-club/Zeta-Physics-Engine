@@ -96,6 +96,6 @@ void main(){
     float c = LinearizeDepth(f_tex_coords);
 
     out_color = vec4(c, c, c, 1.0) * texture(tex, f_tex_coords);
-    // out_color = vec4(color.xyz, 1.0) * texture(tex, f_tex_coords);
-    out_color = texture(tex, f_tex_coords);
+    out_color = vec4(color.xyz, 1.0);
+    // out_color = texture(tex, f_tex_coords);
 }
