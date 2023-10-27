@@ -328,6 +328,14 @@ RawModel load_to_VAO(VertexData *vertex_data){
     store_data_in_attribute_list(1, vertex_data->tex_coords, 3, vertex_data->len_tex_coords * sizeof(float));
     store_data_in_attribute_list(2, vertex_data->normals, 3, vertex_data->len_normals * sizeof(float));
     store_data_in_attribute_list(3, vertex_data->colors, 3, vertex_data->len_colors * sizeof(float));
+
+    printf("---------------- START LENGTHS -----------------------\n");
+    printf("POSITIONS   : %i\n", (int)vertex_data->len_positions);
+    printf("TEX COORDS  : %i\n", (int)vertex_data->len_tex_coords);
+    printf("NORMALS     : %i\n", (int)vertex_data->len_normals);
+    printf("COLORS      : %i\n", (int)vertex_data->len_colors);
+    printf("---------------- END LENGTHS -----------------------\n");
+
     
     unbind_VAO();
     return result;
