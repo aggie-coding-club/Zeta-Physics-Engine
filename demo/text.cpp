@@ -89,8 +89,8 @@ void SetupTextRenderer(TextRendererManager *trm){
     trm->facesCount = 4;
     trm->faces = (FT_Face *)calloc(1, sizeof(FT_Face));
     // default font
-    AddFontFace(trm, "Passion_One\\PassionOne-Regular.ttf");
-    // AddFontFace(trm, "static\\Antonio-Bold.ttf");
+    AddFontFace(trm, "Passion_One/PassionOne-Regular.ttf");
+    // AddFontFace(trm, "static/Antonio-Bold.ttf");
 
     FT_Set_Pixel_Sizes(trm->faces[0], 0, 48);
     
