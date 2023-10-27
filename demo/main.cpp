@@ -97,8 +97,8 @@ int main(void)
 
 
     /* Create a windowed mode window and its OpenGL context */
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3.3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3.3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zeta Physics Engine Demo", NULL, NULL);
     if (!window)
@@ -160,6 +160,13 @@ int main(void)
         dt = current_time - previous_time;
         time_step += dt;
         previous_time = current_time;
+
+        // * Check for errors to make it easier to debug
+        // ! this will be removed in the final build
+        GLenum err;
+        while((err = glGetError()) != GL_NO_ERROR) {
+            std::cout << "[Error] " << err << "\n";
+        }
     }
     #endif
 
