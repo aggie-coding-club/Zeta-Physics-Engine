@@ -4,6 +4,7 @@
 
 // todo determine an ideal value -- for now will have 16 as a placeholder
 // todo maybe whip up a quick OpenGL thing that I can use to stress test the engine
+// todo probs make a parameter
 #define OCT_MAX_CAPACITY 16
 
 // todo test with a benchmark OpenGL program to determine an ideal depth
@@ -220,6 +221,86 @@ namespace Zeta {
 
             // Stores the first free node in the octree.
             // -1 indicates that the free list is empty.
-            int freeNode;
+            int freeNode = -1;
+
+            // Maximum number of elements allowed at each leaf node.
+            int maxElementCapacity;
+
+            // Maximum depth of the octree allowed.
+            int maxDepth;
+
+
+            // * ===============
+            // * Constructors
+            // * ===============
+
+            /**
+             * @brief Construct a new Octree object
+             * 
+             * @param min 
+             * @param max 
+             * @param maxElementCapacity 
+             * @param maxDepth 
+             * @param nodeCap 
+             */
+            Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max, int maxElementCapacity = OCT_MAX_CAPACITY,
+                    int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+
+            /**
+             * @brief Construct a new Octree object
+             * 
+             * @param min 
+             * @param max 
+             * @param maxElementCapacity 
+             * @param maxDepth 
+             * @param nodeCap 
+             */
+            Octree(ZMath::Vec3D &&min, ZMath::Vec3D &&max, int maxElementCapacity = OCT_MAX_CAPACITY,
+                    int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+
+            /**
+             * @brief Construct a new Octree object
+             * 
+             * @param aabb 
+             * @param maxElementCapacity 
+             * @param maxDepth 
+             * @param nodeCap 
+             */
+            Octree(AABB const &aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+
+            /**
+             * @brief Construct a new Octree object
+             * 
+             * @param aabb 
+             * @param maxElementCapacity 
+             * @param maxDepth 
+             * @param nodeCap 
+             */
+            Octree(AABB &&aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32);
+
+
+            // * ===================
+            // * Rule of 5 Stuff
+            // * ===================
+
+            Octree(Octree const &tree);
+            Octree(Octree &&tree);
+            Octree& operator = (Octree const &tree);
+            Octree& operator = (Octree &&tree);
+            ~Octree();
+
+
+            // * ===================
+            // * Normal Functions
+            // * ===================
+
+            // todo I think we will probs need the id's of the elements
+
+            bool contains(ZMath::Vec3D const &point) const;
+            int find(ZMath::Vec3D const &point) const;
+            int insert(ZMath::Vec3D const &point);
+            void remove(ZMath::Vec3D const &point);
+            void clear();
+            bool empty() const;
     };
 }
