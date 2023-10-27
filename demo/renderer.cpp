@@ -64,6 +64,13 @@ ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height){
 }
 
 void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindVertexArray(entity->raw_model.vao_ID);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);    
+    glEnableVertexAttribArray(2);    
+    glEnableVertexAttribArray(3);    
+
     HMM_Mat4 transformation;
     if(entity->sb){
         transformation = HMM_Translate({entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z});
@@ -76,7 +83,6 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
     transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
     transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{entity->scale, entity->scale, entity->scale}));
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(shader->program);
     unsigned int u_transform_matrix = get_uniform_location(shader, (char *)"transformation_matrix");
     set_uniform_value(u_transform_matrix, transformation);
@@ -93,12 +99,9 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
         // enable_culling();
     }
 
-    glBindVertexArray(entity->raw_model.vao_ID);
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);    
-    glEnableVertexAttribArray(2);    
-    glEnableVertexAttribArray(3);    
+
+#if 0
 
     unsigned int u_texture_1 = get_uniform_location(shader, (char *)"texture_1");
     set_uniform_value(u_texture_1, (int)0);
@@ -126,6 +129,8 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, rd->smf.shadow_map);
 
+#endif
+
     glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
     
     glDisableVertexAttribArray(0);
@@ -133,8 +138,6 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
     glBindVertexArray(0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
     glUseProgram(0);
 }
