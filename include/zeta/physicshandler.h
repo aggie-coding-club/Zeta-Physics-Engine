@@ -9,6 +9,8 @@
 
 // todo also provide an implementation based on 3 fixed levels of dense grids with row based optimizations as an alternative
 
+// todo use static_assert(0) for the rule of 5 stuff instead of just throwing a runtime error
+
 // * ====================================
 // * Common Framerates for Handler
 // * ====================================

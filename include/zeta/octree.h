@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include "intersections.h"
 
 // todo determine an ideal value -- for now will have 16 as a placeholder
@@ -177,33 +178,40 @@ namespace Zeta {
         private:
             struct Node {
                 // index of the first child if this is a node or the first element if this is a leaf.
-                uint16_t firstChild;
+                uint32_t firstChild;
 
                 // Stores the number of elements in the leaf or -1 if this node is not a leaf.
                 int32_t count;
             };
 
-            struct Element {
-                // Stores the element's ID
-                int id;
-
-                // Stores the AABB for the element
-                ZMath::Vec3D min, max;
-            };
-
             struct ElementNode {
                 // Points to the next element in the leaf node.
                 // -1 indicates the end of the list
-                int next;
+                int32_t next;
 
                 // stores the element index
-                int element;
+                uint32_t element;
+            };
+
+            // grow function for ease of use
+            inline void grow() {
+                capacity *= 2;
+                Node* temp = new Node[capacity];
+
+                for (int i = 0; i < count; ++i) { temp[i] = std::move(nodes[i]); }
+
+                delete[] nodes;
+                nodes = temp;
             };
 
 
         public:
-            FreeList<Element> elements; // Stores every element in the octree.
-            FreeList<ElementNode> elmNodes; // Stores every element node in the octree.
+            // todo we'll need an easy way to update the tree after a physics object moves into a different portion
+            // todo probs just do that directly in the physicshandler with the remove and insert functions
+
+            // Stores every element in the octree.
+            // Elements are stored as the indices of each index in the original list of elements.
+            FreeList<ElementNode> elmNodes;
 
             // Stores every node in the octree.
             // The first node will always be the root.
@@ -234,6 +242,8 @@ namespace Zeta {
             // * Constructors
             // * ===============
 
+            // todo initialize the root node
+
             /**
              * @brief Construct a new Octree object
              * 
@@ -241,11 +251,13 @@ namespace Zeta {
              * @param max The maximum vertex of the region encompassed by the octree.
              * @param maxElementCapacity The maximum number of elements allowed at each leaf node. Default of 16.
              * @param maxDepth The maximum depth of the octree allowed. Default of 8.
-             * @param nodeCap The initial capacity of the node array. Default of 32.
+             * @param nodeCap The initial capacity of the node array. Must be a multiple of 8. Default of 32.
              */
             Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max, int maxElementCapacity = OCT_MAX_CAPACITY,
                     int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32) : maxDepth(maxDepth), maxElementCapacity(maxElementCapacity)
             {
+                if (nodeCap&7) { throw std::runtime_error("NodeCap must be a multiple of 8."); }
+
                 bounds = std::move(AABB(min, max));
                 capacity = nodeCap;
                 count = 0;
@@ -258,9 +270,11 @@ namespace Zeta {
              * @param aabb An AABB representing the region encompassed by the octree.
              * @param maxElementCapacity The maximum number of elements allowed at each leaf node. Default of 16.
              * @param maxDepth The maximum depth of the octree allowed. Default of 8.
-             * @param nodeCap The initial capacity of the node array. Default of 32.
+             * @param nodeCap The initial capacity of the node array. Must be a multiple of 8. Default of 32.
              */
             Octree(AABB const &aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32) {
+                if (nodeCap&7) { throw std::runtime_error("NodeCap must be a multiple of 8."); }
+
                 bounds = aabb;
                 capacity = nodeCap;
                 count = 0;
@@ -276,9 +290,11 @@ namespace Zeta {
              * @param aabb An AABB representing the region encompassed by the octree.
              * @param maxElementCapacity The maximum number of elements allowed at each leaf node. Default of 16.
              * @param maxDepth The maximum depth of the octree allowed. Default of 8.
-             * @param nodeCap The initial capacity of the node array. Default of 32.
+             * @param nodeCap The initial capacity of the node array. Must be a multiple of 8. Default of 32.
              */
             Octree(AABB &&aabb, int maxElementCapacity = OCT_MAX_CAPACITY, int maxDepth = OCT_MAX_DEPTH, int nodeCap = 32) {
+                if (nodeCap&7) { throw std::runtime_error("NodeCap must be a multiple of 8."); }
+                
                 bounds = std::move(aabb);
                 capacity = nodeCap;
                 count = 0;
@@ -305,7 +321,7 @@ namespace Zeta {
                 nodes = new Node[capacity];
                 for (int i = 0; i < count; ++i) { nodes[i] = tree.nodes[i]; }
 
-                elements = tree.elements;
+                // elements = tree.elements;
                 elmNodes = tree.elmNodes;
             };
 
@@ -319,7 +335,7 @@ namespace Zeta {
 
                 bounds = std::move(tree.bounds);
 
-                elements = std::move(tree.elements);
+                // elements = std::move(tree.elements);
                 elmNodes = std::move(tree.elmNodes);
 
                 tree.nodes = nullptr;
@@ -340,7 +356,7 @@ namespace Zeta {
                     nodes = new Node[capacity];
                     for (int i = 0; i < count; ++i) { nodes[i] = tree.nodes[i]; }
 
-                    elements = tree.elements;
+                    // elements = tree.elements;
                     elmNodes = tree.elmNodes;
                 }
 
@@ -360,7 +376,7 @@ namespace Zeta {
 
                     bounds = std::move(tree.bounds);
 
-                    elements = std::move(tree.elements);
+                    // elements = std::move(tree.elements);
                     elmNodes = std::move(tree.elmNodes);
 
                     tree.nodes = nullptr;
@@ -376,13 +392,103 @@ namespace Zeta {
             // * Normal Functions
             // * ===================
 
-            // todo I think we will probs need the id's of the elements
-
             bool contains(ZMath::Vec3D const &point) const;
             int find(ZMath::Vec3D const &point) const;
-            int insert(ZMath::Vec3D const &point);
+
+
+            // todo factor in the free node
+
+            // Insert the given point into the octree.
+            // Returns the index of the element inserted.
+            int insert(ZMath::Vec3D const &point, uint32_t index) {
+                // ? We are guarenteed to have at least the root node by construction.
+                // ? We will then recursively find the leaf node the point is in.
+
+                int region = 0; // start with the root node
+                int depth = 1; // track the depth
+                ZMath::Vec3D center = bounds.pos; // store the centerpoint of the region
+
+                for (;;++depth) {
+                    if (nodes[region].count == -1) { // not a leaf node
+                        // don't store it as a single vector to save on overhead
+                        float x = center.x - point.x;
+                        float y = center.y - point.y;
+                        float z = center.z - point.z;
+
+                        if (point.x < center.x && point.y < center.y && point.z < center.z) { // octant 1
+                            region = nodes[region].firstChild;
+                            center *= 0.5f;
+
+                        } else if (point.x < center.x && point.y >= center.y && point.z < center.z) { // octant 2
+                            region = nodes[region].firstChild + 1;
+                            center.x *= 0.5f;
+                            center.y *= 1.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x < center.x && point.y < center.y && point.z >= center.z) { // octant 3
+                            region = nodes[region].firstChild + 2;
+                            center.x *= 0.5f;
+                            center.y *= 0.5f;
+                            center.z *= 1.5f;
+
+                        } else if (point.x < center.x && point.y >= center.y && point.z >= center.z) { // octant 4
+                            region = nodes[region].firstChild + 3;
+                            center.x *= 0.5f;
+                            center.y *= 1.5f;
+                            center.z *= 1.5f;
+
+                        } else if (point.x >= center.x && point.y < center.y && point.z < center.z) { // octant 5
+                            region = nodes[region].firstChild + 4;
+                            center.x *= 1.5f;
+                            center.y *= 0.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x >= center.x && point.y >= center.y && point.z < center.z) { // octant 6
+                            region = nodes[region].firstChild + 5;
+                            center.x *= 1.5f;
+                            center.y *= 1.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x >= center.x && point.y < center.y && point.z >= center.z) { // octant 7
+                            region = nodes[region].firstChild + 6;
+                            center.x *= 1.5f;
+                            center.y *= 0.5f;
+                            center.z *= 1.5f;
+
+                        } else { // octant 8
+                            region = nodes[region].firstChild + 7;
+                            center *= 1.5f;
+                        }
+
+                    } else { // leaf node
+                        // check if we should expand the tree
+                        if (nodes[region].count >= maxElementCapacity && depth < maxDepth) {
+                            // add the 8 new nodes
+                            if (count >= capacity) { grow(); }
+
+                            // todo setup the portion where I switch which thing is what
+                        }
+
+                        elmNodes.insert({-1, index});
+                        ++(nodes[region].count);
+                    }
+                }
+            };
+
             void remove(ZMath::Vec3D const &point);
-            void clear();
-            bool empty() const;
+
+            // Clear the octree.
+            inline void clear() {
+                delete[] nodes;
+                capacity = 32;
+                count = 0;
+                nodes = new Node[capacity];
+                freeNode = -1;
+                // elements.clear();
+                elmNodes.clear();
+            };
+
+            // Determine if the octree is empty.
+            inline bool empty() const { return !count; };
     };
 }
