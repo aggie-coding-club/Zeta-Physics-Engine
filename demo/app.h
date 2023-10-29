@@ -38,6 +38,9 @@ struct Texture{
 
 struct RawModel{
     unsigned int vao_ID;
+    unsigned int ebo_ID;
+    unsigned int vbo_ID;
+
     unsigned int vertex_count;
 };
 
