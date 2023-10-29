@@ -29,10 +29,31 @@ namespace Zeta {
         // v_2' = v_2 - invMass_2 * J * collisionNormal. Note the - is to account for the direction which the normal is pointing.
         // It's opposite for one of the two objects.
 
-        float J = ((ZMath::abs(rb1->vel - rb2->vel) * -(1 + rb1->cor * rb2->cor)) * manifold.normal)/(rb1->invMass + rb2->invMass);
+        // float J = ((ZMath::abs(rb1->vel - rb2->vel) * -(1 + rb1->cor * rb2->cor)) * manifold.normal)/(rb1->invMass + rb2->invMass);
+
+        // rb1->vel -= manifold.normal * (rb1->invMass * J);
+        // rb2->vel += manifold.normal * (rb2->invMass * J);
+
+        // Using the paper linked, we can get a more general formula for J, which also accounts for the
+        // angular component, however as of writing we do not have intertial tensors coded into our 
+        // primatives, so I will continue impl the math assuming that they will eventually be added
+        // Assuming: 
+        // angle = ang
+        // angle_velocity = angvel
+        // inverse inertial tensor = invInertia
+        
+
+        ZMath::Vec3D r1 = (rb1->pos); // Temp until I know how get world space collision point minus object world space position
+        ZMath::Vec3D r2 = (rb2->pos);
+
+        float J = (ZMath::abs(rb1->vel - rb2->vel) * manifold.normal * -(1 + (rb1->cor * rb2->cor))) 
+            / (rb1->invMass + rb2->invMass + ( rb1->invInertia * r1.cross(manifold.normal).cross(r1) + rb2->invInertia * r2.cross(manifold.normal).cross(r2)) * manifold.normal);
 
         rb1->vel -= manifold.normal * (rb1->invMass * J);
         rb2->vel += manifold.normal * (rb2->invMass * J);
+
+        rb1->av -= rb1->invInertia * r1.cross(J * manifold.normal);
+        rb2->av += rb2->invInertia * r2.cross(J * manifold.normal);
     };
 
     // todo test if this is reasonable for the impulse resolution
