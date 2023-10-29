@@ -28,6 +28,154 @@ void unbind_fbo(){
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
+void unbind_VAO(){
+    glBindVertexArray(0);
+}
+
+unsigned int create_VAO(RendererData *rd){
+    unsigned int result = 0;
+    rd->vaos.push_back(result);
+
+    glGenVertexArrays(1, &result);
+    glBindVertexArray(result);
+
+    return result;
+}
+
+unsigned int createIndicesBuffer(RendererData *rd, int indices[], int indices_size){
+    unsigned int result = 0;
+    glGenBuffers(1, &result);
+
+    rd->vbos.push_back(result);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    return result;
+}
+
+void store_data_in_attribute_list(RendererData *rd, int attribute_num, float data[], int num_of_components, int data_size){
+    unsigned int vbo_ID = 0;
+    glGenBuffers(1, &vbo_ID);
+
+    rd->vbos.push_back(vbo_ID);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_ID);
+    
+    glBufferData(GL_ARRAY_BUFFER, data_size, data, GL_STATIC_DRAW);
+    // Note(Lenny): 2nd param may not hold for other atttribs
+    glVertexAttribPointer(attribute_num, num_of_components, GL_FLOAT, false, 0, 0);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);    
+}
+
+RawModel load_to_VAO(RendererData *rd, VertexData *vertex_data){
+    RawModel result = {};
+    result.vao_ID = create_VAO(rd);
+    result.vertex_count = vertex_data->len_indices;
+
+    result.ebo_ID = createIndicesBuffer(rd, vertex_data->indices, vertex_data->len_indices * sizeof(int));
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.ebo_ID);
+    store_data_in_attribute_list(rd, 0, vertex_data->positions, 3, vertex_data->len_positions * sizeof(float));
+    store_data_in_attribute_list(rd, 1, vertex_data->tex_coords, 3, vertex_data->len_tex_coords * sizeof(float));
+    store_data_in_attribute_list(rd, 2, vertex_data->normals, 3, vertex_data->len_normals * sizeof(float));
+    store_data_in_attribute_list(rd, 3, vertex_data->colors, 3, vertex_data->len_colors * sizeof(float));
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    unbind_VAO();
+    return result;
+}
+
+RawModel create_cube_raw_model(RendererData *rd, ZMath::Vec3D *zeta_cube_verts){
+    RawModel result = {};
+
+    std::vector<float> tex_coords = {
+        0.0 , 0.0, 0.0, 
+        0.0 , 1.0, 0.0, 
+        1.0 , 1.0, 0.0, 
+        1.0 , 0.0, 0.0, 			
+        0.0 , 0.0, 0.0, 
+        0.0 , 1.0, 0.0, 
+        1.0 , 1.0, 0.0, 
+        1.0 , 0.0, 0.0, 			
+        0.0 , 0.0, 0.0, 
+        0.0 , 1.0, 0.0, 
+        1.0 , 1.0, 0.0, 
+        1.0 , 0.0, 0.0, 
+        0.0 , 0.0, 0.0, 
+        0.0 , 1.0, 0.0, 
+        1.0 , 1.0, 0.0, 
+        1.0 , 0.0, 0.0, 
+        0.0 , 0.0, 0.0, 
+        0.0 , 1.0, 0.0, 
+        1.0 , 1.0, 0.0, 
+        1.0 , 0.0, 0.0, 
+        0.0 , 0.0, 0.0, 
+        0.0 , 1.0, 0.0, 
+        1.0 , 1.0, 0.0, 
+        1.0 , 0.0, 0.0
+    };
+
+    HMM_Vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
+    std::vector<float> cube_colors = {
+        // TOP
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+
+        // TOP
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        
+        // TOP
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        
+        // TOP
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        
+        // TOP
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        
+        // TOP
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+        color.X, color.Y, color.Z,
+    };
+
+    VertexData vertex_data = {};
+    vertex_data.positions = new float[3 * 4 * 6 * sizeof(float)]();
+    vertex_data.normals = new float[3 * 4 * 6 * sizeof(float)]();
+    vertex_data.colors = new float[3 * 4 * 6 * sizeof(float)]();
+    vertex_data.indices = new int[3 * 2 * 6 * sizeof(int)]();
+
+    vertex_data.tex_coords = new float[3 * 4 * 6 * sizeof(float)];
+    vertex_data.len_tex_coords = 3 * 4 * 6;
+
+    E_::physics_verts_to_render_verts(zeta_cube_verts, &vertex_data);
+
+    vertex_data.colors = &cube_colors[0];
+    vertex_data.len_colors = vertex_data.len_positions;
+    vertex_data.tex_coords = &tex_coords[0];
+    vertex_data.len_tex_coords = 72;
+    
+    result = load_to_VAO(rd, &vertex_data);
+
+    return result;
+}
+
 ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height){
     ShadowMapFBO result = {};
 
@@ -66,6 +214,8 @@ ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height){
 void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(entity->raw_model.vao_ID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, entity->raw_model.ebo_ID);
+    
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);    
     glEnableVertexAttribArray(2);    
@@ -137,6 +287,8 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glDisable(GL_BLEND);
     glUseProgram(0);

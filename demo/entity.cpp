@@ -27,7 +27,7 @@ namespace E_{
         vertex_data->index += 3;
     }
     
-    static void zeta_verts_to_eq(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
+    void physics_verts_to_render_verts(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
         // TOP
         AddVertexPosition(vertex_data, zeta_verts[4].x, zeta_verts[4].y, zeta_verts[4].z); // front top left
         AddVertexPosition(vertex_data, zeta_verts[7].x, zeta_verts[7].y, zeta_verts[7].z); // front top right
@@ -161,106 +161,6 @@ namespace E_{
         colliderType, collider);
 
         return result;   
-    }
-
-    // call after `add_collider()`
-    void init(Entity *entity){
-                
-        std::vector<float> tex_coords = {
-            0.0 , 0.0, 0.0, 
-            0.0 , 1.0, 0.0, 
-            1.0 , 1.0, 0.0, 
-            1.0 , 0.0, 0.0, 			
-            0.0 , 0.0, 0.0, 
-            0.0 , 1.0, 0.0, 
-            1.0 , 1.0, 0.0, 
-            1.0 , 0.0, 0.0, 			
-            0.0 , 0.0, 0.0, 
-            0.0 , 1.0, 0.0, 
-            1.0 , 1.0, 0.0, 
-            1.0 , 0.0, 0.0, 
-            0.0 , 0.0, 0.0, 
-            0.0 , 1.0, 0.0, 
-            1.0 , 1.0, 0.0, 
-            1.0 , 0.0, 0.0, 
-            0.0 , 0.0, 0.0, 
-            0.0 , 1.0, 0.0, 
-            1.0 , 1.0, 0.0, 
-            1.0 , 0.0, 0.0, 
-            0.0 , 0.0, 0.0, 
-            0.0 , 1.0, 0.0, 
-            1.0 , 1.0, 0.0, 
-            1.0 , 0.0, 0.0
-        };
-
-        HMM_Vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
-        std::vector<float> cube_colors = {
-            // TOP
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-
-            // TOP
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            
-            // TOP
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            
-            // TOP
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            
-            // TOP
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            
-            // TOP
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-            color.X, color.Y, color.Z,
-        };
-
-        VertexData vertex_data = {};
-        vertex_data.positions = new float[3 * 4 * 6 * sizeof(float)]();
-        vertex_data.normals = new float[3 * 4 * 6 * sizeof(float)]();
-        vertex_data.colors = new float[3 * 4 * 6 * sizeof(float)]();
-        vertex_data.indices = new int[3 * 2 * 6 * sizeof(int)]();
-
-        vertex_data.tex_coords = new float[3 * 4 * 6 * sizeof(float)];
-        vertex_data.len_tex_coords = 3 * 4 * 6;
-
-        if(entity->sb){
-            zeta_verts_to_eq(((Zeta::Cube *)entity->sb->collider)->getVertices(), &vertex_data);
-        }else if(entity->rb){
-            zeta_verts_to_eq(((Zeta::Cube *)entity->rb->collider)->getVertices(), &vertex_data);
-        }else{
-            Assert(!"No RigidBody or StaticBody Attached");
-        }
-
-        vertex_data.colors = &cube_colors[0];
-        vertex_data.len_colors = vertex_data.len_positions;
-        vertex_data.tex_coords = &tex_coords[0];
-        vertex_data.len_tex_coords = 72;
-
-        if(entity->sb){
-            ((Zeta::Cube *)(entity->sb->collider))->pos = entity->sb->pos;
-        }else if(entity->rb){
-            ((Zeta::Cube *)(entity->rb->collider))->pos = entity->rb->pos;
-        }
-        
-        entity->raw_model = load_to_VAO(&vertex_data);
     }
 
     void init(Entity *entity, RawModel model){
