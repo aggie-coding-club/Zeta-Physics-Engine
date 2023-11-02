@@ -423,7 +423,7 @@ namespace Zeta {
                 if (ZMath::clamp(point, center - halfsize, center + halfsize) != point) { return 0; }
 
                 int region = 0; // start with the root node
-                ZMath::Vec3D center = center; // centerpoint of the region
+                ZMath::Vec3D center = this->center; // centerpoint of the region
 
                 for (;;) {
                     if (nodes[region].count == -1) { // not a leaf node
@@ -505,7 +505,7 @@ namespace Zeta {
 
                 int region = 0; // start with the root node
                 int depth = 1; // track the depth
-                ZMath::Vec3D center = center; // store the centerpoint of the region
+                ZMath::Vec3D center = this->center; // store the centerpoint of the region
 
                 for (;;++depth) {
                     if (nodes[region].count == -1) { // not a leaf node
@@ -586,7 +586,89 @@ namespace Zeta {
                 }
             };
 
-            void remove(ZMath::Vec3D const &point);
+            // Remove an element from the octree.
+            // Returns 1 if the element was successfully found and removed.
+            bool remove(ZMath::Vec3D const &point, uint32_t index) {
+                // ? Search through each region of the octree until we find the one the point belongs to.
+                // ? Once we find that region, traverse the linked list until we find the matching element.
+            
+                // preliminary check to ensure the point is within the octree's bounds
+                if (ZMath::clamp(point, center - halfsize, center + halfsize) != point) { return 0; }
+
+                int region = 0;
+                ZMath::Vec3D center = this->center;
+
+                for (;;) {
+                    if (nodes[region].count == -1) { // not a leaf node
+                        // * Determine the new region
+
+                        if (point.x < center.x && point.y < center.y && point.z < center.z) { // octant 1
+                            region = nodes[region].firstChild;
+                            center *= 0.5f;
+
+                        } else if (point.x < center.x && point.y >= center.y && point.z < center.z) { // octant 2
+                            region = nodes[region].firstChild + 1;
+                            center.x *= 0.5f;
+                            center.y *= 1.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x < center.x && point.y < center.y && point.z >= center.z) { // octant 3
+                            region = nodes[region].firstChild + 2;
+                            center.x *= 0.5f;
+                            center.y *= 0.5f;
+                            center.z *= 1.5f;
+
+                        } else if (point.x < center.x && point.y >= center.y && point.z >= center.z) { // octant 4
+                            region = nodes[region].firstChild + 3;
+                            center.x *= 0.5f;
+                            center.y *= 1.5f;
+                            center.z *= 1.5f;
+
+                        } else if (point.x >= center.x && point.y < center.y && point.z < center.z) { // octant 5
+                            region = nodes[region].firstChild + 4;
+                            center.x *= 1.5f;
+                            center.y *= 0.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x >= center.x && point.y >= center.y && point.z < center.z) { // octant 6
+                            region = nodes[region].firstChild + 5;
+                            center.x *= 1.5f;
+                            center.y *= 1.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x >= center.x && point.y < center.y && point.z >= center.z) { // octant 7
+                            region = nodes[region].firstChild + 6;
+                            center.x *= 1.5f;
+                            center.y *= 0.5f;
+                            center.z *= 1.5f;
+
+                        } else { // octant 8
+                            region = nodes[region].firstChild + 7;
+                            center *= 1.5f;
+                        }
+
+                    } else { // leaf node
+                        // * Check each element contained within this leaf node.
+                        // * If we find the element to be removed, add it to be freed and return 1.
+
+                        // traverse the singly linked list
+                        for (int32_t i = nodes[region].firstChild; i != -1; i = elmNodes[i].next) {
+                            // todo probs make it so that the freeNode points to the next element to be freed after it
+                            if (elmNodes[i].element == index) {
+                                // we've found our match and have added it to be freed
+                                freeNode = i;
+                                return 1;
+                            }
+                        }
+
+                        return 0; // there is no possible match if this point is reached
+                    }
+                }
+
+                // just for the compiler
+                // this part of the code will never be reached
+                return 0;
+            };
 
             // Clear the octree.
             inline void clear() {
