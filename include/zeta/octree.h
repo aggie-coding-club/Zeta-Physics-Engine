@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+// todo probs change this to a different header
 #include "intersections.h"
 
 // todo determine an ideal value -- for now will have 16 as a placeholder
@@ -171,14 +172,18 @@ namespace Zeta {
             inline T& operator[] (int n) const { return data[n].element; };
     };
 
+    // todo will probs need to increase the size of the ints and uints used to allow for a greater number of objects in Zeta
+
     // Data structure used for 3D spatial partitioning.
     // This Octree only stores indices.
     // It is expected for you to store the list of objects where you use this Octree.
     class Octree {
         private:
             struct Node {
+                // ? We can store firstChild as a uint16_t since the next index in element stores a 32bit int
+
                 // index of the first child if this is a node or the first element if this is a leaf.
-                uint32_t firstChild;
+                uint16_t firstChild;
 
                 // Stores the number of elements in the leaf or -1 if this node is not a leaf.
                 int32_t count;
@@ -392,8 +397,78 @@ namespace Zeta {
             // * Normal Functions
             // * ===================
 
-            bool contains(ZMath::Vec3D const &point) const;
-            int find(ZMath::Vec3D const &point) const;
+            bool contains(ZMath::Vec3D const &point, uint32_t index) const {
+                // ? We go through until we find the region the point would be in.
+                // ? We then check if that point is within the region.
+
+                int region = 0; // start with the root node
+                ZMath::Vec3D center = bounds.pos; // centerpoint of the region
+
+                for (;;) {
+                    if (nodes[region].count == -1) { // not a leaf node
+                        // * Find the next region to search
+
+                        if (point.x < center.x && point.y < center.y && point.z < center.z) { // octant 1
+                            region = nodes[region].firstChild;
+                            center *= 0.5f;
+
+                        } else if (point.x < center.x && point.y >= center.y && point.z < center.z) { // octant 2
+                            region = nodes[region].firstChild + 1;
+                            center.x *= 0.5f;
+                            center.y *= 1.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x < center.x && point.y < center.y && point.z >= center.z) { // octant 3
+                            region = nodes[region].firstChild + 2;
+                            center.x *= 0.5f;
+                            center.y *= 0.5f;
+                            center.z *= 1.5f;
+
+                        } else if (point.x < center.x && point.y >= center.y && point.z >= center.z) { // octant 4
+                            region = nodes[region].firstChild + 3;
+                            center.x *= 0.5f;
+                            center.y *= 1.5f;
+                            center.z *= 1.5f;
+
+                        } else if (point.x >= center.x && point.y < center.y && point.z < center.z) { // octant 5
+                            region = nodes[region].firstChild + 4;
+                            center.x *= 1.5f;
+                            center.y *= 0.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x >= center.x && point.y >= center.y && point.z < center.z) { // octant 6
+                            region = nodes[region].firstChild + 5;
+                            center.x *= 1.5f;
+                            center.y *= 1.5f;
+                            center.z *= 0.5f;
+
+                        } else if (point.x >= center.x && point.y < center.y && point.z >= center.z) { // octant 7
+                            region = nodes[region].firstChild + 6;
+                            center.x *= 1.5f;
+                            center.y *= 0.5f;
+                            center.z *= 1.5f;
+
+                        } else { // octant 8
+                            region = nodes[region].firstChild + 7;
+                            center *= 1.5f;
+                        }
+
+                    } else { // leaf node
+                        // * Since this is a leaf node, we begin our search for the match
+                        
+                        // traverse the singly linked list
+                        for (int32_t i = nodes[region].firstChild; i != -1; i = elmNodes[i].next) {
+                            if (elmNodes[i].element == index) { return 1; } // we've found our match
+                        }
+
+                        return 0; // there is no possible match if this point is reached
+                    }
+                }
+
+                // just for the compiler
+                // the code will never reach this point
+                return 0;
+            };
 
 
             // todo factor in the free node
@@ -410,11 +485,6 @@ namespace Zeta {
 
                 for (;;++depth) {
                     if (nodes[region].count == -1) { // not a leaf node
-                        // don't store it as a single vector to save on overhead
-                        float x = center.x - point.x;
-                        float y = center.y - point.y;
-                        float z = center.z - point.z;
-
                         if (point.x < center.x && point.y < center.y && point.z < center.z) { // octant 1
                             region = nodes[region].firstChild;
                             center *= 0.5f;
@@ -466,8 +536,25 @@ namespace Zeta {
                             // add the 8 new nodes
                             if (count >= capacity) { grow(); }
 
-                            // todo setup the portion where I switch which thing is what
+                            // todo figure out how to split up all of the rbs in the region when it splits
+                            // todo adjust the firstChild and count values for each of the 8 nodes added
+
+                            nodes[count++];
+                            nodes[count++];
+                            nodes[count++];
+                            nodes[count++];
+                            nodes[count++];
+                            nodes[count++];
+                            nodes[count++];
+                            nodes[count++];
+
+                            // todo after figuring out how to split up the region, see if we need the count-8 for nodes[region].firstChild
+
+                            nodes[region].count = -1;
+                            nodes[region].firstChild = count - 8;
                         }
+
+                        // todo make sure this is right
 
                         elmNodes.insert({-1, index});
                         ++(nodes[region].count);
