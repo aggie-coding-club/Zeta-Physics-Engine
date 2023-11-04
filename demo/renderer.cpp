@@ -211,6 +211,58 @@ ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height){
     return result;
 }
 
+void picker_pass_render(RendererData *rd, E_::Entity *entity){
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindVertexArray(entity->raw_model.vao_ID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, entity->raw_model.ebo_ID);
+    
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);    
+    glEnableVertexAttribArray(2);    
+    glEnableVertexAttribArray(3);    
+
+    HMM_Mat4 transformation;
+    if(entity->sb){
+        transformation = HMM_Translate({entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z});
+    } else {
+        transformation = HMM_Translate({entity->rb->pos.x, entity->rb->pos.y, entity->rb->pos.z});
+    }
+    
+    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
+    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
+    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
+    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{entity->scale, entity->scale, entity->scale}));
+    
+    glUseProgram(rd->picker_shader.program);
+    unsigned int u_transform_matrix = get_uniform_location(&rd->picker_shader, (char *)"transformation_matrix");
+    set_uniform_value(u_transform_matrix, transformation);
+
+    if(entity->isTransparent){
+        // disable_culling();
+        
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    
+
+    }else{
+        // enable_culling();
+    }
+
+    unsigned int u_identifier = get_uniform_location(&rd->picker_shader, (char *)"identifier");
+    set_uniform_value(u_identifier, (float)(entity->identifier / 255.0f));
+    
+    glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
+    
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glDisable(GL_BLEND);
+    glUseProgram(0);
+}
+
 void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(entity->raw_model.vao_ID);
@@ -322,6 +374,21 @@ void prepare_renderer(RendererData *rd, Camera *camera){
     glUseProgram(0);
 }
 
+void prepare_picker_renderer(RendererData *rd, Camera *camera){
+    glUseProgram(rd->picker_shader.program);
+
+    rd->view_matrix = create_view_matrix(camera->position, camera->front, camera->world_up); 
+    rd->projection_matrix = create_projection_matrix(rd, WINDOW_WIDTH, WINDOW_HEIGHT);
+    
+    unsigned int u_projection_matrix = get_uniform_location(&rd->main_shader, (char *)"projection_matrix");
+    set_uniform_value(u_projection_matrix, rd->projection_matrix);
+    
+    unsigned int u_view_matrix = get_uniform_location(&rd->main_shader, (char *)"view_matrix");
+    set_uniform_value(u_view_matrix, rd->view_matrix);
+
+    glUseProgram(0);
+}
+
 void prepare_shadow_renderer(RendererData *rd){
     glViewport(0,0, rd->smf.fbo.width, rd->smf.fbo.height);
     glUseProgram(rd->shadow_map_shader.program);
@@ -391,7 +458,7 @@ void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManage
     shadow_pass_render(rd, entity, textures_manager, shader);
 }
 
-void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, TexturesManager *tm){
+void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, TexturesManager *tm, InputManager *im){
     
     #if 0
     prepare_shadow_renderer(rd);
@@ -413,7 +480,26 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     // glReadBuffer(GL_BACK); // reading from backbuffer
     // glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     // glBindTexture(GL_TEXTURE_2D, 0);
+    
+    prepare_picker_renderer(rd, camera);
+    for(int i = 0; i < MAX_ENTITIES; i++){
+        E_::Entity *entity = &entities[i];
+        if(entity->initialized == true){
+            picker_pass_render(rd, entity); 
+        }
+    }
 
+    // Note(Lenny) : Pick idenfifier from currently rendered scene
+    glUseProgram(rd->picker_shader.program);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    float data[4];
+    glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
+    rd->picker_selection = (unsigned int)(data[0] * 255.0f);
+
+    glUseProgram(0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // lighting pass
     prepare_renderer(rd, camera);
@@ -423,5 +509,5 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
             lighting_pass_render(rd, entity, tm, &rd->main_shader); 
         }
     }
-    
+
 }

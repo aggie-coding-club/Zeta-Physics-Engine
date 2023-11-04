@@ -141,8 +141,8 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-
         /* Render here */
+        PrintGLError();
         glEnable(GL_DEPTH_TEST);
         glClearColor(CLEAR_COLOR);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -163,10 +163,12 @@ int main(void)
 
         // * Check for errors to make it easier to debug
         // ! this will be removed in the final build
+#if 0
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR) {
             std::cout << "[Error] " << err << "\n";
         }
+#endif
     }
     #endif
 

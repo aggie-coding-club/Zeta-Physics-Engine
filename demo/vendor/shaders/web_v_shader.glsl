@@ -1,8 +1,10 @@
 #version 330 core
+
 in vec3 position;
 in vec3 tex_coords;
 in vec3 normal;
 in vec3 color;
+in float identifier;
 
 out vec3 f_color;
 out vec3 f_tex_coords;

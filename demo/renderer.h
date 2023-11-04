@@ -23,6 +23,8 @@ struct RendererData{
 
     Shader main_shader;
     Shader shadow_map_shader;
+    Shader picker_shader;
+    unsigned int picker_selection;
     float projection_fov;
 
     HMM_Vec3 main_light_pos;
@@ -161,5 +163,5 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
 void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
 
 void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
-void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, TexturesManager *tm);
+void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, TexturesManager *tm, InputManager *im);
 

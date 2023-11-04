@@ -70,6 +70,23 @@ struct Camera{
     float roll;
 };
 
+struct InputManager{
+    float cursorX;
+    float cursorY;
+    void *window;
+    float dt;
+
+    void *active_ui;
+    void *hot_ui;
+
+    /** layouting
+        does not allow for panels inside panels yet
+    */ 
+    
+    HMM_Vec2 parent_pos;
+};
+
+
 #define Assert(expression) if(!(expression)) {*(int *)0 = 0;}
 
 RawModel load_to_VAO(VertexData *vertex_data);

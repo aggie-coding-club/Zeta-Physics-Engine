@@ -16,7 +16,11 @@ RendererData global_rd = {};
 
 void PrintGLError(){
     int gl_error = glGetError(); 
-    printf("GL Error %i \n", gl_error);
+
+    GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR) {
+        std::cout << "[GL Error] " << err << "\n";
+    }
 }
 
 template <typename Out>
@@ -159,7 +163,6 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
     vertexData.len_tex_coords = texturesArray.size();
 
     RawModel result = load_to_VAO(&global_rd, &vertexData);
-
 
     return result;
 }
@@ -441,6 +444,7 @@ void app_start(void *window){
 
     // >>>>>> Shader Stuff
     // =====================================
+    global_rd.picker_shader.program = load_shaders((char *)"shaders/picker_shader_vs.glsl", (char *)"shaders/picker_shader_fs.glsl");
     global_rd.main_shader.program = load_shaders((char *)"shaders/web_v_shader.glsl", (char *)"shaders/web_f_shader.glsl");
     global_rd.shadow_map_shader.program = load_shaders((char *)"shaders/shadow_map_vs.glsl", (char *)"shaders/shadow_map_fs.glsl"); 
 
@@ -554,13 +558,14 @@ int first_frame = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
     im.dt += dt;
+    GLenum err;
 
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
     birch_10_entity->initialized = false;
     pine_5_entity->initialized = false;
-    render_entities(&global_rd, &camera, &em.entities[0], &textures_manager);  
+    render_entities(&global_rd, &camera, &em.entities[0], &textures_manager, &im);  
     glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
     DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -568,7 +573,7 @@ void app_update(float &time_step, float dt){
     // **************
     int physics_updates = handler.update(time_step);
 
-    if(first_frame < 60){
+    if(first_frame < 0){
         printf("GLOBAL DT : %f ---- DT %f \n", time_step, dt);
 
         printf("---- test entity data ---- \n");
@@ -648,6 +653,17 @@ void app_update(float &time_step, float dt){
         Text(&trm, &im, 0.4f, ground_entity_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 200.0f},  {255.0f, 180.0f, 0.0f});
         Text(&trm, &im, 0.4f, test_entity_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 300.0f},  {255.0f, 180.0f, 0.0f});
     }
+
+    String picker_selection_string = Create_String("Picker ID : ");
+    AddToString(&picker_selection_string, (float)global_rd.picker_selection);
+    Text(&trm, &im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+    
+    String cursor_pos_string = Create_String("Cursor {");
+    AddToString(&cursor_pos_string, (float)im.cursorX);
+    AddToString(&cursor_pos_string, ',');
+    AddToString(&cursor_pos_string, (float)im.cursorY);
+    AddToString(&cursor_pos_string, '}');
+    Text(&trm, &im, 0.4f, cursor_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 375.0f},  {255.0f, 180.0f, 0.0f});
 
     String fps_string = Create_String("F P S : ");
     AddToString(&fps_string, 1 / dt_avg);

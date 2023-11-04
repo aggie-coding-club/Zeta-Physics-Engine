@@ -1,9 +1,9 @@
 #ifndef UI_H
 #include "text.cpp"
 #include "shader.h"
-#include <GLFW/glfw3.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "renderer.h"
+#include <GLFW/glfw3.h>
 
 /** Note (Lenny) : IMGUI by Casey Muratori Notes
 
@@ -65,23 +65,6 @@ bool DoButton(UI_id, text, pos, ...) {
 
 #define BUTTON_WIDTH 220.0
 #define BUTTON_HEIGHT 60.0
-
-struct InputManager{
-    float cursorX;
-    float cursorY;
-    GLFWwindow *window;
-
-    float dt;
-
-    void *active_ui;
-    void *hot_ui;
-
-    /** layouting
-        does not allow for panels inside panels yet
-    */ 
-    
-    HMM_Vec2 parent_pos;
-};
 
 struct Color{
     union {
@@ -314,7 +297,7 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     textPos.Y = ypos + (height / 2.0f) - ((tallest.size.Y * scale) / 2.0f);
 
     HMM_Vec2 pos = {xpos, ypos};
-    int state = glfwGetMouseButton(im->window, GLFW_MOUSE_BUTTON_LEFT);
+    int state = glfwGetMouseButton((GLFWwindow *)im->window, GLFW_MOUSE_BUTTON_LEFT);
 
     if(im->cursorX >= pos.X && im->cursorX <= pos.X + width 
         && (WINDOW_HEIGHT - im->cursorY) >= pos.Y && (WINDOW_HEIGHT - im->cursorY) <= pos.Y + height){
