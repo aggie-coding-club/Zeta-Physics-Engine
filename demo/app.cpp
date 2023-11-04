@@ -554,7 +554,6 @@ float angle = 0.0f;
 float dt_accum = 0.0f;
 float dt_avg = 1.0f;
 int dt_ticks = 0;
-int first_frame = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
     im.dt += dt;
@@ -573,24 +572,6 @@ void app_update(float &time_step, float dt){
     // **************
     int physics_updates = handler.update(time_step);
 
-    if(first_frame < 0){
-        printf("GLOBAL DT : %f ---- DT %f \n", time_step, dt);
-
-        printf("---- test entity data ---- \n");
-        printf("pos     {x : %f, y : %f}\n", test_entity->rb->pos.x, test_entity->rb->pos.y);
-        printf("mass    %f\n", test_entity->rb->mass);
-        printf("cor     %f\n", test_entity->rb->cor);
-        
-        printf("cube pos    {x : %f, y : %f}\n", ((Zeta::Cube *)(test_entity->rb->collider))->pos.x,  ((Zeta::Cube *)(test_entity->rb->collider))->pos.y);
-        printf("cube hs     {x : %f, y : %f}\n", ((Zeta::Cube *)(test_entity->rb->collider))->halfSize.x,  ((Zeta::Cube *)(test_entity->rb->collider))->halfSize.y);
-
-        printf("---- ground entity data ---- \n");
-        printf("pos     {x : %f, y : %f}\n", ground_entity->sb->pos.x, ground_entity->sb->pos.y);
-
-        printf("ground pos    {x : %f, y : %f}\n", ((Zeta::Cube *)(ground_entity->sb->collider))->pos.x,  ((Zeta::Cube *)(ground_entity->sb->collider))->pos.y);
-        printf("ground hs     {x : %f, y : %f}\n", ((Zeta::Cube *)(ground_entity->sb->collider))->halfSize.x,  ((Zeta::Cube *)(ground_entity->sb->collider))->halfSize.y);
-        first_frame++;
-    }
     ZMath::Vec3D normal = {};
     float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(test_entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
     
