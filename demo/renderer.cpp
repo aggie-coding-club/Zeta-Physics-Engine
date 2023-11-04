@@ -491,23 +491,24 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
 
     // Note(Lenny) : Pick idenfifier from currently rendered scene
     glUseProgram(rd->picker_shader.program);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    // glFlush();
+    // glFinish();
+    // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     float data[4];
-    glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
-    rd->picker_selection = (unsigned int)(data[0] * 255.0f);
+    // glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
+    // rd->picker_selection = (unsigned int)(data[0] * 255.0f);
 
     glUseProgram(0);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // lighting pass
-    prepare_renderer(rd, camera);
-    for(int i = 0; i < MAX_ENTITIES; i++){
-        E_::Entity *entity = &entities[i];
-        if(entity->initialized == true){
-            lighting_pass_render(rd, entity, tm, &rd->main_shader); 
-        }
-    }
+    // // lighting pass
+    // prepare_renderer(rd, camera);
+    // for(int i = 0; i < MAX_ENTITIES; i++){
+    //     E_::Entity *entity = &entities[i];
+    //     if(entity->initialized == true){
+    //         lighting_pass_render(rd, entity, tm, &rd->main_shader); 
+    //     }
+    // }
 
 }
