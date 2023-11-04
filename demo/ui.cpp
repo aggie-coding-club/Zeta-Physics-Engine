@@ -214,7 +214,6 @@ void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -233,6 +232,15 @@ void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float
         glBindTexture(GL_TEXTURE_2D, (unsigned int)texture);
     }
 
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 18 * sizeof(float), 0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (GLvoid*)(2 * sizeof(float)));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (GLvoid*)(4 * sizeof(float)));
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (GLvoid*)(10 * sizeof(float)));
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (GLvoid*)(12 * sizeof(float)));
+    glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (GLvoid*)(16 * sizeof(float)));
+    glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (GLvoid*)(17 * sizeof(float)));
+
     glDrawArrays(GL_TRIANGLES, 0, 6);    
     
     glDisableVertexAttribArray(0);
@@ -244,6 +252,7 @@ void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float
     glDisableVertexAttribArray(6);
     glDisableVertexAttribArray(7);
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
