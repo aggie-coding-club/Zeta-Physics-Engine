@@ -249,10 +249,6 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
         // enable_culling();
     }
 
-
-
-#if 0
-
     unsigned int u_texture_1 = get_uniform_location(shader, (char *)"texture_1");
     set_uniform_value(u_texture_1, (int)0);
     unsigned int u_texture_2 = get_uniform_location(shader, (char *)"texture_2");
@@ -278,8 +274,6 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
 
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, rd->smf.shadow_map);
-
-#endif
 
     glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
     

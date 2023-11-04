@@ -138,7 +138,7 @@ namespace E_{
         result->scale = scale;
         result->rotation_x = rotation_x;
         result->rotation_y = rotation_y;
-        result->rotation_z = rotation_z;
+        result->rotation_z = rotation_z; 
 
         result->rb = new Zeta::RigidBody3D(
             {position.X, position.Y, position.Z}, 

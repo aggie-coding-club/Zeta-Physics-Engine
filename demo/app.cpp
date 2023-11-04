@@ -433,7 +433,7 @@ void TempLightMovement(int key, int state){
 }
 
 void app_start(void *window){
-    SetEditMode(1);
+    SetEditMode(0);
 
     printf("Program Started\n");
     textures_manager = TexturesManager();
@@ -469,43 +469,41 @@ void app_start(void *window){
     
     // >>>>>> Entity Stufff
     // ========================================
-    Zeta::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
-    Zeta::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
     
-    test_entity = E_::create_entity(&em, HMM_Vec3{0, 12, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
+    test_entity = E_::create_entity(&em, HMM_Vec3{0, 24, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
 
     test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
     light_entity = E_::create_entity(&em, HMM_Vec3{13, 43, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
         
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
     ground_entity = E_::create_entity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0));
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
     dragon_entity = E_::create_entity(&em, HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     dragon_entity->color = {1.0f, 0.0f, 1.0f};
     dragon_entity->def_texture = TEXTURE_WHITE;
     
     stall_entity = E_::create_entity(&em, HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     stall_entity->color = {1.0f, 1.0f, 1.0f};
     stall_entity->def_texture = TEXTURE_STALL;
 
     test_cube_entity = E_::create_entity(&em, HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
     pine_5_entity = E_::create_entity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     pine_5_entity->isTransparent = true;
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
@@ -514,7 +512,7 @@ void app_start(void *window){
 
     
     birch_10_entity = E_::create_entity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     birch_10_entity->color = {1.0f, 1.0f, 1.0f};
     birch_10_entity->isTransparent = true;
     birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
@@ -540,6 +538,8 @@ void app_start(void *window){
     init(test_cube_entity, test_cube_model);
     init(ground_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)ground_entity->sb->collider)->getVertices())));
 
+    handler.addStaticBody(ground_entity->sb);
+
     SetupTextRenderer(&trm);
     Setup2dRendering(&trm, &textures_manager);
     im.window = (GLFWwindow *)window;
@@ -550,24 +550,14 @@ float angle = 0.0f;
 float dt_accum = 0.0f;
 float dt_avg = 1.0f;
 int dt_ticks = 0;
+int first_frame = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
     im.dt += dt;
 
-    // prepare_renderer(&global_rd, &camera);
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
-    // render(pine_5_entity, &textures_manager, &global_rd.main_shader);
-    // render(birch_10_entity, &textures_manager, &global_rd.main_shader);
-    // prepare_shadow_renderer(&global_rd, &smf);
-    // prepare_renderer(&global_rd, &camera);
-    // render(&global_rd, &smf, &camera, light_entity, &textures_manager, &global_rd.main_shader);    
-    // render(&global_rd, &smf, &camera, test_cube_entity, &textures_manager, &global_rd.main_shader);
-    // render(&global_rd, &smf, &camera, test_entity, &textures_manager, &global_rd.main_shader);
-    // render(&global_rd, &smf, &camera, ground_entity, &textures_manager, &global_rd.main_shader);
-    // render(&global_rd, &smf, &camera, dragon_entity, &textures_manager, &global_rd.main_shader);
-    // render(&global_rd, &smf, &camera, stall_entity, &textures_manager, &global_rd.main_shader);
     birch_10_entity->initialized = false;
     pine_5_entity->initialized = false;
     render_entities(&global_rd, &camera, &em.entities[0], &textures_manager);  
@@ -577,7 +567,25 @@ void app_update(float &time_step, float dt){
     
     // **************
     int physics_updates = handler.update(time_step);
-    
+
+    if(first_frame < 60){
+        printf("GLOBAL DT : %f ---- DT %f \n", time_step, dt);
+
+        printf("---- test entity data ---- \n");
+        printf("pos     {x : %f, y : %f}\n", test_entity->rb->pos.x, test_entity->rb->pos.y);
+        printf("mass    %f\n", test_entity->rb->mass);
+        printf("cor     %f\n", test_entity->rb->cor);
+        
+        printf("cube pos    {x : %f, y : %f}\n", ((Zeta::Cube *)(test_entity->rb->collider))->pos.x,  ((Zeta::Cube *)(test_entity->rb->collider))->pos.y);
+        printf("cube hs     {x : %f, y : %f}\n", ((Zeta::Cube *)(test_entity->rb->collider))->halfSize.x,  ((Zeta::Cube *)(test_entity->rb->collider))->halfSize.y);
+
+        printf("---- ground entity data ---- \n");
+        printf("pos     {x : %f, y : %f}\n", ground_entity->sb->pos.x, ground_entity->sb->pos.y);
+
+        printf("ground pos    {x : %f, y : %f}\n", ((Zeta::Cube *)(ground_entity->sb->collider))->pos.x,  ((Zeta::Cube *)(ground_entity->sb->collider))->pos.y);
+        printf("ground hs     {x : %f, y : %f}\n", ((Zeta::Cube *)(ground_entity->sb->collider))->halfSize.x,  ((Zeta::Cube *)(ground_entity->sb->collider))->halfSize.y);
+        first_frame++;
+    }
     ZMath::Vec3D normal = {};
     float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(test_entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
     
@@ -623,6 +631,22 @@ void app_update(float &time_step, float dt){
         if(Button((void *)3, &im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
             printf("Quit!\n");
         }
+    }else{
+
+        String ground_entity_pos_string = Create_String("Ground E Pos : { ");
+        AddToString(&ground_entity_pos_string,  ((Zeta::Cube *)(ground_entity->sb->collider))->pos.x);
+        AddToString(&ground_entity_pos_string, ',');
+        AddToString(&ground_entity_pos_string,  ((Zeta::Cube *)(ground_entity->sb->collider))->pos.y);
+        AddToString(&ground_entity_pos_string, '}');
+        
+        String test_entity_pos_string = Create_String("Test E Pos : { ");
+        AddToString(&test_entity_pos_string,  ((Zeta::Cube *)(test_entity->rb->collider))->pos.x);
+        AddToString(&test_entity_pos_string, ',');
+        AddToString(&test_entity_pos_string,  ((Zeta::Cube *)(test_entity->rb->collider))->pos.y);
+        AddToString(&test_entity_pos_string, '}');
+        
+        Text(&trm, &im, 0.4f, ground_entity_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 200.0f},  {255.0f, 180.0f, 0.0f});
+        Text(&trm, &im, 0.4f, test_entity_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 300.0f},  {255.0f, 180.0f, 0.0f});
     }
 
     String fps_string = Create_String("F P S : ");
@@ -645,5 +669,10 @@ void clean_up() {
 	for (unsigned int texture : global_rd.textures) {
 		glDeleteTextures(1, &texture);
 	}
+
+    // clean entities
+    for(int i = 0; i < em.index; i++){
+        E_::Entity *e = &em.entities[0];
+    }
 }
 

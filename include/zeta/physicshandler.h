@@ -89,7 +89,7 @@ namespace Zeta {
     // * ========================
 
     class Handler {
-        private:
+        public:
             // * =================
             // * Attributes
             // * =================
@@ -260,23 +260,23 @@ namespace Zeta {
             ~Handler() { // todo could probs combine some of the loops together
                 // If one of the pointers is not NULL, none of them are.
                 if (rbs.rigidBodies) {
-                    for (int i = 0; i < rbs.count; ++i) { delete rbs.rigidBodies[i]; }
-                    delete[] rbs.rigidBodies;
+                    // for (int i = 0; i < rbs.count; ++i) { delete rbs.rigidBodies[i]; }
+                    // delete[] rbs.rigidBodies;
 
-                    // ? Note: we do not need to delete each RigidBody pointer in bodies1 and bodies2 as the main rigidBodies list
-                    // ?       is guarenteed to contain those same pointers.
-                    delete[] rCol.bodies1;
-                    delete[] rCol.bodies2;
+                    // // ? Note: we do not need to delete each RigidBody pointer in bodies1 and bodies2 as the main rigidBodies list
+                    // // ?       is guarenteed to contain those same pointers.
+                    // delete[] rCol.bodies1;
+                    // delete[] rCol.bodies2;
                     
-                    delete[] rsCol.rbs;
-                    delete[] rsCol.sbs;
+                    // delete[] rsCol.rbs;
+                    // delete[] rsCol.sbs;
 
-                    // ? We do not need to check for nullptr for contactPoints as if rCol.count > 0, it is guarenteed manifolds[i].contactPoints != nullptr.
-                    for (int i = 0; i < rCol.count; ++i) { delete[] rCol.manifolds[i].contactPoints; }
-                    delete[] rCol.manifolds;
+                    // // ? We do not need to check for nullptr for contactPoints as if rCol.count > 0, it is guarenteed manifolds[i].contactPoints != nullptr.
+                    // for (int i = 0; i < rCol.count; ++i) { delete[] rCol.manifolds[i].contactPoints; }
+                    // delete[] rCol.manifolds;
 
-                    for (int i = 0; i < rsCol.count; ++i) { delete[] rsCol.manifolds[i].contactPoints; }
-                    delete[] rsCol.manifolds;
+                    // for (int i = 0; i < rsCol.count; ++i) { delete[] rsCol.manifolds[i].contactPoints; }
+                    // delete[] rsCol.manifolds;
                 }
             };
 
@@ -468,7 +468,9 @@ namespace Zeta {
                     clearCollisions();
 
                     // Update our rigidbodies
-                    for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i]->update(g, updateStep); }
+                    for (int i = 0; i < rbs.count; ++i) { 
+                        rbs.rigidBodies[i]->update(g, updateStep); 
+                    }
 
                     dt -= updateStep;
                     ++count;

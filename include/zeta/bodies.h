@@ -120,9 +120,9 @@ namespace Zeta {
 
             ~RigidBody3D() {
                 switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
-                    case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
-                    case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                    // case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
+                    // case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
+                    // case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
                 }
             };
 
@@ -252,10 +252,10 @@ namespace Zeta {
 
             ~StaticBody3D() {
                 switch(colliderType) {
-                    case STATIC_PLANE_COLLIDER:  { delete (Plane*) collider;  break; }
-                    case STATIC_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
-                    case STATIC_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
-                    case STATIC_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                    // case STATIC_PLANE_COLLIDER:  { delete (Plane*) collider;  break; }
+                    // case STATIC_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
+                    // case STATIC_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
+                    // case STATIC_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
                 }
             };
 

@@ -151,9 +151,9 @@ namespace Zeta {
 
     class Cube {
         private:
-            ZMath::Vec3D halfSize;
 
         public:
+            ZMath::Vec3D halfSize;
             ZMath::Vec3D pos; // Centerpoint of the Cube.
             ZMath::Mat3D rot; // Rotate anything from global space to this cube's local space. Cache this value for efficiency.
 
