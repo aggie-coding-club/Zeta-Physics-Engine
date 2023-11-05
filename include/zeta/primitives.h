@@ -118,6 +118,8 @@ namespace Zeta {
         public:
             ZMath::Vec3D pos; // Centerpoint of the AABB.
 
+            inline AABB() {}; // default constructor
+
             /** 
              * @brief Instantiate a 3D unrotated Cube.
              * 
