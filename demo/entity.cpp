@@ -132,7 +132,7 @@ namespace E_{
 
     Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
-        Entity *result = &em->entities[em->index++];
+        Entity *result = &em->entities[++em->index];
         result->initialized = true;
         result->identifier = em->index * 25.0f;
 
@@ -150,7 +150,7 @@ namespace E_{
 
     Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
-        Entity *result = &em->entities[em->index++];
+        Entity *result = &em->entities[++em->index];
         result->initialized = true;
         result->identifier = em->index * 25.0f;
 
@@ -168,6 +168,17 @@ namespace E_{
 
     void init(Entity *entity, RawModel model){
         entity->raw_model = model;
+    }
+
+    Entity *get_entity(EntityManager *em, unsigned int identifier){
+        Entity *result = 0;
+        for(int i = 0; i < em->index; i++){
+            if(em->entities[i].identifier == identifier){
+                result = &em->entities[i];
+            }
+        }
+
+        return result;
     }
 
     static void add_collider(Entity *entity, Zeta::RigidBodyCollider colliderType, void *collider){

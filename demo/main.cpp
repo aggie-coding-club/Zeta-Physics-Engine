@@ -51,6 +51,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+        GameInputMouse(button, GLFW_PRESS);
+    }else if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+        GameInputMouse(button, GLFW_RELEASE);
+    }
+}
+
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     SetCursorPosition((float)xpos, (float)ypos);
@@ -116,6 +125,7 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback); 
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
    
     #ifdef __EMSCRIPTEN__
     #else

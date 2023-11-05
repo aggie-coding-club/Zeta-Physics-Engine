@@ -39,6 +39,7 @@ namespace E_{
             float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider);
 
     void init(Entity *entity, RawModel model);
+    Entity *get_entity(EntityManager *em, unsigned int identifier);
 
     // order matters
     void add_texture(Entity *entity, unsigned int texture);

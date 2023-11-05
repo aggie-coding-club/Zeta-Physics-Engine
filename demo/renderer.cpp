@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include <GLFW/glfw3.h>
 
 HMM_Mat4 create_projection_matrix(RendererData *rd, int width, int height){
     HMM_Mat4 result = {};
@@ -246,8 +247,8 @@ void picker_pass_render(RendererData *rd, E_::Entity *entity){
         // enable_culling();
     }
 
-    // unsigned int u_identifier = get_uniform_location(&rd->picker_shader, (char *)"identifier");
-    // set_uniform_value(u_identifier, (float)(entity->identifier / 255.0f));
+    unsigned int u_identifier = get_uniform_location(&rd->picker_shader, (char *)"identifier");
+    set_uniform_value(u_identifier, (float)(entity->identifier / 255.0f));
     
     glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
     
@@ -488,25 +489,62 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     }
 
     // Note(Lenny) : Pick idenfifier from currently rendered scene
-    // glUseProgram(rd->picker_shader.program);
+    glUseProgram(rd->picker_shader.program);
     // glFlush();
     // glFinish();
-    // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    float data[4];
-    // glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
-    // rd->picker_selection = (unsigned int)(data[0] * 255.0f);
 
-    // glUseProgram(0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    float data[4] = {};
 
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // // lighting pass
-    // prepare_renderer(rd, camera);
-    // for(int i = 0; i < MAX_ENTITIES; i++){
-    //     E_::Entity *entity = &entities[i];
-    //     if(entity->initialized == true){
-    //         lighting_pass_render(rd, entity, tm, &rd->main_shader); 
-    //     }
+    // if(im->left_click){
+    //     printf("printing\n");
     // }
+    int state = glfwGetMouseButton((GLFWwindow *)im->window, GLFW_MOUSE_BUTTON_LEFT);
+
+    glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
+    unsigned int selection = (unsigned int)(data[0] * 255.0f);
+    // NOTE (Lenny) : hot entity does not reset when cursor is moved, let go, and brought up
+    if(selection > 0){
+
+        if(!im->active_entity){
+
+            im->hot_entity = selection;
+    
+            if(im->left_press){
+                im->active_entity = selection;
+            }
+
+        }else{
+            if(im->active_entity == selection){
+                if (im->left_release){
+                    im->active_entity = 0;
+
+                    rd->picker_selection = selection;
+                }
+            }
+        }
+        
+    } else {
+        if(im->left_release){
+            if(im->active_entity == selection){
+                im->active_entity = 0;
+            }
+
+            im->hot_entity = 0;
+        }
+    }
+
+    glUseProgram(0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // lighting pass
+    prepare_renderer(rd, camera);
+    for(int i = 0; i < MAX_ENTITIES; i++){
+        E_::Entity *entity = &entities[i];
+        if(entity->initialized == true){
+            lighting_pass_render(rd, entity, tm, &rd->main_shader); 
+        }
+    }
 
 }

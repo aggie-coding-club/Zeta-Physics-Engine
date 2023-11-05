@@ -419,6 +419,20 @@ void GameInputCamera(int key, int state){
     }
 }
 
+void GameInputMouse(int button, int action){
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+        im.left_click = true;
+
+        im.left_press = true;
+        im.left_release = false;
+    }if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+        im.left_click = false;
+        
+        im.left_release = true;
+        im.left_press = false;
+    }
+}
+
 void TempLightMovement(int key, int state){
     if(key == GLFW_KEY_LEFT){
         printf("right,...\n");
@@ -618,33 +632,61 @@ void app_update(float &time_step, float dt){
             printf("Quit!\n");
         }
     }else{
-
-        String ground_entity_pos_string = Create_String("Ground E Pos : { ");
-        AddToString(&ground_entity_pos_string,  ((Zeta::Cube *)(ground_entity->sb->collider))->pos.x);
-        AddToString(&ground_entity_pos_string, ',');
-        AddToString(&ground_entity_pos_string,  ((Zeta::Cube *)(ground_entity->sb->collider))->pos.y);
-        AddToString(&ground_entity_pos_string, '}');
         
-        String test_entity_pos_string = Create_String("Test E Pos : { ");
-        AddToString(&test_entity_pos_string,  ((Zeta::Cube *)(test_entity->rb->collider))->pos.x);
-        AddToString(&test_entity_pos_string, ',');
-        AddToString(&test_entity_pos_string,  ((Zeta::Cube *)(test_entity->rb->collider))->pos.y);
-        AddToString(&test_entity_pos_string, '}');
-        
-        Text(&trm, &im, 0.4f, ground_entity_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 200.0f},  {255.0f, 180.0f, 0.0f});
-        Text(&trm, &im, 0.4f, test_entity_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 300.0f},  {255.0f, 180.0f, 0.0f});
     }
 
     String picker_selection_string = Create_String("Picker ID : ");
     AddToString(&picker_selection_string, (float)global_rd.picker_selection);
     Text(&trm, &im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
     
+    // --------- Draw Selected Entity Data
+    E_::Entity *selected_entity = E_::get_entity(&em, global_rd.picker_selection);
+    if(selected_entity && global_rd.picker_selection > 0){  
+        
+        HMM_Vec2 entity_panel_size = {200.0f, 300.0f};
+        HMM_Vec2 entity_panel_pos = {WINDOW_WIDTH - 250.0F, WINDOW_HEIGHT - 200.0f}; // top left
+
+        float padding = 30.0f;
+
+        DrawRect(&trm, {entity_panel_pos.X, entity_panel_pos.Y - entity_panel_size.Y}, entity_panel_size.X, entity_panel_size.Y, {255.0f, 100.0f, 0.0f, 255.0f});
+
+        Text(&trm, &im, 0.4f, Create_String("ENTITY DATA"), {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        entity_panel_pos.Y -= padding;
+        
+        String entity_identifier_str = Create_String("Identifier : ");
+        AddToString(&entity_identifier_str,  (float)selected_entity->identifier);
+
+        Text(&trm, &im, 0.4f, entity_identifier_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        entity_panel_pos.Y -= padding;
+
+        String entity_pos_str = Create_String("Pos : { ");
+        HMM_Vec3 pos = {};
+        if(selected_entity->rb){
+
+            pos = {selected_entity->rb->pos.x, selected_entity->rb->pos.y, selected_entity->rb->pos.z}; 
+        }else if(selected_entity->sb){
+            pos = {selected_entity->sb->pos.x, selected_entity->sb->pos.y, selected_entity->sb->pos.z};
+        }else{
+            Assert(!"Entity has no collider!");
+        }
+        AddToString(&entity_pos_str, pos.X);
+        AddToString(&entity_pos_str, ',');
+        AddToString(&entity_pos_str,  pos.Y);
+        AddToString(&entity_pos_str, ',');
+        AddToString(&entity_pos_str,  pos.Z);
+        AddToString(&entity_pos_str, '}');
+        
+        Text(&trm, &im, 0.4f, entity_pos_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+    }
+
+#if 0
     String cursor_pos_string = Create_String("Cursor {");
     AddToString(&cursor_pos_string, (float)im.cursorX);
     AddToString(&cursor_pos_string, ',');
     AddToString(&cursor_pos_string, (float)im.cursorY);
     AddToString(&cursor_pos_string, '}');
     Text(&trm, &im, 0.4f, cursor_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 375.0f},  {255.0f, 180.0f, 0.0f});
+#endif
 
     String fps_string = Create_String("F P S : ");
     AddToString(&fps_string, 1 / dt_avg);

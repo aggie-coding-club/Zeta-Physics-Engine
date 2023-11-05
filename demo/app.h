@@ -79,6 +79,13 @@ struct InputManager{
     void *active_ui;
     void *hot_ui;
 
+    unsigned int active_entity;
+    unsigned int hot_entity;
+    
+    bool left_click;
+    bool left_press;
+    bool left_release;
+
     /** layouting
         does not allow for panels inside panels yet
     */ 
@@ -96,6 +103,7 @@ void ShowCursor(float x, float y);
 void HideCursor(float x, float y);
 
 void GameInputCamera(int key, int state);
+void GameInputMouse(int button, int action);
 void SetCursorPosition(float x, float y);
 void SetScroll(float x_offset, float y_offset);
 
