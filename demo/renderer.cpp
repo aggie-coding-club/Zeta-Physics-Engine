@@ -212,7 +212,6 @@ ShadowMapFBO create_shadow_map(unsigned int width, unsigned int height){
 }
 
 void picker_pass_render(RendererData *rd, E_::Entity *entity){
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(entity->raw_model.vao_ID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, entity->raw_model.ebo_ID);
     
@@ -247,8 +246,8 @@ void picker_pass_render(RendererData *rd, E_::Entity *entity){
         // enable_culling();
     }
 
-    unsigned int u_identifier = get_uniform_location(&rd->picker_shader, (char *)"identifier");
-    set_uniform_value(u_identifier, (float)(entity->identifier / 255.0f));
+    // unsigned int u_identifier = get_uniform_location(&rd->picker_shader, (char *)"identifier");
+    // set_uniform_value(u_identifier, (float)(entity->identifier / 255.0f));
     
     glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
     
@@ -264,7 +263,6 @@ void picker_pass_render(RendererData *rd, E_::Entity *entity){
 }
 
 void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(entity->raw_model.vao_ID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, entity->raw_model.ebo_ID);
     
@@ -380,10 +378,10 @@ void prepare_picker_renderer(RendererData *rd, Camera *camera){
     rd->view_matrix = create_view_matrix(camera->position, camera->front, camera->world_up); 
     rd->projection_matrix = create_projection_matrix(rd, WINDOW_WIDTH, WINDOW_HEIGHT);
     
-    unsigned int u_projection_matrix = get_uniform_location(&rd->main_shader, (char *)"projection_matrix");
+    unsigned int u_projection_matrix = get_uniform_location(&rd->picker_shader, (char *)"projection_matrix");
     set_uniform_value(u_projection_matrix, rd->projection_matrix);
     
-    unsigned int u_view_matrix = get_uniform_location(&rd->main_shader, (char *)"view_matrix");
+    unsigned int u_view_matrix = get_uniform_location(&rd->picker_shader, (char *)"view_matrix");
     set_uniform_value(u_view_matrix, rd->view_matrix);
 
     glUseProgram(0);
@@ -490,7 +488,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     }
 
     // Note(Lenny) : Pick idenfifier from currently rendered scene
-    glUseProgram(rd->picker_shader.program);
+    // glUseProgram(rd->picker_shader.program);
     // glFlush();
     // glFinish();
     // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -498,7 +496,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     // glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
     // rd->picker_selection = (unsigned int)(data[0] * 255.0f);
 
-    glUseProgram(0);
+    // glUseProgram(0);
 
     // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
