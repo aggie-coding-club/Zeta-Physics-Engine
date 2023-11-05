@@ -654,6 +654,8 @@ namespace Zeta {
                         // traverse the singly linked list
                         for (int32_t i = nodes[region].firstChild; i != -1; i = elmNodes[i].next) {
                             // todo probs make it so that the freeNode points to the next element to be freed after it
+                            // todo update this guy accordingly
+
                             if (elmNodes[i].element == index) {
                                 // we've found our match and have added it to be freed
                                 freeNode = i;
