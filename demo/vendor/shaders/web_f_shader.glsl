@@ -20,6 +20,8 @@ uniform vec3 light_direction;
 uniform vec3 light_color;
 uniform vec3 light_position;
 uniform vec3 camera_position;
+uniform bool highlighted;
+uniform bool selected;
 
 uniform float specular_strength;
 uniform float reflectivity;
@@ -73,5 +75,13 @@ void main(void){
         }
     } else {
         out_color = vec4(f_current_position.x, f_current_position.y, f_current_position.z, 1.0); // just a debug color
+    }
+
+    if(selected){
+        out_color = vec4(1.0, 0.0, 0.0, 1.0);
+    }
+    
+    if(highlighted){
+        out_color = vec4(1.0, 1.0, 0.0, 1.0);
     }
 }

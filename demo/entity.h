@@ -8,6 +8,8 @@
 namespace E_{
     struct Entity{
         bool initialized;
+        bool highlighted;
+        bool selected;
         unsigned int identifier; // Starting with 1, Ending with 255
         RawModel raw_model;
         unsigned int def_texture;

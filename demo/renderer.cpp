@@ -308,6 +308,19 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
     set_uniform_value(u_texture_3, (int)2);
     unsigned int u_texture_4 = get_uniform_location(shader, (char *)"texture_4");
     set_uniform_value(u_texture_4, (int)3);
+    unsigned int u_highlighted = get_uniform_location(shader, (char *)"highlighted");
+    if(entity->highlighted){
+        set_uniform_value(u_highlighted, true);
+    }else{
+        set_uniform_value(u_highlighted, false);
+    }
+    
+    unsigned int u_selected = get_uniform_location(shader, (char *)"selected");
+    if(entity->selected){
+        set_uniform_value(u_selected, true);
+    }else{
+        set_uniform_value(u_selected, false);
+    }
     // unsigned int u_texture_shadow_map = get_uniform_location(shader, (char *)"texture_shadow_map");
     // set_uniform_value(u_texture_shadow_map, (int)5);
 
@@ -457,13 +470,13 @@ void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManage
     shadow_pass_render(rd, entity, textures_manager, shader);
 }
 
-void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, TexturesManager *tm, InputManager *im){
+void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, TexturesManager *tm, InputManager *im){
     
     #if 0
     prepare_shadow_renderer(rd);
     // // shadow pass
     for(int i = 0; i < MAX_ENTITIES; i++){
-        E_::Entity *entity = &entities[i];
+        E_::Entity *entity = &em->entities[i];
         if(entity->initialized == true){
             shadow_pass_render(rd, entity, tm, &rd->main_shader);
         }
@@ -482,7 +495,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     
     prepare_picker_renderer(rd, camera);
     for(int i = 0; i < MAX_ENTITIES; i++){
-        E_::Entity *entity = &entities[i];
+        E_::Entity *entity = &em->entities[i];
         if(entity->initialized == true){
             picker_pass_render(rd, entity); 
         }
@@ -500,17 +513,29 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     //     printf("printing\n");
     // }
     int state = glfwGetMouseButton((GLFWwindow *)im->window, GLFW_MOUSE_BUTTON_LEFT);
-
+    static unsigned int prev_highlight= 0;
     glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
     unsigned int selection = (unsigned int)(data[0] * 255.0f);
     // NOTE (Lenny) : hot entity does not reset when cursor is moved, let go, and brought up
     if(selection > 0){
+        if(selection != prev_highlight){
+            E_::Entity *highlighted_entity = E_::get_entity(em, prev_highlight);
+            if(highlighted_entity){
+                highlighted_entity->highlighted = false;
+            }
+            highlighted_entity = E_::get_entity(em, selection);
+            if(highlighted_entity){
+                highlighted_entity->highlighted = true;
+            }
+        }
 
         if(!im->active_entity){
 
             im->hot_entity = selection;
     
             if(im->left_press){
+                
+                // E_::Entity *highlighted = E_::get_entity(em, selection);
                 im->active_entity = selection;
             }
 
@@ -518,8 +543,12 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
             if(im->active_entity == selection){
                 if (im->left_release){
                     im->active_entity = 0;
-
+                    
+                    E_::Entity *selected_entity = E_::get_entity(em, rd->picker_selection);
+                    selected_entity->highlighted = false;
                     rd->picker_selection = selection;
+                    selected_entity = E_::get_entity(em, rd->picker_selection);
+                    selected_entity->highlighted = true;
                 }
             }
         }
@@ -534,6 +563,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
         }
     }
 
+    prev_highlight = selection;
     glUseProgram(0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -541,7 +571,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, Tex
     // lighting pass
     prepare_renderer(rd, camera);
     for(int i = 0; i < MAX_ENTITIES; i++){
-        E_::Entity *entity = &entities[i];
+        E_::Entity *entity = &em->entities[i];
         if(entity->initialized == true){
             lighting_pass_render(rd, entity, tm, &rd->main_shader); 
         }

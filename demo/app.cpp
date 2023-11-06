@@ -295,6 +295,9 @@ E_::Entity *stall_entity = 0;
 E_::Entity *test_cube_entity = 0;
 E_::Entity *pine_5_entity = 0;
 E_::Entity *birch_10_entity = 0;
+E_::Entity *debug_xmover_entity = 0;
+E_::Entity *debug_ymover_entity = 0;
+E_::Entity *debug_zmover_entity = 0;
 
 E_::EntityManager em = {};
 
@@ -487,7 +490,22 @@ void app_start(void *window){
     
     // >>>>>> Entity Stufff
     // ========================================
-    
+    ZMath::Vec3D debug_movers_halfsize = {8.0f, 0.5f, 0.5f};
+    debug_xmover_entity = create_entity(&em, HMM_Vec3{0, 30.0f, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube(-debug_movers_halfsize, {debug_movers_halfsize.x, debug_movers_halfsize.y, debug_movers_halfsize.z}, 0.0f, 0.0f));
+    debug_xmover_entity->color = {1.0f, 0.0, 0.0f};
+    debug_xmover_entity->def_texture = TEXTURE_WHITE;
+
+    debug_ymover_entity = create_entity(&em, HMM_Vec3{0, 30.0f, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube(-ZMath::Vec3D{debug_movers_halfsize.y, debug_movers_halfsize.x, debug_movers_halfsize.z}, {debug_movers_halfsize.y, debug_movers_halfsize.x, debug_movers_halfsize.z}, 0.0f, 0.0f));
+    debug_ymover_entity->color = {0.0f, 1.0, 0.0f};
+    debug_ymover_entity->def_texture = TEXTURE_WHITE;
+
+    debug_zmover_entity = create_entity(&em, HMM_Vec3{0, 30.0f, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube(-ZMath::Vec3D{debug_movers_halfsize.y, debug_movers_halfsize.z, debug_movers_halfsize.x}, {debug_movers_halfsize.y, debug_movers_halfsize.z, debug_movers_halfsize.x}, 0.0f, 0.0f));
+    debug_zmover_entity->color = {0.0f, 0.0, 1.0f};
+    debug_zmover_entity->def_texture = TEXTURE_WHITE;
+
     test_entity = E_::create_entity(&em, HMM_Vec3{0, 24, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
 
@@ -555,6 +573,9 @@ void app_start(void *window){
     init(light_entity, test_cube_model);
     init(test_cube_entity, test_cube_model);
     init(ground_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)ground_entity->sb->collider)->getVertices())));
+    init(debug_xmover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_xmover_entity->sb->collider)->getVertices())));
+    init(debug_ymover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_ymover_entity->sb->collider)->getVertices())));
+    init(debug_zmover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_zmover_entity->sb->collider)->getVertices())));
 
     handler.addStaticBody(ground_entity->sb);
 
@@ -578,7 +599,7 @@ void app_update(float &time_step, float dt){
     // ************
     birch_10_entity->initialized = false;
     pine_5_entity->initialized = false;
-    render_entities(&global_rd, &camera, &em.entities[0], &textures_manager, &im);  
+    render_entities(&global_rd, &camera, &em, &textures_manager, &im);  
     glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
     DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -631,6 +652,8 @@ void app_update(float &time_step, float dt){
         if(Button((void *)3, &im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
             printf("Quit!\n");
         }
+
+
     }else{
         
     }
@@ -662,7 +685,6 @@ void app_update(float &time_step, float dt){
         String entity_pos_str = Create_String("Pos : { ");
         HMM_Vec3 pos = {};
         if(selected_entity->rb){
-
             pos = {selected_entity->rb->pos.x, selected_entity->rb->pos.y, selected_entity->rb->pos.z}; 
         }else if(selected_entity->sb){
             pos = {selected_entity->sb->pos.x, selected_entity->sb->pos.y, selected_entity->sb->pos.z};
