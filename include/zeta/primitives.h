@@ -204,4 +204,45 @@ namespace Zeta {
                 return v;
             }; 
     };
+    
+    class TriangularPyramid {
+        private: 
+            float radius; // distance from the centerpoint to a vertex
+            // Constants that help with calculating vertices
+            const float c1 = 0.6123724357f; // (sqrt(3)/(2*sqrt(2)))
+            const float c2 = 0.5929270613f; // (3*sqrt(5)/(8*sqrt(2)))
+            const float c3 = 0.1530931089f; // (sqrt(3)/(8*sqrt(2)))
+            const float c4 = 0.2964635306f; // (3*sqrt(5)/(16*sqrt(2)))
+        public:
+            ZMath::Vec3D pos; // Center point
+            ZMath::Mat3D rot; // Rotation matrix
+
+            float sideLength; // Side length, all side lengths are the same in a triangular pyramid
+            float theta; // Angle with respect to the XY plane in degrees, is 0 when single point points +x
+            float phi; // Angle with respect to XZ plane in degrees, pyramid points straight up in +z direction by default
+
+            // @param ctr center point; equidistant from all vertices
+            // @param sl side length; all side lengths are equal
+            // @param th angle with respect to the XY plane
+            // @param f angle with respect to the XZ plane
+            TriangularPyramid(ZMath::Vec3D const &ctr, float sl, float th = 0.0f, float f = 0.0f): theta(th), phi(f), sideLength(sl) {
+                this->pos = ctr;
+                this->radius = c1 * sl;
+                this->rot = ZMath::Mat3D::generateRotationMatrix(th, f);
+            };
+            // Returns all 4 vertices of the tetrahedron in global coordinates
+            // Must use delete[] to free memory used by the value returned
+            ZMath::Vec3D* getVertices() const {
+                ZMath::Vec3D* v = new ZMath::Vec3D[4];
+                v[0] = ZMath::Vec3D(pos.x, pos.y, pos.z + (c1 * this->sideLength));
+                v[1] = ZMath::Vec3D(pos.x + (c2 * this->sideLength), pos.y, pos.z - (c3 * this->sideLength));
+                v[2] = ZMath::Vec3D(pos.x - (c4 * this->sideLength), pos.y - (0.5 * this->sideLength), pos.z - (c3 * this->sideLength));
+                v[3] = ZMath::Vec3D(pos.x - (c4 * this->sideLength), pos.y + (0.5 * this->sideLength), pos.z - (c3 * this->sideLength));
+                // Applies rotation to each vertex
+                for(int i = 0; i < 4; ++i) {
+                    v[i] = pos + (rot * v[i]);
+                }
+                return v;
+            };
+    };
 } // namespace Primitives
