@@ -76,12 +76,12 @@ void main(void){
     } else {
         out_color = vec4(f_current_position.x, f_current_position.y, f_current_position.z, 1.0); // just a debug color
     }
-
-    if(selected){
-        out_color = vec4(1.0, 0.0, 0.0, 1.0);
-    }
     
     if(highlighted){
-        out_color = vec4(1.0, 1.0, 0.0, 1.0);
+        out_color = mix(out_color, vec4(1.0, 1.0, 0.0, 1.0), 0.25);
+    }
+    
+    if(selected){
+        out_color = mix(out_color, vec4(1.0, 0.0, 0.0, 1.0), 0.25);
     }
 }

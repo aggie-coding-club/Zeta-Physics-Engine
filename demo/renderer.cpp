@@ -503,17 +503,11 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
 
     // Note(Lenny) : Pick idenfifier from currently rendered scene
     glUseProgram(rd->picker_shader.program);
-    // glFlush();
-    // glFinish();
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     float data[4] = {};
 
-    // if(im->left_click){
-    //     printf("printing\n");
-    // }
     int state = glfwGetMouseButton((GLFWwindow *)im->window, GLFW_MOUSE_BUTTON_LEFT);
-    static unsigned int prev_highlight = 0;
     static bool moving = false;
     static HMM_Vec2 original_pos = {};
     static HMM_Vec2 cursor_initial_pos = {};
@@ -521,59 +515,58 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
     glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
     unsigned int selection = (unsigned int)(data[0] * 255.0f);
 
-    static E_::Entity *selected_entity = 0;
     static HMM_Vec3 original_entity_pos = {};
 
-    // NOTE (Lenny) : hot entity does not reset when cursor is moved, let go, and brought up
-    if(selection > 0){
-        if(selection != prev_highlight){
-            E_::Entity *highlighted_entity = E_::get_entity(em, prev_highlight);
-            if(highlighted_entity){
-                highlighted_entity->highlighted = false;
-            }
-            highlighted_entity = E_::get_entity(em, selection);
-            if(highlighted_entity){
-                highlighted_entity->highlighted = true;
-            }
+    static E_::Entity *prev_highlighted_entity = 0;
+    E_::Entity *highlighted_entity = E_::get_entity(em, selection);
+
+    if(((highlighted_entity == prev_highlighted_entity) || (highlighted_entity && (!prev_highlighted_entity))) && highlighted_entity){
+
+        if((highlighted_entity != im->hot_entity) && im->hot_entity){
+            ((E_::Entity *)im->hot_entity)->highlighted = false;
         }
 
-        if(!im->active_entity){
+        im->hot_entity = highlighted_entity;
+        ((E_::Entity *)im->hot_entity)->highlighted = true;
 
-            im->hot_entity = selection;
-    
+        if(!im->active_entity){
+            im->hot_entity = highlighted_entity;
+
             if(im->left_press){
-                
-                // E_::Entity *highlighted = E_::get_entity(em, selection);
-                im->active_entity = selection;
-                cursor_initial_pos = {(float)im->cursorX, (float)im->cursorY};
-                selected_entity = get_entity(em, selection);
-                original_entity_pos = {selected_entity->sb->pos.x, selected_entity->sb->pos.y, selected_entity->sb->pos.z};
-                moving = true;
+                im->active_entity = highlighted_entity;
             }
 
         }else{
-            if(im->active_entity == selection){
+            
+            if(im->active_entity == highlighted_entity){
                 if (im->left_release){
-                    im->active_entity = 0;
+                    if(im->selected_entity){
+                        ((E_::Entity *)im->selected_entity)->selected = false;
+                    }
                     
-                    E_::Entity *selected_entity = E_::get_entity(em, rd->picker_selection);
-                    selected_entity->highlighted = false;
-                    rd->picker_selection = selection;
-                    selected_entity = E_::get_entity(em, rd->picker_selection);
-                    selected_entity->highlighted = true;
+                    im->selected_entity = im->active_entity;
+                    ((E_::Entity *)im->selected_entity)->selected = true;
+
+                    im->active_entity = 0;
                 }
             }
         }
+
         
     } else {
         if(im->left_release){
-            if(im->active_entity == selection){
+            if(im->active_entity == highlighted_entity){
                 im->active_entity = 0;
             }
-            
-            im->hot_entity = 0;
+
+            if(im->hot_entity){
+                ((E_::Entity *)im->hot_entity)->highlighted = false;
+                im->hot_entity = 0;
+            }
         }
     }
+
+    prev_highlighted_entity = highlighted_entity;
 
     if(im->left_release){
         moving = false;
@@ -582,13 +575,15 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
     float cursor_magnitude = HMM_SQRTF(HMM_SQUARE(cursor_current_pos.X - cursor_initial_pos.X) + HMM_SQUARE(cursor_current_pos.Y - cursor_initial_pos.Y));
     HMM_Vec2 unit_vector = {(cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude, (cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude};
 
-    if(moving && selected_entity){
-        
-        selected_entity->sb->pos = {original_entity_pos.X + cursor_magnitude * unit_vector.X * (-1), original_entity_pos.Y, original_entity_pos.Z};
+    if(moving && im->selected_entity){
+        if(((E_::Entity *)im->selected_entity)->rb){
+            ((E_::Entity *)im->selected_entity)->rb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
+        } else if(((E_::Entity *)im->selected_entity)->sb){
+            ((E_::Entity *)im->selected_entity)->sb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
+        }
     }
-    printf("{x : %f, y : %f}\n", unit_vector.X, unit_vector.Y);
+    // printf("{x : %f, y : %f}\n", unit_vector.X, unit_vector.Y);
 
-    prev_highlight = selection;
     glUseProgram(0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

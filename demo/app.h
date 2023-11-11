@@ -79,8 +79,9 @@ struct InputManager{
     void *active_ui;
     void *hot_ui;
 
-    unsigned int active_entity;
-    unsigned int hot_entity;
+    void *active_entity;
+    void *hot_entity;
+    void *selected_entity;
     
     bool left_click;
     bool left_press;

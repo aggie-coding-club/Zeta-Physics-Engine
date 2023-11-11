@@ -669,8 +669,8 @@ void app_update(float &time_step, float dt){
     Text(&trm, &im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
     
     // --------- Draw Selected Entity Data
-    E_::Entity *selected_entity = E_::get_entity(&em, global_rd.picker_selection);
-    if(selected_entity && global_rd.picker_selection > 0){  
+    E_::Entity *selected_entity = (E_::Entity *)im.selected_entity;
+    if(selected_entity){  
         
         HMM_Vec2 entity_panel_size = {200.0f, 300.0f};
         HMM_Vec2 entity_panel_pos = {WINDOW_WIDTH - 250.0F, WINDOW_HEIGHT - 200.0f}; // top left
