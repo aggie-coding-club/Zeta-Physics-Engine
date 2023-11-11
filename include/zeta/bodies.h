@@ -23,6 +23,15 @@ namespace Zeta {
         STATIC_NONE
     };
 
+    enum KinematicBodyCollider {
+        KINEMATIC_SPHERE_COLLIDER,
+        KINEMATIC_SPHERE_COLLIDER,
+        KINEMATIC_AABB_COLLIDER,
+        KINEMATIC_CUBE_COLLIDER,
+        KINEMATIC_CUSTOM_COLLIDER,
+        KINEMATIC_NONE
+    };
+
     class RigidBody3D {
         public:
             // Remember to specify the necessary fields before using the RigidBody3D if using the default constructor.
@@ -173,6 +182,7 @@ namespace Zeta {
             };
     };
 
+
     class StaticBody3D {
         public:
             StaticBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
@@ -272,5 +282,53 @@ namespace Zeta {
 
             StaticBodyCollider colliderType;
             void* collider;
-        };
+    };
+
+
+    class KinematicBody3D {
+        public:
+            KinematicBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
+
+            /**
+             * @brief Create a 3D kinematicbody.
+             * 
+             * @param pos The centerpoint of the kinematicbody.
+             * @param colliderType The type of collider attached to the kinematicbody. This should be set to KINEMATIC_NONE if there will not be one attached.
+             * @param collider A pointer to the collider of the kinematicbody. If this does not match the colliderType specified, it will
+             *                   cause undefined behvior to occur. If you specify KINEMATIC_NONE, this should be set to nullptr. 
+             */
+            KinematicBody3D(ZMath::Vec3D const &pos, KinematicBodyCollider colliderType, void* collider)
+                    : pos(pos), colliderType(colliderType), collider(collider) {};
+
+
+            // * ===================
+            // * Rule of 5 Stuff
+            // * ===================
+
+            KinematicBody3D(KinematicBody3D const &kb);
+            KinematicBody3D(KinematicBody3D &&kb);
+
+            KinematicBody3D& operator = (KinematicBody3D const &kb);
+            KinematicBody3D& operator = (KinematicBody3D &&kb);
+
+            ~KinematicBody3D();
+
+
+            // * ========================
+            // * Fields and Functions
+            // * ========================
+
+            // * Information related to the kinematic body.
+
+            ZMath::Vec3D pos; // centerpoint of the kinematicbody.
+            ZMath::Vec3D vel; // velocity of the kinematicbody.
+            ZMath::Vec3D netForce; // sum of all forces acting on the kinematicbody.
+
+            // * Handle and store the collider.
+
+            KinematicBodyCollider colliderType;
+            void* collider;
+
+            void update(ZMath::Vec3D const &g, float dt);
+    };
 }
