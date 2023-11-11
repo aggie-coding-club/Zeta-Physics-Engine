@@ -574,6 +574,7 @@ void app_start(void *window){
     init(test_cube_entity, test_cube_model);
     init(ground_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)ground_entity->sb->collider)->getVertices())));
     init(debug_xmover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_xmover_entity->sb->collider)->getVertices())));
+    // init(debug_xmover_entity, test_cube_model);
     init(debug_ymover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_ymover_entity->sb->collider)->getVertices())));
     init(debug_zmover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_zmover_entity->sb->collider)->getVertices())));
 
@@ -599,6 +600,10 @@ void app_update(float &time_step, float dt){
     // ************
     birch_10_entity->initialized = false;
     pine_5_entity->initialized = false;
+
+    ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->theta += dt * 100.0f;
+    ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->phi += dt * 100.0f;
+
     render_entities(&global_rd, &camera, &em, &textures_manager, &im);  
     glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
     DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
@@ -629,6 +634,7 @@ void app_update(float &time_step, float dt){
         dt_accum = 0.0f;
         dt_ticks = 0;
     }
+
     
     String dt_string = Create_String("dt : ");
     AddToString(&dt_string, dt_avg);
