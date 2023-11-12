@@ -10,6 +10,7 @@ namespace Zeta {
         RIGID_SPHERE_COLLIDER,
         RIGID_AABB_COLLIDER,
         RIGID_CUBE_COLLIDER,
+        RIGID_TRI_PY_COLLIDER,
         RIGID_CUSTOM_COLLIDER,
         RIGID_NONE
     };
@@ -61,6 +62,7 @@ namespace Zeta {
                     case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
                     case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
                     case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
+                    case RIGID_TRI_PY_COLLIDER: { collider = new Tri_Py(*((Tri_Py*) rb.collider)); break; }
                     case RIGID_NONE:            { collider = nullptr;                              break; }
                 }
             };
@@ -83,6 +85,7 @@ namespace Zeta {
                         case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
                         case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
                         case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                        case RIGID_TRI_PY_COLLIDER: { delete (Tri_Py*) collider; break; }
                     }
                 }
 
@@ -97,6 +100,7 @@ namespace Zeta {
                     case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
                     case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
                     case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
+                    case RIGID_TRI_PY_COLLIDER: { collider = new Tri_Py(*((Tri_Py*) rb.collider)); break; }
                     case RIGID_NONE:            { collider = nullptr;                              break; }
                 }
 
@@ -123,6 +127,7 @@ namespace Zeta {
                     case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
                     case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
                     case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                    case RIGID_TRI_PY_COLLIDER: { delete (Tri_Py*) collider; break; }
                 }
             };
 
@@ -166,9 +171,10 @@ namespace Zeta {
 
                 // Update the pos of the collider.
                 switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos; break; }
-                    case RIGID_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos; break; }
-                    case RIGID_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos; break; }
+                    case RIGID_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos;   break; }
+                    case RIGID_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos;   break; }
+                    case RIGID_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos;   break; }
+                    case RIGID_TRI_PY_COLLIDER: { ((Tri_Py*) collider)->pos = pos; break; }
                 }
             };
     };
