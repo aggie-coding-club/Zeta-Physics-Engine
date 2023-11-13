@@ -73,6 +73,13 @@ struct Camera{
 struct InputManager{
     float cursorX;
     float cursorY;
+
+    float cursor_world_pos_x;
+    float cursor_world_pos_y;
+
+    HMM_Vec2 picker_cursor_initial_pos;
+    HMM_Vec2 picker_entity_initial_pos; // just in case moving needs to be aborted
+
     void *window;
     float dt;
 

@@ -315,13 +315,13 @@ float g_editor_mode = 0;
 
 TexturesManager textures_manager;
 TextRendererManager trm = {};
-InputManager im = {};
+InputManager global_im = {};
 
 void SetCursorPosition(float x, float y){
     cursor_position.X = x;
     cursor_position.Y = y;
-    im.cursorX = x;
-    im.cursorY = y;
+    global_im.cursorX = x;
+    global_im.cursorY = y;
 
     if(!g_editor_mode){
         if(first_mouse){
@@ -424,15 +424,15 @@ void GameInputCamera(int key, int state){
 
 void GameInputMouse(int button, int action){
     if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
-        im.left_click = true;
+        global_im.left_click = true;
 
-        im.left_press = true;
-        im.left_release = false;
+        global_im.left_press = true;
+        global_im.left_release = false;
     }if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
-        im.left_click = false;
+        global_im.left_click = false;
         
-        im.left_release = true;
-        im.left_press = false;
+        global_im.left_release = true;
+        global_im.left_press = false;
     }
 }
 
@@ -582,7 +582,7 @@ void app_start(void *window){
 
     SetupTextRenderer(&trm);
     Setup2dRendering(&trm, &textures_manager);
-    im.window = (GLFWwindow *)window;
+    global_im.window = (GLFWwindow *)window;
     init_renderer(&global_rd);
 }
 
@@ -592,8 +592,15 @@ float dt_avg = 1.0f;
 int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
-    im.dt += dt;
+    global_im.dt += dt;
     GLenum err;
+
+    global_im.cursor_world_pos_x = 2.0f * global_im.cursorX / WINDOW_WIDTH - 1.0f;
+    global_im.cursor_world_pos_y = 1.0f - 2.0f * global_im.cursorY / WINDOW_HEIGHT;
+
+    HMM_Vec4 cursor_world_pos = HMM_Mul(HMM_InvOrthographic(global_rd.projection_matrix), HMM_Vec4{global_im.cursor_world_pos_x, global_im.cursor_world_pos_y, 1.0, 1.0});
+    global_im.cursor_world_pos_x = cursor_world_pos.X;
+    global_im.cursor_world_pos_y = cursor_world_pos.Y;
 
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
@@ -604,9 +611,9 @@ void app_update(float &time_step, float dt){
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->theta += dt * 100.0f;
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->phi += dt * 100.0f;
 
-    render_entities(&global_rd, &camera, &em, &textures_manager, &im);  
+    render_entities(&global_rd, &camera, &em, &textures_manager, &global_im);  
     glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
-    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
+    // DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
     glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************
@@ -649,13 +656,13 @@ void app_update(float &time_step, float dt){
     float border_width = 2.0f;
     
     if(g_editor_mode){
-        Text(&trm, &im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
 
-        if(Button((void *)1, &im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
+        if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
             printf("Collision Detection Scene!\n");
         }
 
-        if(Button((void *)3, &im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
+        if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
             printf("Quit!\n");
         }
 
@@ -666,10 +673,10 @@ void app_update(float &time_step, float dt){
 
     String picker_selection_string = Create_String("Picker ID : ");
     AddToString(&picker_selection_string, (float)global_rd.picker_selection);
-    Text(&trm, &im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+    Text(&trm, &global_im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
     
     // --------- Draw Selected Entity Data
-    E_::Entity *selected_entity = (E_::Entity *)im.selected_entity;
+    E_::Entity *selected_entity = (E_::Entity *)global_im.selected_entity;
     if(selected_entity){  
         
         HMM_Vec2 entity_panel_size = {200.0f, 300.0f};
@@ -679,13 +686,13 @@ void app_update(float &time_step, float dt){
 
         DrawRect(&trm, {entity_panel_pos.X, entity_panel_pos.Y - entity_panel_size.Y}, entity_panel_size.X, entity_panel_size.Y, {255.0f, 100.0f, 0.0f, 255.0f});
 
-        Text(&trm, &im, 0.4f, Create_String("ENTITY DATA"), {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        Text(&trm, &global_im, 0.4f, Create_String("ENTITY DATA"), {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
         entity_panel_pos.Y -= padding;
         
         String entity_identifier_str = Create_String("Identifier : ");
-        AddToString(&entity_identifier_str,  (float)selected_entity->identifier);
+        AddToString(&entity_identifier_str,  (float)selected_entity->internal_identifier);
 
-        Text(&trm, &im, 0.4f, entity_identifier_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        Text(&trm, &global_im, 0.4f, entity_identifier_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
         entity_panel_pos.Y -= padding;
 
         String entity_pos_str = Create_String("Pos : { ");
@@ -704,21 +711,71 @@ void app_update(float &time_step, float dt){
         AddToString(&entity_pos_str,  pos.Z);
         AddToString(&entity_pos_str, '}');
         
-        Text(&trm, &im, 0.4f, entity_pos_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        Text(&trm, &global_im, 0.4f, entity_pos_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
     }
 
-#if 0
+    // ---------- Moving Entities Around Editor
+    HMM_Vec2 cursor_current_pos = {(float)global_im.cursorX, (float)global_im.cursorY};
+    HMM_Vec2 normalized_cursor_pos = {(cursor_current_pos.X * 2) / WINDOW_WIDTH, (cursor_current_pos.Y * 2) / (WINDOW_HEIGHT)};
+    normalized_cursor_pos.X -= 1.0f;
+    normalized_cursor_pos.Y -= 1.0f;
+    normalized_cursor_pos.Y *= -1.0f;
+    
+    HMM_Vec4 clip_coords = {normalized_cursor_pos.X, normalized_cursor_pos.Y, -1.0f, 1.0f};
+
+    // to eye coords
+    HMM_Vec4 eye_coords = HMM_MulM4V4(HMM_InvOrthographic(global_rd.projection_matrix), clip_coords);
+    eye_coords.Z  = -1.0f;
+    eye_coords.W  = 1.0f;
+
+    HMM_Vec4 world_coords = HMM_MulM4V4(HMM_InvGeneralM4(global_rd.view_matrix), eye_coords);
+    HMM_Vec4 world_ray = {world_coords.X, world_coords.Y, world_coords.Z};
+
+    String cursor_pos_str = Create_String("Cursor {");
+    AddToString(&cursor_pos_str, (float)world_ray.X);
+    AddToString(&cursor_pos_str, ',');
+    AddToString(&cursor_pos_str, (float)world_ray.Y);
+    AddToString(&cursor_pos_str, ',');
+    AddToString(&cursor_pos_str, (float)world_ray.Z);
+    AddToString(&cursor_pos_str, '}');
+    Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+
+
+    if(global_im.active_entity == debug_xmover_entity){
+        printf("IT IS!\n");
+        // HMM_Vec2 unit_vector = {(cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude, (cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude};
+
+        // if(moving && im->selected_entity){
+        //     if(((E_::Entity *)im->selected_entity)->rb){
+        //         ((E_::Entity *)im->selected_entity)->rb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
+        //     } else if(((E_::Entity *)im->selected_entity)->sb){
+        //         ((E_::Entity *)im->selected_entity)->sb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
+        //     }
+        // }
+        // printf("{x : %f, y : %f}\n", unit_vector.X, unit_vector.Y);
+
+        // ((debug_xmover_entity->sb->pos)).x = global_im.picker_entity_initial_pos.X - (cursor_magnitude);
+
+        // String magnitude_str = Create_String("magnitude  ---  ");
+        // AddToString(&magnitude_str, cursor_magnitude);
+        // Text(&trm, &global_im, 0.4f, magnitude_str, {470.0f, WINDOW_HEIGHT - 300.0f},  {255.0f, 180.0f, 0.0f});
+        // Text(&trm, &global_im, 0.4f, Create_String("MAGNITUDE : %f"), {470.0f, WINDOW_HEIGHT - 300.0f},  {255.0f, 180.0f, 0.0f});
+        
+        
+    }
+
+#if 1
     String cursor_pos_string = Create_String("Cursor {");
-    AddToString(&cursor_pos_string, (float)im.cursorX);
+    AddToString(&cursor_pos_string, (float)global_im.cursor_world_pos_x);
     AddToString(&cursor_pos_string, ',');
-    AddToString(&cursor_pos_string, (float)im.cursorY);
+    AddToString(&cursor_pos_string, (float)global_im.cursor_world_pos_y);
     AddToString(&cursor_pos_string, '}');
-    Text(&trm, &im, 0.4f, cursor_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 375.0f},  {255.0f, 180.0f, 0.0f});
+    Text(&trm, &global_im, 0.4f, cursor_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 375.0f},  {255.0f, 180.0f, 0.0f});
 #endif
 
     String fps_string = Create_String("F P S : ");
     AddToString(&fps_string, 1 / dt_avg);
-    Text(&trm, &im, 0.4f, fps_string, {x_pos + 470.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 0.0f});
+    Text(&trm, &global_im, 0.4f, fps_string, {x_pos + 470.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 0.0f});
     DeleteString(&dt_string);
     DeleteString(&fps_string);
 }

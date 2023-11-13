@@ -248,7 +248,7 @@ void picker_pass_render(RendererData *rd, E_::Entity *entity){
     }
 
     unsigned int u_identifier = get_uniform_location(&rd->picker_shader, (char *)"identifier");
-    set_uniform_value(u_identifier, (float)(entity->identifier / 255.0f));
+    set_uniform_value(u_identifier, (float)(entity->internal_identifier / 255.0f));
     
     glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
     
@@ -508,14 +508,8 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
     float data[4] = {};
 
     int state = glfwGetMouseButton((GLFWwindow *)im->window, GLFW_MOUSE_BUTTON_LEFT);
-    static bool moving = false;
-    static HMM_Vec2 original_pos = {};
-    static HMM_Vec2 cursor_initial_pos = {};
-    HMM_Vec2 cursor_current_pos = {(float)im->cursorX, (float)im->cursorY};
     glReadPixels(im->cursorX, WINDOW_HEIGHT - im->cursorY,1,1, GL_RGBA, GL_FLOAT, data);
     unsigned int selection = (unsigned int)(data[0] * 255.0f);
-
-    static HMM_Vec3 original_entity_pos = {};
 
     static E_::Entity *prev_highlighted_entity = 0;
     E_::Entity *highlighted_entity = E_::get_entity(em, selection);
@@ -546,6 +540,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
                     
                     im->selected_entity = im->active_entity;
                     ((E_::Entity *)im->selected_entity)->selected = true;
+                    im->picker_cursor_initial_pos = HMM_Vec2{(float)im->cursorX, (float)im->cursorY};
 
                     im->active_entity = 0;
                 }
@@ -555,7 +550,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
         
     } else {
         if(im->left_release){
-            if(im->active_entity == highlighted_entity){
+            if(im->active_entity){
                 im->active_entity = 0;
             }
 
@@ -567,22 +562,6 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
     }
 
     prev_highlighted_entity = highlighted_entity;
-
-    if(im->left_release){
-        moving = false;
-    }
-
-    float cursor_magnitude = HMM_SQRTF(HMM_SQUARE(cursor_current_pos.X - cursor_initial_pos.X) + HMM_SQUARE(cursor_current_pos.Y - cursor_initial_pos.Y));
-    HMM_Vec2 unit_vector = {(cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude, (cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude};
-
-    if(moving && im->selected_entity){
-        if(((E_::Entity *)im->selected_entity)->rb){
-            ((E_::Entity *)im->selected_entity)->rb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
-        } else if(((E_::Entity *)im->selected_entity)->sb){
-            ((E_::Entity *)im->selected_entity)->sb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
-        }
-    }
-    // printf("{x : %f, y : %f}\n", unit_vector.X, unit_vector.Y);
 
     glUseProgram(0);
 

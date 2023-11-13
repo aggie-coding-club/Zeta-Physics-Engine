@@ -134,7 +134,7 @@ namespace E_{
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
         Entity *result = &em->entities[++em->index];
         result->initialized = true;
-        result->identifier = em->index * 25.0f;
+        result->internal_identifier = em->index * 25.0f;
 
         result->scale = scale;
         result->rotation_x = rotation_x;
@@ -152,7 +152,7 @@ namespace E_{
         float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
         Entity *result = &em->entities[++em->index];
         result->initialized = true;
-        result->identifier = em->index * 25.0f;
+        result->internal_identifier = em->index * 25.0f;
 
         result->scale = scale;
         result->rotation_x = rotation_x;
@@ -173,7 +173,7 @@ namespace E_{
     Entity *get_entity(EntityManager *em, unsigned int identifier){
         Entity *result = 0;
         for(int i = 0; i < em->index; i++){
-            if(em->entities[i].identifier == identifier){
+            if(em->entities[i].internal_identifier == identifier){
                 result = &em->entities[i];
             }
         }

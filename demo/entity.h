@@ -10,7 +10,7 @@ namespace E_{
         bool initialized;
         bool highlighted;
         bool selected;
-        unsigned int identifier; // Starting with 1, Ending with 255
+        unsigned int internal_identifier; // Starting with 1, Ending with 255
         RawModel raw_model;
         unsigned int def_texture;
         unsigned int textures[MAX_ENTITY_TEXTURES] = {};
