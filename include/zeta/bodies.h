@@ -29,6 +29,7 @@ namespace Zeta {
         KINEMATIC_SPHERE_COLLIDER,
         KINEMATIC_AABB_COLLIDER,
         KINEMATIC_CUBE_COLLIDER,
+        KINEMATIC_TRI_PY_COLLIDER, 
         KINEMATIC_CUSTOM_COLLIDER,
         KINEMATIC_NONE
     };
@@ -328,10 +329,11 @@ namespace Zeta {
                 linearDamping = kb.linearDamping;
 
                 switch(colliderType) {
-                    case KINEMATIC_SPHERE_COLLIDER: { collider = new Sphere(*(Sphere*) kb.collider); break; }
-                    case KINEMATIC_AABB_COLLIDER:   { collider = new AABB(*(AABB*) kb.collider);     break; }
-                    case KINEMATIC_CUBE_COLLIDER:   { collider = new Cube(*(Cube*) kb.collider);     break; }
-                    case KINEMATIC_NONE:            { collider = nullptr;                            break; }
+                    case KINEMATIC_SPHERE_COLLIDER: { collider = new Sphere(*(Sphere*) kb.collider);                        break; }
+                    case KINEMATIC_AABB_COLLIDER:   { collider = new AABB(*(AABB*) kb.collider);                            break; }
+                    case KINEMATIC_CUBE_COLLIDER:   { collider = new Cube(*(Cube*) kb.collider);                            break; }
+                    case KINEMATIC_TRI_PY_COLLIDER: { collider = new TriangularPyramid(*(TriangularPyramid*) kb.collider);  break; }
+                    case KINEMATIC_NONE:            { collider = nullptr;                                                   break; }
                 }
             };
 
@@ -352,9 +354,10 @@ namespace Zeta {
                 if (this != &kb) {
                     if (collider) {
                         switch(colliderType) {
-                            case KINEMATIC_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
-                            case KINEMATIC_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
-                            case KINEMATIC_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                            case KINEMATIC_SPHERE_COLLIDER: { delete (Sphere*) collider;            break; }
+                            case KINEMATIC_AABB_COLLIDER:   { delete (AABB*) collider;              break; }
+                            case KINEMATIC_CUBE_COLLIDER:   { delete (Cube*) collider;              break; }
+                            case KINEMATIC_TRI_PY_COLLIDER: { delete (TriangularPyramid*) collider; break; }
                         }
                     }
 
@@ -366,10 +369,11 @@ namespace Zeta {
                     linearDamping = kb.linearDamping;
 
                     switch(colliderType) {
-                        case KINEMATIC_SPHERE_COLLIDER: { collider = new Sphere(*(Sphere*) kb.collider); break; }
-                        case KINEMATIC_AABB_COLLIDER:   { collider = new AABB(*(AABB*) kb.collider);     break; }
-                        case KINEMATIC_CUBE_COLLIDER:   { collider = new Cube(*(Cube*) kb.collider);     break; }
-                        case KINEMATIC_NONE:            { collider = nullptr;                            break; }
+                        case KINEMATIC_SPHERE_COLLIDER:   { collider = new Sphere(*(Sphere*) kb.collider);                       break; }
+                        case KINEMATIC_AABB_COLLIDER:     { collider = new AABB(*(AABB*) kb.collider);                           break; }
+                        case KINEMATIC_CUBE_COLLIDER:     { collider = new Cube(*(Cube*) kb.collider);                           break; }
+                        case KINEMATIC_TRI_PY_COLLIDER:   { collider = new TriangularPyramid(*(TriangularPyramid*) kb.collider); break; }
+                        case KINEMATIC_NONE:              { collider = nullptr;                                                  break; }
                     }
 
                     // zero the velocity and net force
@@ -402,9 +406,10 @@ namespace Zeta {
 
             ~KinematicBody3D() {
                 switch(colliderType) {
-                    case KINEMATIC_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
-                    case KINEMATIC_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
-                    case KINEMATIC_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
+                    case KINEMATIC_SPHERE_COLLIDER:   { delete (Sphere*) collider;            break; }
+                    case KINEMATIC_AABB_COLLIDER:     { delete (AABB*) collider;              break; }
+                    case KINEMATIC_CUBE_COLLIDER:     { delete (Cube*) collider;              break; }
+                    case KINEMATIC_TRI_PY_COLLIDER:   { delete (TriangularPyramid*) collider; break; }
                 }
             };
 
@@ -448,9 +453,10 @@ namespace Zeta {
 
                 // Update the pos of the collider.
                 switch(colliderType) {
-                    case KINEMATIC_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos; break; }
-                    case KINEMATIC_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos; break; }
-                    case KINEMATIC_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos; break; }
+                    case KINEMATIC_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos;              break; }
+                    case KINEMATIC_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos;              break; }
+                    case KINEMATIC_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos;              break; }
+                    case KINEMATIC_TRI_PY_COLLIDER: { ((TriangularPyramid*) collider)->pos = pos; break; }
                 }
             };
     };
