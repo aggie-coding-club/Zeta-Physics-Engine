@@ -10,11 +10,9 @@
 #include "entity.h"
 #include "renderer.h"
 
-std::vector<unsigned int> vaos;
-std::vector<unsigned int> vbos;
-std::vector<unsigned int> textures;
 float global_dt = 0.0f;
 HMM_Vec3 cursor_position = {};
+RendererData global_rd = {};
 
 void PrintGLError(){
     int gl_error = glGetError(); 
@@ -160,7 +158,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
     vertexData.tex_coords = &texturesArray[0];
     vertexData.len_tex_coords = texturesArray.size();
 
-    RawModel result = load_to_VAO(&vertexData);
+    RawModel result = load_to_VAO(&global_rd, &vertexData);
 
 
     return result;
@@ -272,64 +270,9 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color, int texturesCount)
     vertexData.tex_coords = &texturesArray[0];
     vertexData.len_tex_coords = texturesArray.size();
 
-    RawModel result = load_to_VAO(&vertexData);
+    RawModel result = load_to_VAO(&global_rd, &vertexData);
 
 
-    return result;
-}
-
-unsigned int create_VAO(){
-    unsigned int result = 0;
-    vaos.push_back(result);
-
-    glGenVertexArrays(1, &result);
-    glBindVertexArray(result);
-
-    return result;
-}
-
-void store_data_in_attribute_list(int attribute_num, float data[], int num_of_components, int data_size){
-    unsigned int vbo_ID = 0;
-    glGenBuffers(1, &vbo_ID);
-
-    vbos.push_back(vbo_ID);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_ID);
-    
-    glBufferData(GL_ARRAY_BUFFER, data_size, data, GL_STATIC_DRAW);
-    // Note(Lenny): 2nd param may not hold for other atttribs
-    // int num_of_components = (int)(data_size / sizeof(float) / sizeof(float));
-    // printf("num of comps %i \n", num_of_components);
-    glVertexAttribPointer(attribute_num, num_of_components, GL_FLOAT, false, 0, 0);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);    
-}
-
-void unbind_VAO(){
-    glBindVertexArray(0);
-}
-
-void createIndicesBuffer(int indices[], int indices_size){
-    unsigned int ibo_ID = 0;
-    glGenBuffers(1, &ibo_ID);
-
-    vbos.push_back(ibo_ID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_ID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
-}
-
-RawModel load_to_VAO(VertexData *vertex_data){
-    RawModel result = {};
-    result.vao_ID = create_VAO();
-    result.vertex_count = vertex_data->len_indices;
-
-    createIndicesBuffer(vertex_data->indices, vertex_data->len_indices * sizeof(int));
-
-    store_data_in_attribute_list(0, vertex_data->positions, 3, vertex_data->len_positions * sizeof(float));
-    store_data_in_attribute_list(1, vertex_data->tex_coords, 3, vertex_data->len_tex_coords * sizeof(float));
-    store_data_in_attribute_list(2, vertex_data->normals, 3, vertex_data->len_normals * sizeof(float));
-    store_data_in_attribute_list(3, vertex_data->colors, 3, vertex_data->len_colors * sizeof(float));
-    
-    unbind_VAO();
     return result;
 }
 
@@ -367,7 +310,6 @@ float g_editor_mode = 0;
 TexturesManager textures_manager;
 TextRendererManager trm = {};
 InputManager im = {};
-RendererData rd = {};
 
 void SetCursorPosition(float x, float y){
     cursor_position.X = x;
@@ -414,13 +356,13 @@ void SetCursorPosition(float x, float y){
 }
 
 void SetScroll(float x_offset, float y_offset){
-    rd.projection_fov -= (float)y_offset;
-    if(rd.projection_fov < 1.0f){
-        rd.projection_fov = 1.0f;
+    global_rd.projection_fov -= (float)y_offset;
+    if(global_rd.projection_fov < 1.0f){
+        global_rd.projection_fov = 1.0f;
     }
 
-    if(rd.projection_fov > DEFAULT_FOV){
-        rd.projection_fov = DEFAULT_FOV;
+    if(global_rd.projection_fov > DEFAULT_FOV){
+        global_rd.projection_fov = DEFAULT_FOV;
     }
 }
 
@@ -474,7 +416,6 @@ void GameInputCamera(int key, int state){
     }
 }
 
-
 void TempLightMovement(int key, int state){
     if(key == GLFW_KEY_LEFT){
         printf("right,...\n");
@@ -496,16 +437,17 @@ void app_start(void *window){
 
     printf("Program Started\n");
     textures_manager = TexturesManager();
-    rd.main_shader.program = load_shaders("shaders/web_v_shader.glsl", "shaders/web_f_shader.glsl");
-    rd.projection_fov = DEFAULT_FOV;
+    global_rd.projection_fov = DEFAULT_FOV;
 
     // >>>>>> Shader Stuff
     // =====================================
+    global_rd.main_shader.program = load_shaders((char *)"shaders/web_v_shader.glsl", (char *)"shaders/web_f_shader.glsl");
+    global_rd.shadow_map_shader.program = load_shaders((char *)"shaders/shadow_map_vs.glsl", (char *)"shaders/shadow_map_fs.glsl"); 
 
-    glUseProgram(rd.main_shader.program);
+    glUseProgram(global_rd.main_shader.program);
 
-    unsigned int u_specular_strength = get_uniform_location(&rd.main_shader, "specular_strength");
-    unsigned int u_reflectivity = get_uniform_location(&rd.main_shader, "reflectivity");
+    unsigned int u_specular_strength = get_uniform_location(&global_rd.main_shader, (char *)"specular_strength");
+    unsigned int u_reflectivity = get_uniform_location(&global_rd.main_shader, (char *)"reflectivity");
     
     set_uniform_value(u_specular_strength, 0.25f);
     set_uniform_value(u_reflectivity, 64.0f);
@@ -514,13 +456,8 @@ void app_start(void *window){
     
     // >>>>>> Texture Stuff
     // =====================================
-    textures_manager.add_texture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
-    textures_manager.add_texture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
-    textures_manager.add_texture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.add_texture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.add_texture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
-
-    // >>>>>> View Stuff
+    textures_manager.add_texture((char *)"white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
+    textures_manager.add_texture((char *)"thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG); 
     // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -535,7 +472,7 @@ void app_start(void *window){
     Zeta::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
     Zeta::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
     
-    test_entity = E_::create_entity(&em, HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+    test_entity = E_::create_entity(&em, HMM_Vec3{0, 12, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
 
     test_entity->color = {0.0f, 1.0f, 0.0f};
@@ -584,7 +521,7 @@ void app_start(void *window){
     E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
     E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
-    init(test_entity);
+    init(test_entity,  create_cube_raw_model(&global_rd, (((Zeta::Cube *)test_entity->rb->collider)->getVertices())));
     
     handler.addRigidBody(test_entity->rb);
 
@@ -601,12 +538,12 @@ void app_start(void *window){
 
     init(light_entity, test_cube_model);
     init(test_cube_entity, test_cube_model);
-    init(ground_entity);
+    init(ground_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)ground_entity->sb->collider)->getVertices())));
 
     SetupTextRenderer(&trm);
-    Setup2dRendering(&trm);
+    Setup2dRendering(&trm, &textures_manager);
     im.window = (GLFWwindow *)window;
-    
+    init_renderer(&global_rd);
 }
 
 float angle = 0.0f;
@@ -617,25 +554,32 @@ void app_update(float &time_step, float dt){
     global_dt = dt;
     im.dt += dt;
 
-    prepare_renderer(&rd, &camera);
+    // prepare_renderer(&global_rd, &camera);
 #if 1
-    rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
+    global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
-    // render(pine_5_entity, &textures_manager, &rd.main_shader);
-    // render(birch_10_entity, &textures_manager, &rd.main_shader);
-    render(light_entity, &textures_manager, &rd.main_shader);    
-    render(test_cube_entity, &textures_manager, &rd.main_shader);
-    render(test_entity, &textures_manager, &rd.main_shader);
-    render(ground_entity, &textures_manager, &rd.main_shader);
-    render(dragon_entity, &textures_manager, &rd.main_shader);
-    render(stall_entity, &textures_manager, &rd.main_shader);
+    // render(pine_5_entity, &textures_manager, &global_rd.main_shader);
+    // render(birch_10_entity, &textures_manager, &global_rd.main_shader);
+    // prepare_shadow_renderer(&global_rd, &smf);
+    // prepare_renderer(&global_rd, &camera);
+    // render(&global_rd, &smf, &camera, light_entity, &textures_manager, &global_rd.main_shader);    
+    // render(&global_rd, &smf, &camera, test_cube_entity, &textures_manager, &global_rd.main_shader);
+    // render(&global_rd, &smf, &camera, test_entity, &textures_manager, &global_rd.main_shader);
+    // render(&global_rd, &smf, &camera, ground_entity, &textures_manager, &global_rd.main_shader);
+    // render(&global_rd, &smf, &camera, dragon_entity, &textures_manager, &global_rd.main_shader);
+    // render(&global_rd, &smf, &camera, stall_entity, &textures_manager, &global_rd.main_shader);
+    birch_10_entity->initialized = false;
+    pine_5_entity->initialized = false;
+    render_entities(&global_rd, &camera, &em.entities[0], &textures_manager);  
+    glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
+    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
+    glBindTexture(GL_TEXTURE_2D, 0);
     
-
     // **************
     int physics_updates = handler.update(time_step);
     
     ZMath::Vec3D normal = {};
-    float ground_cube_colliding = Zeta::CubeAndCube(test_entity->rb->collider.cube, ground_entity->sb->collider.cube, normal);
+    float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(test_entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
     
     if(ground_cube_colliding){
         for(int i = 0; i < physics_updates; i++){
@@ -690,15 +634,15 @@ void app_update(float &time_step, float dt){
 
 void clean_up() {
 	CleanTextRenderer(&trm);
-	for (unsigned int vao : vaos) {
+	for (unsigned int vao : global_rd.vaos) {
 		glDeleteVertexArrays(1, &vao);
 	}
 
-	for (unsigned int vbo : vbos) {
+	for (unsigned int vbo : global_rd.vbos) {
 		glDeleteBuffers(1, &vbo);
 	}
 
-	for (unsigned int texture : textures) {
+	for (unsigned int texture : global_rd.textures) {
 		glDeleteTextures(1, &texture);
 	}
 }

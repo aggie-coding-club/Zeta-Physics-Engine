@@ -1,7 +1,7 @@
 #version 300 es
 
-// add support for texturing later
 in vec2 position;
+in vec2 tex_coords;
 in vec4 color;
 
 in vec2 center;
@@ -13,6 +13,7 @@ in float roundness;
 
 
 ////////////////////////
+out vec2 f_tex_coords;
 out vec4 f_color;
 out vec2 f_world_pos;
 
@@ -29,7 +30,7 @@ void main(){
     gl_Position = u_projection_matrix * vec4(position.x, position.y, 1.0, 1.0);
     f_world_pos = gl_Position.xy;
     
-    f_color = color;
+    f_color = color / 255.0;
 
     f_center = center;
     f_half_size = half_size;
@@ -37,4 +38,6 @@ void main(){
     f_border_color = border_color;
     f_border_width = border_width;
     f_roundness = roundness;
+
+    f_tex_coords = tex_coords;
 }

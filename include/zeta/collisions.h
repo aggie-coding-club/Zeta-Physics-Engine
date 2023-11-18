@@ -875,10 +875,8 @@ namespace Zeta {
         // ? We can determine the closet point by clamping the value of the sphere's center between the min and max of the AABB.
         // ? From here, we can check the distance from this point to the sphere's center.
 
-        ZMath::Vec3D closest = sphere.c;
         ZMath::Vec3D min = aabb.getMin(), max = aabb.getMax();
-
-        closest = ZMath::clamp(closest, min, max);
+        ZMath::Vec3D closest = ZMath::clamp(closest, min, max);
         result.hit = closest.distSq(sphere.c) <= sphere.r*sphere.r;
 
         if (!result.hit) { return result; }
