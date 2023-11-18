@@ -42,6 +42,7 @@ float calculate_shadow_factor(){
 
 void main(void){
 
+    // if(0){
     vec3 unit_normal = normalize(f_surface_normal);
     // vec3 light_dir = normalize(light_position - f_current_position);
     vec3 light_dir = normalize(-light_direction);
@@ -84,4 +85,7 @@ void main(void){
     if(selected){
         out_color = mix(out_color, vec4(1.0, 0.0, 0.0, 1.0), 0.25);
     }
+    // }
+
+    out_color = vec4(f_color, 1.0);
 }
