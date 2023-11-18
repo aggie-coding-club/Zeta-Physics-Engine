@@ -366,10 +366,10 @@ void prepare_renderer(RendererData *rd, Camera *camera){
     rd->view_matrix = create_view_matrix(camera->position, camera->front, camera->world_up); 
     rd->projection_matrix = create_projection_matrix(rd, WINDOW_WIDTH, WINDOW_HEIGHT);
     
-    unsigned int u_projection_matrix = get_uniform_location(&rd->picker_shader, (char *)"projection_matrix");
+    unsigned int u_projection_matrix = get_uniform_location(&rd->main_shader, (char *)"projection_matrix");
     set_uniform_value(u_projection_matrix, rd->projection_matrix);
     
-    unsigned int u_view_matrix = get_uniform_location(&rd->picker_shader, (char *)"view_matrix");
+    unsigned int u_view_matrix = get_uniform_location(&rd->main_shader, (char *)"view_matrix");
     set_uniform_value(u_view_matrix, rd->view_matrix);
     
     unsigned int u_camera_position = get_uniform_location(&rd->main_shader, (char *)"camera_position");
@@ -463,7 +463,6 @@ void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *t
     glUseProgram(0);
     unbind_fbo();
 }
-
 
 void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
     lighting_pass_render(rd, entity, textures_manager, shader);
@@ -567,20 +566,12 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    prepare_picker_renderer(rd, camera);
+    // lighting pass
+    prepare_renderer(rd, camera);
     for(int i = 0; i < MAX_ENTITIES; i++){
         E_::Entity *entity = &em->entities[i];
         if(entity->initialized == true){
-            picker_pass_render(rd, entity); 
+            lighting_pass_render(rd, entity, tm, &rd->main_shader); 
         }
     }
-    // lighting pass
-    // prepare_renderer(rd, camera);
-    // for(int i = 0; i < MAX_ENTITIES; i++){
-    //     E_::Entity *entity = &em->entities[i];
-    //     if(entity->initialized == true){
-    //         lighting_pass_render(rd, entity, tm, &rd->main_shader); 
-    //     }
-    // }
-
 }
