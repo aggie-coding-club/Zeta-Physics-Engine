@@ -85,7 +85,4 @@ void main(void){
     if(selected){
         out_color = mix(out_color, vec4(1.0, 0.0, 0.0, 1.0), 0.25);
     }
-    // }
-
-    out_color = vec4(f_color, 1.0);
 }
