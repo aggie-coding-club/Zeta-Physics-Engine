@@ -14,14 +14,14 @@ float global_dt = 0.0f;
 HMM_Vec3 cursor_position = {};
 RendererData global_rd = {};
 
-void PrintGLError(){
-    int gl_error = glGetError(); 
+// void PrintGLError(){
+//     int gl_error = glGetError(); 
 
-    GLenum err;
-    while((err = glGetError()) != GL_NO_ERROR) {
-        std::cout << "[GL Error] " << err << "\n";
-    }
-}
+//     GLenum err;
+//     while((err = glGetError()) != GL_NO_ERROR) {
+//         std::cout << "[GL Error] " << err << "\n";
+//     }
+// }
 
 template <typename Out>
 void SplitString(const std::string &s, char delim, Out result) {
@@ -658,11 +658,11 @@ void app_update(float &time_step, float dt){
     if(g_editor_mode){
         Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
 
-        if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
+        if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
             printf("Collision Detection Scene!\n");
         }
 
-        if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
+        if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
             printf("Quit!\n");
         }
 

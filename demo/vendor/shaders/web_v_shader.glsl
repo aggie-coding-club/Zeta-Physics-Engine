@@ -1,9 +1,9 @@
 #version 330 core
 
-in vec3 position;
-in vec3 tex_coords;
-in vec3 normal;
-in vec3 color;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 tex_coords;
+layout (location = 2) in vec3 normal;
+layout (location = 3) in vec3 color;
 
 out vec3 f_color;
 out vec3 f_tex_coords;
