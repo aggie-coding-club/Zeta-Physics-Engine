@@ -469,7 +469,7 @@ void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManage
     shadow_pass_render(rd, entity, textures_manager, shader);
 }
 
-void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, TexturesManager *tm, InputManager *im){
+void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, unsigned int entity_count, TexturesManager *tm, InputManager *im){
     
     #if 0
     prepare_shadow_renderer(rd);
@@ -493,8 +493,8 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
     // glBindTexture(GL_TEXTURE_2D, 0);
     
     prepare_picker_renderer(rd, camera);
-    for(int i = 0; i < MAX_ENTITIES; i++){
-        E_::Entity *entity = &em->entities[i];
+    for(int i = 0; i < entity_count; i++){
+        E_::Entity *entity = entities + i;
         if(entity->initialized == true){
             picker_pass_render(rd, entity); 
         }
@@ -511,7 +511,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
     unsigned int selection = (unsigned int)(data[0] * 255.0f);
 
     static E_::Entity *prev_highlighted_entity = 0;
-    E_::Entity *highlighted_entity = E_::get_entity(em, selection);
+    E_::Entity *highlighted_entity = E_::get_entity(entities, entity_count, selection);
 
     if(((highlighted_entity == prev_highlighted_entity) || (highlighted_entity && (!prev_highlighted_entity))) && highlighted_entity){
 
@@ -568,8 +568,8 @@ void render_entities(RendererData *rd, Camera *camera, E_::EntityManager *em, Te
 
     // lighting pass
     prepare_renderer(rd, camera);
-    for(int i = 0; i < MAX_ENTITIES; i++){
-        E_::Entity *entity = &em->entities[i];
+    for(int i = 0; i < entity_count; i++){
+        E_::Entity *entity = entities + i;
         if(entity->initialized == true){
             lighting_pass_render(rd, entity, tm, &rd->main_shader); 
         }
