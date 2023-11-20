@@ -1084,7 +1084,7 @@ namespace Zeta {
         // We can now treat the problem as if the pyramid was centred at the origin
         float zLower = -(0.1530931089f * tri.sideLength); // From impl of triangular pyramid primitive
         float zUpper = 0.6123724357f * tri.sideLength;
-        if(!(pointUnrotated.z < zUpper && pointUnrotated.z > zLower)) { 
+        if(!(pointUnrotated.z <= zUpper && pointUnrotated.z >= zLower)) { 
             return 0;
         } else {
             //If z coord within bounds, there is an equilateral triangle centered at (0, 0) the x and y coordinates must lie within (side length varies based on z value)
@@ -1092,12 +1092,12 @@ namespace Zeta {
             float sqrt3 = 1.732050808f;
             float xUpper = sideLen / sqrt3; // One of the vertices points in the +x direction by default
             float xLower = -sideLen / (2.0f * sqrt3);
-            if(!(pointUnrotated.x > xLower && pointUnrotated.x < xUpper)) {
+            if(!(pointUnrotated.x >= xLower && pointUnrotated.x <= xUpper)) {
                 return 0;
             } else {
                 float yUpper = (pointUnrotated.x * (-1.0f / sqrt3)) + (sideLen / 3.0f);
                 // Lower limit for y is just -yUpper
-                return (pointUnrotated.y < yUpper) && (pointUnrotated.y > (-yUpper));
+                return (pointUnrotated.y <= yUpper) && (pointUnrotated.y >= (-yUpper));
             }
         }
     };
