@@ -6,122 +6,23 @@
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "shader.h"
 #include "entity.h"
+#include "renderer.h"
+#include "scene.h"
 
-std::vector<unsigned int> vaos;
-std::vector<unsigned int> vbos;
-std::vector<unsigned int> textures;
 float global_dt = 0.0f;
 HMM_Vec3 cursor_position = {};
+RendererData global_rd = {};
 
-void PrintGLError(){
-    int gl_error = glGetError(); 
-    printf("GL Error %i \n", gl_error);
-}
+// void PrintGLError(){
+//     int gl_error = glGetError(); 
 
-// NOTE(Lenny) - break this into functions
-class TexturesManager{
-
-    public:
-        int textures_count = 0;
-        std::vector<Texture> textures;
-        
-        TexturesManager(){
-
-        }
-
-    public:
-        void AddTexture(std::string path, unsigned int def_name, unsigned int format){
-            textures_count++;
-
-            Texture result = {};
-            result.file_path = path;
-            std::string texture_src = path;
-            std::string web_texture_src = "vendor/" + texture_src;
-
-            int width = 0;
-            int height = 0;
-            int nr_channels = 0;
-
-            // Note(Lenny) : might need to be flipped
-            #if __EMSCRIPTEN__
-            
-            unsigned char *data = stbi_load(&web_texture_src[0], &width, &height, &nr_channels, 0);
-            
-            #else
-            
-            unsigned char *data = stbi_load(&texture_src[0], &width, &height, &nr_channels, 0);
-            
-            #endif
-            if(data){
-                std::cout << "loaded png \n" << texture_src << std::endl;
-            } else {
-                std::cout << "failed to load png \n" << texture_src << std::endl;
-            }
-
-            glGenTextures(1, &result.id);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, result.id);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            
-            if(format == TEX_FORMAT_PNG){
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                    GL_UNSIGNED_BYTE, data);
-            } else if(format == TEX_FORMAT_JPG){
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                    GL_UNSIGNED_BYTE, data);
-            } else{
-                std::cout << "failed to load file type\n" << texture_src << std::endl;
-                Assert(!"Failed to load texture!");
-            }
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            stbi_image_free(data);
-
-            result.def_name = def_name;
-            textures.push_back(result);
-        }
-
-        void BindTexture(Texture *texture,  unsigned int slot){
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, texture->id);
-        }
-        
-        void UnBindTexture(){
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-
-        // massive optimization to be done here
-        // perhaps use a fancy finding algorithm
-        unsigned int GetTextureIdentifier(unsigned int def_name){
-            unsigned int result = 0;
-            for(int i = 0; i < textures.size(); i++){
-                if(textures.at(i).def_name == def_name){
-                    result = textures.at(i).id;
-                    break;
-                }
-            }
-            return result;
-        }
-
-        Texture GetTexture(unsigned int identifer){
-            Texture result = {};
-            for(int i = 0; i < textures.size(); i++){
-                if(textures.at(i).def_name == identifer){
-                    result = textures.at(i);
-                    break;
-                }
-            }
-            return result;
-        }
-};
-
-Shader test_shader = {};
+//     GLenum err;
+//     while((err = glGetError()) != GL_NO_ERROR) {
+//         std::cout << "[GL Error] " << err << "\n";
+//     }
+// }
 
 template <typename Out>
 void SplitString(const std::string &s, char delim, Out result) {
@@ -204,7 +105,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
             normalsArray.push_back(0);
 
         } else if (s[0] == "vt"){ // texture coord
-            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0};
+            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0.0};
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
@@ -262,8 +163,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
     vertexData.tex_coords = &texturesArray[0];
     vertexData.len_tex_coords = texturesArray.size();
 
-    RawModel result = load_to_VAO(&vertexData);
-
+    RawModel result = load_to_VAO(&global_rd, &vertexData);
 
     return result;
 }
@@ -314,7 +214,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color, int texturesCount)
             normalsArray.push_back(0);
 
         } else if (s[0] == "vt"){ // texture coord
-            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), 0.0f};
+            HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), (float)textureIndex};
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
@@ -374,126 +274,10 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color, int texturesCount)
     vertexData.tex_coords = &texturesArray[0];
     vertexData.len_tex_coords = texturesArray.size();
 
-    RawModel result = load_to_VAO(&vertexData);
+    RawModel result = load_to_VAO(&global_rd, &vertexData);
 
 
     return result;
-}
-
-unsigned int create_VAO(){
-    unsigned int result = 0;
-    vaos.push_back(result);
-
-    glGenVertexArrays(1, &result);
-    glBindVertexArray(result);
-
-    return result;
-}
-
-void store_data_in_attribute_list(int attribute_num, float data[], int num_of_components, int data_size){
-    unsigned int vbo_ID = 0;
-    glGenBuffers(1, &vbo_ID);
-
-    vbos.push_back(vbo_ID);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_ID);
-    
-    glBufferData(GL_ARRAY_BUFFER, data_size, data, GL_STATIC_DRAW);
-    // Note(Lenny): 2nd param may not hold for other atttribs
-    // int num_of_components = (int)(data_size / sizeof(float) / sizeof(float));
-    // printf("num of comps %i \n", num_of_components);
-    glVertexAttribPointer(attribute_num, num_of_components, GL_FLOAT, false, 0, 0);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);    
-}
-
-void unbind_VAO(){
-    glBindVertexArray(0);
-}
-
-void createIndicesBuffer(int indices[], int indices_size){
-    unsigned int ibo_ID = 0;
-    glGenBuffers(1, &ibo_ID);
-
-    vbos.push_back(ibo_ID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_ID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
-}
-
-RawModel load_to_VAO(VertexData *vertex_data){
-    RawModel result = {};
-    result.vao_ID = create_VAO();
-    result.vertex_count = vertex_data->len_indices;
-
-    createIndicesBuffer(vertex_data->indices, vertex_data->len_indices * sizeof(int));
-
-    store_data_in_attribute_list(0, vertex_data->positions, 3, vertex_data->len_positions * sizeof(float));
-    store_data_in_attribute_list(1, vertex_data->tex_coords, 3, vertex_data->len_tex_coords * sizeof(float));
-    store_data_in_attribute_list(2, vertex_data->normals, 3, vertex_data->len_normals * sizeof(float));
-    store_data_in_attribute_list(3, vertex_data->colors, 3, vertex_data->len_colors * sizeof(float));
-    
-    unbind_VAO();
-    return result;
-}
-
-void render(E_::Entity_ *entity, TexturesManager *textures_manager){
-    
-    HMM_Mat4 transformation;
-    if(entity->sb){
-        transformation = HMM_Translate({entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z});
-    } else {
-        transformation = HMM_Translate({entity->rb->pos.x, entity->rb->pos.y, entity->rb->pos.z});
-    }
-    
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_x), HMM_Vec3{1.0f, 0.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_y), HMM_Vec3{0.0f, 1.0f, 0.0f}));
-    transformation = HMM_Mul(transformation, HMM_Rotate_RH(HMM_ToRad(entity->rotation_z), HMM_Vec3{0.0f, 0.0f, 1.0f}));
-    transformation = HMM_Mul(transformation, HMM_Scale(HMM_Vec3{entity->scale, entity->scale, entity->scale}));
-    
-    unsigned int u_transform_matrix = GetUniformLocation(&test_shader, "transformation_matrix");
-    SetUniformValue(u_transform_matrix, transformation);
-    unsigned int u_entity_color = GetUniformLocation(&test_shader, "u_color");
-    SetUniformValue(u_entity_color, entity->color);
-
-    glBindVertexArray(entity->raw_model.vao_ID);
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);    
-    glEnableVertexAttribArray(2);    
-    glEnableVertexAttribArray(3);    
-
-    unsigned int u_texture_0 = GetUniformLocation(&test_shader, "tex_sampler");
-    SetUniformValue(u_texture_0, (int)0);
-    unsigned int u_texture_1 = GetUniformLocation(&test_shader, "texture_1");
-    SetUniformValue(u_texture_1, (int)1);
-    unsigned int u_texture_2 = GetUniformLocation(&test_shader, "texture_2");
-    SetUniformValue(u_texture_2, (int)2);
-    unsigned int u_texture_3 = GetUniformLocation(&test_shader, "texture_3");
-    SetUniformValue(u_texture_3, (int)3);
-    unsigned int u_texture_4 = GetUniformLocation(&test_shader, "texture_4");
-    SetUniformValue(u_texture_4, (int)4);
-
-    if(entity->textureIndex > 0){
-
-        for(int i = 0; i < entity->textureIndex; i++){
-            glActiveTexture(GL_TEXTURE0 + i + 1);
-            glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->textures[i]));
-        } 
-
-    } else {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->def_texture));
-    }
-
-
-    glDrawElements(GL_TRIANGLES, entity->raw_model.vertex_count, GL_UNSIGNED_INT, 0);
-    
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-    glBindVertexArray(0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Zeta::Handler handler(ZMath::Vec3D(0, -5.8f, 0));
@@ -502,36 +286,31 @@ float time_btw_physics_updates = 1.0f / 60.0f;
 float count_down = time_btw_physics_updates;
 float start_time = (float)glfwGetTime();
 
+Scene::Scene scene = {};
+
 RawModel model = {};
 RawModel ground_model = {};
-E_::Entity_ *test_entity = 0;
-E_::Entity_ *light_entity = 0;
-E_::Entity_ *ground_entity = 0;
-E_::Entity_ *dragon_entity = 0;
-E_::Entity_ *stall_entity = 0;
-E_::Entity_ *test_cube_entity = 0;
-E_::Entity_ *pine_5_entity = 0;
-E_::Entity_ *birch_10_entity = 0;
+E_::Entity *test_entity = 0;
+E_::Entity *light_entity = 0;
+E_::Entity *ground_entity = 0;
+E_::Entity *dragon_entity = 0;
+E_::Entity *stall_entity = 0;
+E_::Entity *test_cube_entity = 0;
+E_::Entity *pine_5_entity = 0;
+E_::Entity *birch_10_entity = 0;
+E_::Entity *debug_xmover_entity = 0;
+E_::Entity *debug_ymover_entity = 0;
+E_::Entity *debug_zmover_entity = 0;
 
 E_::EntityManager em = {};
 
-HMM_Mat4 projection;
-HMM_Mat4 view_matrix;
-
-struct Camera{
-    HMM_Vec3 position;
-    float speed;
-    float pitch;
-    float yaw;
-    float roll;
-};
+// HMM_Mat4 projection;
+// HMM_Mat4 view_matrix;
 
 HMM_Vec4 mouse_ndc = {};
 
 Camera camera = {};
-float projection_fov = DEFAULT_FOV;
-HMM_Vec3 world_up = {0.0f, 1.0f, 0.0f};
-HMM_Vec3 camera_front = {0.0f, 0.0f, -1.0f};
+// float projection_fov = DEFAULT_FOV;
 bool first_mouse = 1;
 float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
@@ -539,25 +318,13 @@ float g_editor_mode = 0;
 
 TexturesManager textures_manager;
 TextRendererManager trm = {};
-InputManager im = {};
-
-void CreateViewMatrix(){
-    view_matrix = HMM_LookAt_RH(camera.position, camera.position + camera_front, world_up);
-}
-
-void CreateProjectionMatrix(){
-    float near_plane = 0.1f;
-    float far_plane = 1000.0f;
-
-    projection = HMM_Perspective_RH_ZO(HMM_DegToRad * projection_fov, WINDOW_WIDTH/WINDOW_HEIGHT, near_plane, far_plane);
-}
-
+InputManager global_im = {};
 
 void SetCursorPosition(float x, float y){
     cursor_position.X = x;
     cursor_position.Y = y;
-    im.cursorX = x;
-    im.cursorY = y;
+    global_im.cursorX = x;
+    global_im.cursorY = y;
 
     if(!g_editor_mode){
         if(first_mouse){
@@ -593,18 +360,18 @@ void SetCursorPosition(float x, float y){
         camera_direction.Y =  HMM_SinF(HMM_DegToRad * camera.pitch);
         camera_direction.Z = HMM_SinF(HMM_DegToRad * camera.yaw) * HMM_CosF(HMM_DegToRad * camera.pitch);
 
-        camera_front = HMM_Norm(camera_direction);
+        camera.front = HMM_Norm(camera_direction);
     }
 }
 
 void SetScroll(float x_offset, float y_offset){
-    projection_fov -= (float)y_offset;
-    if(projection_fov < 1.0f){
-        projection_fov = 1.0f;
+    global_rd.projection_fov -= (float)y_offset;
+    if(global_rd.projection_fov < 1.0f){
+        global_rd.projection_fov = 1.0f;
     }
 
-    if(projection_fov > DEFAULT_FOV){
-        projection_fov = DEFAULT_FOV;
+    if(global_rd.projection_fov > DEFAULT_FOV){
+        global_rd.projection_fov = DEFAULT_FOV;
     }
 }
 
@@ -621,6 +388,8 @@ void SetEditMode(int mode){
     }   
 }
 
+void TempLightMovement(int key, int state);
+
 // TODO: not smooth
 void GameInputCamera(int key, int state){
 
@@ -636,114 +405,160 @@ void GameInputCamera(int key, int state){
     if(!g_editor_mode){  
         // hide cursor
         if (key == GLFW_KEY_D){
-            camera.position += HMM_Norm(HMM_Cross(camera_front, world_up)) * temp_speed;
+            camera.position += HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
         }
 
         if (key == GLFW_KEY_A){
-            camera.position -= HMM_Norm(HMM_Cross(camera_front, world_up)) * temp_speed; 
+            camera.position -= HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed; 
         }
 
         if (key == GLFW_KEY_W){
-            camera.position += camera_front * temp_speed;
+            camera.position += camera.front * temp_speed;
         }
 
         if (key == GLFW_KEY_S){
-            camera.position -= camera_front * temp_speed;
+            camera.position -= camera.front * temp_speed;
         }
+
+
+        TempLightMovement(key, state);
+    }
+}
+
+void GameInputMouse(int button, int action){
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+        global_im.left_click = true;
+
+        global_im.left_press = true;
+        global_im.left_release = false;
+    }if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+        global_im.left_click = false;
+        
+        global_im.left_release = true;
+        global_im.left_press = false;
+    }
+}
+
+void TempLightMovement(int key, int state){
+    if(key == GLFW_KEY_LEFT){
+        printf("right,...\n");
+        light_entity->sb->pos.x += 1000 * global_dt;
+    } else if(key == GLFW_KEY_RIGHT){
+        printf("left,...\n");
+        light_entity->sb->pos.x -= 1000 * global_dt;
+    }else if(key == GLFW_KEY_UP){    
+        printf("right,...\n");
+        light_entity->sb->pos.y += 1000 * global_dt;
+    } else if(key == GLFW_KEY_DOWN){
+        printf("left,...\n");
+        light_entity->sb->pos.y -= 1000 * global_dt;
     }
 }
 
 void app_start(void *window){
-    SetEditMode(1);
+    SetEditMode(0);
 
     printf("Program Started\n");
     textures_manager = TexturesManager();
+    global_rd.projection_fov = DEFAULT_FOV;
 
-
-    // Shader Stuff
+    // >>>>>> Shader Stuff
     // =====================================
+    global_rd.picker_shader.program = load_shaders((char *)"shaders/picker_shader_vs.glsl", (char *)"shaders/picker_shader_fs.glsl");
+    global_rd.main_shader.program = load_shaders((char *)"shaders/web_v_shader.glsl", (char *)"shaders/web_f_shader.glsl");
+    global_rd.shadow_map_shader.program = load_shaders((char *)"shaders/shadow_map_vs.glsl", (char *)"shaders/shadow_map_fs.glsl"); 
 
-    test_shader.program = LoadShaders("web_v_shader.glsl", "web_f_shader.glsl");
-    glUseProgram(test_shader.program);
+    glUseProgram(global_rd.main_shader.program);
+
+    unsigned int u_specular_strength = get_uniform_location(&global_rd.main_shader, (char *)"specular_strength");
+    unsigned int u_reflectivity = get_uniform_location(&global_rd.main_shader, (char *)"reflectivity");
     
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); 
-
+    set_uniform_value(u_specular_strength, 0.25f);
+    set_uniform_value(u_reflectivity, 64.0f);
+    
+    glUseProgram(0);
+    
     // >>>>>> Texture Stuff
-    textures_manager.AddTexture("white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("Birch_Leaves_Green.png", TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG);
-    textures_manager.AddTexture("Tree_Bark.jpg", TEXTURE_TREE_BARK, TEX_FORMAT_JPG);
-    
+    // =====================================
+    textures_manager.add_texture((char *)"white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
+    textures_manager.add_texture((char *)"thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG); 
+    // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
     camera.position.Y = 21.0; 
     camera.position.Z = -53.0;
 
-    CreateProjectionMatrix();
-
-    unsigned int u_specular_strength = GetUniformLocation(&test_shader, "specular_strength");
-    unsigned int u_reflectivity = GetUniformLocation(&test_shader, "reflectivity");
+    camera.world_up = {0.0f, 1.0f, 0.0f};
+    camera.front = {0.0f, 0.0f, -1.0f};
     
-    SetUniformValue(u_specular_strength, 0.25f);
-    SetUniformValue(u_reflectivity, 64.0f);
-
-    glUseProgram(0);
-
+    // >>>>>> Entity Stufff
     // ========================================
-    Zeta::Cube cube1({-2, -2, -2}, {2, 2, 2}, 0, 0);
-    Zeta::Cube ground_cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0);
-    
-    test_entity = E_::CreateEntity(&em, HMM_Vec3{0, 6, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, &cube1);
+    ZMath::Vec3D debug_movers_halfsize = {8.0f, 0.5f, 0.5f};
+    debug_xmover_entity = create_entity(&em, HMM_Vec3{0, 30.0f, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube(-debug_movers_halfsize, {debug_movers_halfsize.x, debug_movers_halfsize.y, debug_movers_halfsize.z}, 0.0f, 0.0f));
+    debug_xmover_entity->color = {1.0f, 0.0, 0.0f};
+    debug_xmover_entity->def_texture = TEXTURE_WHITE;
+
+    debug_ymover_entity = create_entity(&em, HMM_Vec3{0, 30.0f, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube(-ZMath::Vec3D{debug_movers_halfsize.y, debug_movers_halfsize.x, debug_movers_halfsize.z}, {debug_movers_halfsize.y, debug_movers_halfsize.x, debug_movers_halfsize.z}, 0.0f, 0.0f));
+    debug_ymover_entity->color = {0.0f, 1.0, 0.0f};
+    debug_ymover_entity->def_texture = TEXTURE_WHITE;
+
+    debug_zmover_entity = create_entity(&em, HMM_Vec3{0, 30.0f, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube(-ZMath::Vec3D{debug_movers_halfsize.y, debug_movers_halfsize.z, debug_movers_halfsize.x}, {debug_movers_halfsize.y, debug_movers_halfsize.z, debug_movers_halfsize.x}, 0.0f, 0.0f));
+    debug_zmover_entity->color = {0.0f, 0.0, 1.0f};
+    debug_zmover_entity->def_texture = TEXTURE_WHITE;
+
+    test_entity = E_::create_entity(&em, HMM_Vec3{0, 24, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
 
     test_entity->color = {0.0f, 1.0f, 0.0f};
     test_entity->def_texture = TEXTURE_WHITE;
 
-    light_entity = E_::CreateEntity(&em, HMM_Vec3{13, 43, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    light_entity = E_::create_entity(&em, HMM_Vec3{13, 43, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f,  
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
         
     light_entity->color = {0.8f, 0.8f, 0.8f};
     light_entity->def_texture = TEXTURE_WHITE;
     
-    ground_entity = E_::CreateEntity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &ground_cube);
+    ground_entity = E_::create_entity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0));
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
-    dragon_entity = E_::CreateEntity(&em, HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    dragon_entity = E_::create_entity(&em, HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     dragon_entity->color = {1.0f, 0.0f, 1.0f};
     dragon_entity->def_texture = TEXTURE_WHITE;
     
-    stall_entity = E_::CreateEntity(&em, HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    stall_entity = E_::create_entity(&em, HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     stall_entity->color = {1.0f, 1.0f, 1.0f};
     stall_entity->def_texture = TEXTURE_STALL;
 
-    test_cube_entity = E_::CreateEntity(&em, HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    test_cube_entity = E_::create_entity(&em, HMM_Vec3{11, 16, -5.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
-    pine_5_entity = E_::CreateEntity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    pine_5_entity = E_::create_entity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
+    pine_5_entity->isTransparent = true;
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
-    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
-    E_::AddTexture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+    E_::add_texture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
+    E_::add_texture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
     
-    birch_10_entity = E_::CreateEntity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, &cube1);
+    birch_10_entity = E_::create_entity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     birch_10_entity->color = {1.0f, 1.0f, 1.0f};
+    birch_10_entity->isTransparent = true;
     birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
-    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
-    E_::AddTexture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+    E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
+    E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
 
-    Init(test_entity);
+    init(test_entity,  create_cube_raw_model(&global_rd, (((Zeta::Cube *)test_entity->rb->collider)->getVertices())));
     
     handler.addRigidBody(test_entity->rb);
 
@@ -753,19 +568,26 @@ void app_start(void *window){
     // RawModel pine_5_model = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f});
     RawModel pine_5_model_2 = load_obj_model("Pine_5.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
     RawModel birch_10_model = load_obj_model("Birch_10.obj", {1.0f, 1.0f, 1.0f, 1.0f}, 2);
-    Init(birch_10_entity, birch_10_model);
-    Init(pine_5_entity, pine_5_model_2);
-    Init(dragon_entity, dragon_model);
-    Init(stall_entity, stall_model);
+    init(birch_10_entity, birch_10_model);
+    init(pine_5_entity, pine_5_model_2);
+    init(dragon_entity, dragon_model);
+    init(stall_entity, stall_model);
 
-    Init(light_entity, test_cube_model);
-    Init(test_cube_entity, test_cube_model);
-    Init(ground_entity);
+    init(light_entity, test_cube_model);
+    init(test_cube_entity, test_cube_model);
+    init(ground_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)ground_entity->sb->collider)->getVertices())));
+    init(debug_xmover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_xmover_entity->sb->collider)->getVertices())));
+    // init(debug_xmover_entity, test_cube_model);
+    init(debug_ymover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_ymover_entity->sb->collider)->getVertices())));
+    init(debug_zmover_entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)debug_zmover_entity->sb->collider)->getVertices())));
+
+    handler.addStaticBody(ground_entity->sb);
 
     SetupTextRenderer(&trm);
-    Setup2dRendering(&trm);
-    im.window = (GLFWwindow *)window;
-    
+    Setup2dRendering(&trm, &textures_manager);
+    global_im.window = (GLFWwindow *)window;
+    init_renderer(&global_rd);
+
 }
 
 float angle = 0.0f;
@@ -774,49 +596,35 @@ float dt_avg = 1.0f;
 int dt_ticks = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
-    im.dt += dt;
+    global_im.dt += dt;
+    GLenum err;
+
+    global_im.cursor_world_pos_x = 2.0f * global_im.cursorX / WINDOW_WIDTH - 1.0f;
+    global_im.cursor_world_pos_y = 1.0f - 2.0f * global_im.cursorY / WINDOW_HEIGHT;
+
+    HMM_Vec4 cursor_world_pos = HMM_Mul(HMM_InvOrthographic(global_rd.projection_matrix), HMM_Vec4{global_im.cursor_world_pos_x, global_im.cursor_world_pos_y, 1.0, 1.0});
+    global_im.cursor_world_pos_x = cursor_world_pos.X;
+    global_im.cursor_world_pos_y = cursor_world_pos.Y;
+
 #if 1
-    glUseProgram(test_shader.program);
-
-    CreateViewMatrix();
-
-    CreateProjectionMatrix();
-    // test_shader->LoadProjectionMatrix(projection);
-    unsigned int u_projection_matrix = GetUniformLocation(&test_shader, "projection_matrix");
-    SetUniformValue(u_projection_matrix, projection);
-    // test_shader->LoadViewMatrix(view_matrix);    
-    unsigned int u_view_matrix = GetUniformLocation(&test_shader, "view_matrix");
-    SetUniformValue(u_view_matrix, view_matrix);
-    // test_shader->LoadCameraPosition(camera.position);
-    // test_shader->LoadLight({light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z}, {1.0f, 1.0f, 1.0f, 1.0f});
-    unsigned int u_camera_position = GetUniformLocation(&test_shader, "camera_position");
-    SetUniformValue(u_camera_position, camera.position);
-    
-    unsigned int u_light_position = GetUniformLocation(&test_shader, "light_position");
-    SetUniformValue(u_light_position, HMM_Vec3{light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z});
-    
-    unsigned int u_light_color = GetUniformLocation(&test_shader, "light_color");
-    SetUniformValue(u_light_color, HMM_Vec3{1.0f, 1.0f, 1.0f});
-    
-    glEnable(GL_BLEND);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+    global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
-    // render(light_entity, &textures_manager);    
-    // render(test_cube_entity, &textures_manager);
-    // render(test_entity, &textures_manager);
-    // render(ground_entity, &textures_manager);
-    render(pine_5_entity, &textures_manager);
-    // render(birch_10_entity, &textures_manager);
-    // render(dragon_entity, &textures_manager);
-    // render(stall_entity, &textures_manager);
+    birch_10_entity->initialized = false;
+    pine_5_entity->initialized = false;
+
+    ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->theta += dt * 100.0f;
+    ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->phi += dt * 100.0f;
+
+    render_entities(&global_rd, &camera, &em.entities[0], em.index, &textures_manager, &global_im);  
+    glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
+    // DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
+    glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************
-    glDisable(GL_BLEND);
-
     int physics_updates = handler.update(time_step);
-    
+
     ZMath::Vec3D normal = {};
-    float ground_cube_colliding = Zeta::CubeAndCube(test_entity->rb->collider.cube, ground_entity->sb->collider.cube, normal);
+    float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(test_entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
     
     if(ground_cube_colliding){
         for(int i = 0; i < physics_updates; i++){
@@ -837,8 +645,8 @@ void app_update(float &time_step, float dt){
         dt_accum = 0.0f;
         dt_ticks = 0;
     }
+
     
-    glUseProgram(0);
     String dt_string = Create_String("dt : ");
     AddToString(&dt_string, dt_avg);
 #endif
@@ -852,36 +660,147 @@ void app_update(float &time_step, float dt){
     float border_width = 2.0f;
     
     if(g_editor_mode){
-        Text(&trm, &im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
 
-        if(Button((void *)1, &im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
+        if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
             printf("Collision Detection Scene!\n");
         }
 
-        if(Button((void *)3, &im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {0.3f, 0.3f, 0.3f, 1.0f})){
+        if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
             printf("Quit!\n");
         }
+
+
+    }else{
+        
     }
+
+    String picker_selection_string = Create_String("Picker ID : ");
+    AddToString(&picker_selection_string, (float)global_rd.picker_selection);
+    Text(&trm, &global_im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+    
+    // --------- Draw Selected Entity Data
+    E_::Entity *selected_entity = (E_::Entity *)global_im.selected_entity;
+    if(selected_entity){  
+        
+        HMM_Vec2 entity_panel_size = {200.0f, 300.0f};
+        HMM_Vec2 entity_panel_pos = {WINDOW_WIDTH - 250.0F, WINDOW_HEIGHT - 200.0f}; // top left
+
+        float padding = 30.0f;
+
+        DrawRect(&trm, {entity_panel_pos.X, entity_panel_pos.Y - entity_panel_size.Y}, entity_panel_size.X, entity_panel_size.Y, {255.0f, 100.0f, 0.0f, 255.0f});
+
+        Text(&trm, &global_im, 0.4f, Create_String("ENTITY DATA"), {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        entity_panel_pos.Y -= padding;
+        
+        String entity_identifier_str = Create_String("Identifier : ");
+        AddToString(&entity_identifier_str,  (float)selected_entity->internal_identifier);
+
+        Text(&trm, &global_im, 0.4f, entity_identifier_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        entity_panel_pos.Y -= padding;
+
+        String entity_pos_str = Create_String("Pos : { ");
+        HMM_Vec3 pos = {};
+        if(selected_entity->rb){
+            pos = {selected_entity->rb->pos.x, selected_entity->rb->pos.y, selected_entity->rb->pos.z}; 
+        }else if(selected_entity->sb){
+            pos = {selected_entity->sb->pos.x, selected_entity->sb->pos.y, selected_entity->sb->pos.z};
+        }else{
+            Assert(!"Entity has no collider!");
+        }
+        AddToString(&entity_pos_str, pos.X);
+        AddToString(&entity_pos_str, ',');
+        AddToString(&entity_pos_str,  pos.Y);
+        AddToString(&entity_pos_str, ',');
+        AddToString(&entity_pos_str,  pos.Z);
+        AddToString(&entity_pos_str, '}');
+        
+        Text(&trm, &global_im, 0.4f, entity_pos_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+    }
+
+    // ---------- Moving Entities Around Editor
+    HMM_Vec2 cursor_current_pos = {(float)global_im.cursorX, (float)global_im.cursorY};
+    HMM_Vec2 normalized_cursor_pos = {(cursor_current_pos.X * 2) / WINDOW_WIDTH, (cursor_current_pos.Y * 2) / (WINDOW_HEIGHT)};
+    normalized_cursor_pos.X -= 1.0f;
+    normalized_cursor_pos.Y -= 1.0f;
+    normalized_cursor_pos.Y *= -1.0f;
+    
+    HMM_Vec4 clip_coords = {normalized_cursor_pos.X, normalized_cursor_pos.Y, -1.0f, 1.0f};
+
+    // to eye coords
+    HMM_Vec4 eye_coords = HMM_MulM4V4(HMM_InvOrthographic(global_rd.projection_matrix), clip_coords);
+    eye_coords.Z  = -1.0f;
+    eye_coords.W  = 1.0f;
+
+    HMM_Vec4 world_coords = HMM_MulM4V4(HMM_InvGeneralM4(global_rd.view_matrix), eye_coords);
+    HMM_Vec4 world_ray = {world_coords.X, world_coords.Y, world_coords.Z};
+
+    String cursor_pos_str = Create_String("Cursor {");
+    AddToString(&cursor_pos_str, (float)world_ray.X);
+    AddToString(&cursor_pos_str, ',');
+    AddToString(&cursor_pos_str, (float)world_ray.Y);
+    AddToString(&cursor_pos_str, ',');
+    AddToString(&cursor_pos_str, (float)world_ray.Z);
+    AddToString(&cursor_pos_str, '}');
+    Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+
+
+    if(global_im.active_entity == debug_xmover_entity){
+        printf("IT IS!\n");
+        // HMM_Vec2 unit_vector = {(cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude, (cursor_current_pos.X - cursor_initial_pos.X) / cursor_magnitude};
+
+        // if(moving && im->selected_entity){
+        //     if(((E_::Entity *)im->selected_entity)->rb){
+        //         ((E_::Entity *)im->selected_entity)->rb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
+        //     } else if(((E_::Entity *)im->selected_entity)->sb){
+        //         ((E_::Entity *)im->selected_entity)->sb->pos = {original_entity_pos.X, original_entity_pos.Y + cursor_magnitude * unit_vector.X * (1), original_entity_pos.Z};
+        //     }
+        // }
+        // printf("{x : %f, y : %f}\n", unit_vector.X, unit_vector.Y);
+
+        // ((debug_xmover_entity->sb->pos)).x = global_im.picker_entity_initial_pos.X - (cursor_magnitude);
+
+        // String magnitude_str = Create_String("magnitude  ---  ");
+        // AddToString(&magnitude_str, cursor_magnitude);
+        // Text(&trm, &global_im, 0.4f, magnitude_str, {470.0f, WINDOW_HEIGHT - 300.0f},  {255.0f, 180.0f, 0.0f});
+        // Text(&trm, &global_im, 0.4f, Create_String("MAGNITUDE : %f"), {470.0f, WINDOW_HEIGHT - 300.0f},  {255.0f, 180.0f, 0.0f});
+        
+        
+    }
+
+#if 1
+    String cursor_pos_string = Create_String("Cursor {");
+    AddToString(&cursor_pos_string, (float)global_im.cursor_world_pos_x);
+    AddToString(&cursor_pos_string, ',');
+    AddToString(&cursor_pos_string, (float)global_im.cursor_world_pos_y);
+    AddToString(&cursor_pos_string, '}');
+    Text(&trm, &global_im, 0.4f, cursor_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 375.0f},  {255.0f, 180.0f, 0.0f});
+#endif
 
     String fps_string = Create_String("F P S : ");
     AddToString(&fps_string, 1 / dt_avg);
-    Text(&trm, &im, 0.4f, fps_string, {x_pos + 470.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 0.0f});
+    Text(&trm, &global_im, 0.4f, fps_string, {x_pos + 470.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 0.0f});
     DeleteString(&dt_string);
     DeleteString(&fps_string);
 }
 
 void clean_up() {
 	CleanTextRenderer(&trm);
-	for (unsigned int vao : vaos) {
+	for (unsigned int vao : global_rd.vaos) {
 		glDeleteVertexArrays(1, &vao);
 	}
 
-	for (unsigned int vbo : vbos) {
+	for (unsigned int vbo : global_rd.vbos) {
 		glDeleteBuffers(1, &vbo);
 	}
 
-	for (unsigned int texture : textures) {
+	for (unsigned int texture : global_rd.textures) {
 		glDeleteTextures(1, &texture);
 	}
+
+    // clean entities
+    for(int i = 0; i < em.index; i++){
+        E_::Entity *e = &em.entities[0];
+    }
 }
 
