@@ -38,6 +38,9 @@ struct Texture{
 
 struct RawModel{
     unsigned int vao_ID;
+    unsigned int ebo_ID;
+    unsigned int vbo_ID;
+
     unsigned int vertex_count;
 };
 
@@ -67,6 +70,38 @@ struct Camera{
     float roll;
 };
 
+struct InputManager{
+    float cursorX;
+    float cursorY;
+
+    float cursor_world_pos_x;
+    float cursor_world_pos_y;
+
+    HMM_Vec2 picker_cursor_initial_pos;
+    HMM_Vec2 picker_entity_initial_pos; // just in case moving needs to be aborted
+
+    void *window;
+    float dt;
+
+    void *active_ui;
+    void *hot_ui;
+
+    void *active_entity;
+    void *hot_entity;
+    void *selected_entity;
+    
+    bool left_click;
+    bool left_press;
+    bool left_release;
+
+    /** layouting
+        does not allow for panels inside panels yet
+    */ 
+    
+    HMM_Vec2 parent_pos;
+};
+
+
 #define Assert(expression) if(!(expression)) {*(int *)0 = 0;}
 
 RawModel load_to_VAO(VertexData *vertex_data);
@@ -76,6 +111,7 @@ void ShowCursor(float x, float y);
 void HideCursor(float x, float y);
 
 void GameInputCamera(int key, int state);
+void GameInputMouse(int button, int action);
 void SetCursorPosition(float x, float y);
 void SetScroll(float x_offset, float y_offset);
 
