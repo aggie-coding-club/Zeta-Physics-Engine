@@ -3,10 +3,10 @@
 unsigned int get_uniform_location(Shader *shader, char *name){
     unsigned int result = 0;
     result = glGetUniformLocation(shader->program, name);
-    if(result == -1){
+    if((result == GL_INVALID_VALUE) || (result == GL_INVALID_OPERATION) || (result == GL_INVALID_OPERATION)){
         // printf("Failed to Get Uniform Location -> %s \n ", name);
-        // printf("failed to get uniform location\n");
-        // Assert(!"Failed to Get Uniform Location");
+		unsigned error = result;
+		result = 0;
     }
     return result;
 }
@@ -113,6 +113,8 @@ unsigned int load_shaders(std::string v_shader_path, std::string f_shader_path){
         GLchar message[1024];
         glGetProgramInfoLog(result, 1024, &log_length, message);
         // Write the error to a log
+
+        printf("Error linking shader :: %s", message);
     }
 
     glDeleteShader(v_shader);
