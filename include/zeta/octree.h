@@ -26,6 +26,10 @@
 // todo apparently this makes moving objects simple, too
 
 
+// todo I think we should store the point alongside the next index in an element struct
+// todo this would allow for comparisons for removal and for splitting up areas when we get too many guys in one area
+
+
 namespace Zeta {
     // Array allowing removal of elements from anywhere with O(1) without invalidating indices.
     // This can only be used for datatypes that are trivially constructible and destructible.
