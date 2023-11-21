@@ -1,4 +1,4 @@
-#version 300 es
+#version 330 core
 
 precision mediump float;
 
@@ -15,17 +15,37 @@ uniform sampler2D texture_1;
 uniform sampler2D texture_2;
 uniform sampler2D texture_3;
 uniform sampler2D texture_4;
+uniform sampler2D texture_shadow_map;
+uniform vec3 light_direction;
 uniform vec3 light_color;
 uniform vec3 light_position;
 uniform vec3 camera_position;
+uniform bool highlighted;
+uniform bool selected;
 
 uniform float specular_strength;
 uniform float reflectivity;
 
+float calculate_shadow_factor(){
+    vec3 proj_coords = light_position;
+    vec2 uv_coords;
+    float z = 0.5 *proj_coords.z + 0.5;
+    float depth = texture(texture_shadow_map, uv_coords).x;
+
+    float bias = 0.0025;
+    if(depth + bias < z){
+        return 0.5;
+    }else{
+        return 1.0;
+    }
+}
+
 void main(void){
 
+    // if(0){
     vec3 unit_normal = normalize(f_surface_normal);
-    vec3 light_dir = normalize(light_position - f_current_position);
+    // vec3 light_dir = normalize(light_position - f_current_position);
+    vec3 light_dir = normalize(-light_direction);
 
     float dot1 = dot(unit_normal, light_dir);
     vec3 diffuse = light_color * max(dot1, 0.3);
@@ -57,5 +77,12 @@ void main(void){
     } else {
         out_color = vec4(f_current_position.x, f_current_position.y, f_current_position.z, 1.0); // just a debug color
     }
-
+    
+    if(highlighted){
+        out_color = mix(out_color, vec4(1.0, 1.0, 0.0, 1.0), 0.25);
+    }
+    
+    if(selected){
+        out_color = mix(out_color, vec4(1.0, 0.0, 0.0, 1.0), 0.25);
+    }
 }
