@@ -26,6 +26,12 @@ namespace E_{
         vertex_data->len_indices += 3;
         vertex_data->index += 3;
     }
+
+    Entity *em_get_new_entity(EntityManager *em){
+        Entity *result = 0;
+        result = &em->entities[++em->index];
+        return result;
+    }
     
     void physics_verts_to_render_verts(ZMath::Vec3D *zeta_verts, VertexData *vertex_data){
         // TOP
@@ -132,13 +138,15 @@ namespace E_{
 
     Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
-        Entity *result = &em->entities[em->index++];
+        // Entity *result = &em->entities[++em->index];
+        Entity *result = em_get_new_entity(em);
         result->initialized = true;
+        result->internal_identifier = em->index * 25.0f;
 
         result->scale = scale;
         result->rotation_x = rotation_x;
         result->rotation_y = rotation_y;
-        result->rotation_z = rotation_z;
+        result->rotation_z = rotation_z; 
 
         result->rb = new Zeta::RigidBody3D(
             {position.X, position.Y, position.Z}, 
@@ -149,8 +157,10 @@ namespace E_{
 
     Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
         float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
-        Entity *result = &em->entities[em->index++];
+        Entity *result = &em->entities[++em->index];
         result->initialized = true;
+        result->internal_identifier = em->index * 25.0f;
+
         result->scale = scale;
         result->rotation_x = rotation_x;
         result->rotation_y = rotation_y;
@@ -165,6 +175,18 @@ namespace E_{
 
     void init(Entity *entity, RawModel model){
         entity->raw_model = model;
+    }
+
+    Entity *get_entity(Entity *entities, unsigned int entity_count, unsigned int identifier){
+        Entity *result = 0;
+        for(int i = 0; i < entity_count; i++){
+            Entity *entity = entities + i;
+            if(entity->internal_identifier == identifier){
+                result = entity;
+            }
+        }
+
+        return result;
     }
 
     static void add_collider(Entity *entity, Zeta::RigidBodyCollider colliderType, void *collider){

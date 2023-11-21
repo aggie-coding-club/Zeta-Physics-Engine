@@ -1,16 +1,15 @@
-#version 300 es
+#version 330 core
 
-in vec2 position;
-in vec2 tex_coords;
-in vec4 color;
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 tex_coords;
+layout(location = 2) in vec4 color;
 
-in vec2 center;
-in vec2 half_size;
+layout(location = 3) in vec2 center;
+layout(location = 4) in vec2 half_size;
 
-in vec4 border_color;
-in float border_width;
-in float roundness;
-
+layout(location = 5) in vec4 border_color;
+layout(location = 6) in float border_width;
+layout(location = 7) in float roundness;
 
 ////////////////////////
 out vec2 f_tex_coords;
@@ -30,7 +29,7 @@ void main(){
     gl_Position = u_projection_matrix * vec4(position.x, position.y, 1.0, 1.0);
     f_world_pos = gl_Position.xy;
     
-    f_color = color / 255.0;
+    f_color = color;
 
     f_center = center;
     f_half_size = half_size;

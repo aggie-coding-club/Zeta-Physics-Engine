@@ -187,8 +187,9 @@ namespace Zeta {
 
             // Get the vertices of the cube in terms of global coordinates.
             // Remeber to use delete[] on the variable you assign this after use to free the memory.
-            ZMath::Vec3D* getVertices() const {
+            ZMath::Vec3D* getVertices() {
                 ZMath::Vec3D* v = new ZMath::Vec3D[8];
+                this->rot = ZMath::Mat3D::generateRotationMatrix(this->theta, this->phi);
 
                 // todo reorder to match OpenGL bindings
                 v[0] = -halfSize;

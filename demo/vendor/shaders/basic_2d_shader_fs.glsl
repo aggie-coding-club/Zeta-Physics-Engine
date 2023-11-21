@@ -1,4 +1,4 @@
-#version 300 es
+#version 330 core
 precision mediump float;
 
 in vec4 f_color;
@@ -29,7 +29,7 @@ float LinearizeDepth(in vec2 uv)
 {
     float zNear = 0.1;    // TODO: Replace by the zNear of your perspective projection
     float zFar  = 1000.0; // TODO: Replace by the zFar  of your perspective projection
-    float depth = texture2D(tex, uv).x;
+    float depth = texture(tex, uv).x;
     return (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
 }
 
@@ -97,5 +97,6 @@ void main(){
 
     out_color = vec4(c, c, c, 1.0) * texture(tex, f_tex_coords);
     out_color = vec4(color.xyz, 1.0);
-    // out_color = texture(tex, f_tex_coords);
+    out_color = texture(tex, f_tex_coords) * f_color;
+    out_color = vec4(f_color);
 }

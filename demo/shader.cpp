@@ -3,8 +3,10 @@
 unsigned int get_uniform_location(Shader *shader, char *name){
     unsigned int result = 0;
     result = glGetUniformLocation(shader->program, name);
-    if(result == -1){
+    if((result == GL_INVALID_VALUE) || (result == GL_INVALID_OPERATION) || (result == GL_INVALID_OPERATION)){
         // printf("Failed to Get Uniform Location -> %s \n ", name);
+		unsigned error = result;
+		result = 0;
     }
     return result;
 }

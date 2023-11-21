@@ -8,6 +8,9 @@
 namespace E_{
     struct Entity{
         bool initialized;
+        bool highlighted;
+        bool selected;
+        unsigned int internal_identifier; // Starting with 1, Ending with 255
         RawModel raw_model;
         unsigned int def_texture;
         unsigned int textures[MAX_ENTITY_TEXTURES] = {};
@@ -29,6 +32,8 @@ namespace E_{
         Entity entities[MAX_ENTITIES];
     };
 
+    Entity *em_get_new_entity(EntityManager *em);
+
     void physics_verts_to_render_verts(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
 
     Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
@@ -38,6 +43,7 @@ namespace E_{
             float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider);
 
     void init(Entity *entity, RawModel model);
+    Entity *get_entity(Entity *entities, unsigned int entity_count, unsigned int identifier);
 
     // order matters
     void add_texture(Entity *entity, unsigned int texture);

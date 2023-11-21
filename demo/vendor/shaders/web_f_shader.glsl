@@ -20,6 +20,8 @@ uniform vec3 light_direction;
 uniform vec3 light_color;
 uniform vec3 light_position;
 uniform vec3 camera_position;
+uniform bool highlighted;
+uniform bool selected;
 
 uniform float specular_strength;
 uniform float reflectivity;
@@ -40,6 +42,7 @@ float calculate_shadow_factor(){
 
 void main(void){
 
+    // if(0){
     vec3 unit_normal = normalize(f_surface_normal);
     // vec3 light_dir = normalize(light_position - f_current_position);
     vec3 light_dir = normalize(-light_direction);
@@ -74,6 +77,12 @@ void main(void){
     } else {
         out_color = vec4(f_current_position.x, f_current_position.y, f_current_position.z, 1.0); // just a debug color
     }
-
-    out_color = vec4(f_color.xyz, 1.0);
+    
+    if(highlighted){
+        out_color = mix(out_color, vec4(1.0, 1.0, 0.0, 1.0), 0.25);
+    }
+    
+    if(selected){
+        out_color = mix(out_color, vec4(1.0, 0.0, 0.0, 1.0), 0.25);
+    }
 }
