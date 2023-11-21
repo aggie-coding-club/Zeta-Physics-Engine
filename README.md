@@ -9,6 +9,20 @@ ___
 * Created as an easy-to-use yet efficient physics engine for any 3D project.
 
 ___
+## Features
+* Rigid and Static body support.
+* 6 Supported Primitives:
+    1. Ray3D
+    2. Line3D
+    3. Plane
+    4. Sphere
+    5. AABB
+    6. Cube (OBB)
+ * Collision detection and resolution.
+ * Common FPS rates as predefined constants (e.g. FPS_60).
+ * Spatial Partitioning - can be disabled with `#define DISABLE_SPATIAL_PARTITIONING` in *one* .cpp file above `#include <zeta/physicshandler.h>`.
+
+___
 
 ## To Use
 * Clone the Zeta repository.
@@ -16,6 +30,7 @@ ___
 * `#include <zeta/physicshandler.h` in the file you want to use Zeta in.
 
 ___
+
 
 ## Getting Started
 The following code snippet provides an example of how to get Zeta up and running in your program.
