@@ -36,6 +36,39 @@ namespace Zeta {
 
     class RigidBody3D {
         public:
+            // * =====================
+            // * Public Attributes
+            // * =====================
+
+            // * Handle and store the collider.
+
+            RigidBodyCollider colliderType;
+            void* collider;
+
+            // * Handle and store the physics.
+
+            float mass; // Must remain constant.
+            float invMass; // 1/mass. Must remain constant.
+
+            // Coefficient of Restitution.
+            // Represents a loss of kinetic energy due to heat.
+            // Between 0 and 1 for our purposes.
+            // 1 = perfectly elastic.
+            float cor;
+
+            // Linear damping.
+            // Acts as linear friction on the rigidbody.
+            float linearDamping;
+
+            ZMath::Vec3D pos; // centerpoint of the rigidbody.
+            ZMath::Vec3D vel; // velocity of the rigidbody.
+            ZMath::Vec3D netForce; // sum of all forces acting on the rigidbody.
+
+
+            // * ================
+            // * Constructors
+            // * ================
+
             // Remember to specify the necessary fields before using the RigidBody3D if using the default constructor.
             // Consult documentation for those fields if needed.
             RigidBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
@@ -69,11 +102,11 @@ namespace Zeta {
                 colliderType = rb.colliderType;
 
                 switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
-                    case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
-                    case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
-                    case RIGID_TRI_PY_COLLIDER: { collider = new Tri_Py(*((Tri_Py*) rb.collider)); break; }
-                    case RIGID_NONE:            { collider = nullptr;                              break; }
+                    case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider));                       break; }
+                    case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));                           break; }
+                    case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));                           break; }
+                    case RIGID_TRI_PY_COLLIDER: { collider = new TriangularPyramid(*((TriangularPyramid*) rb.collider)); break; }
+                    case RIGID_NONE:            { collider = nullptr;                                                    break; }
                 }
             };
 
@@ -90,12 +123,14 @@ namespace Zeta {
             };
 
             RigidBody3D& operator = (RigidBody3D const &rb) {
-                if (collider) {
-                    switch(colliderType) {
-                        case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
-                        case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
-                        case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
-                        case RIGID_TRI_PY_COLLIDER: { delete (Tri_Py*) collider; break; }
+                if (this != &rb) { 
+                    if (collider) {
+                        switch(colliderType) {
+                            case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider;            break; }
+                            case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;              break; }
+                            case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;              break; }
+                            case RIGID_TRI_PY_COLLIDER: { delete (TriangularPyramid*) collider; break; }
+                        }
                     }
 
                     pos = rb.pos;
@@ -105,12 +140,17 @@ namespace Zeta {
                     linearDamping = rb.linearDamping;
                     colliderType = rb.colliderType;
 
-                switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider)); break; }
-                    case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));     break; }
-                    case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));     break; }
-                    case RIGID_TRI_PY_COLLIDER: { collider = new Tri_Py(*((Tri_Py*) rb.collider)); break; }
-                    case RIGID_NONE:            { collider = nullptr;                              break; }
+                    // zero the velocity and net force
+                    vel.zero();
+                    netForce.zero();
+
+                    switch(colliderType) {
+                        case RIGID_SPHERE_COLLIDER: { collider = new Sphere(*((Sphere*) rb.collider));                       break; }
+                        case RIGID_AABB_COLLIDER:   { collider = new AABB(*((AABB*) rb.collider));                           break; }
+                        case RIGID_CUBE_COLLIDER:   { collider = new Cube(*((Cube*) rb.collider));                           break; }
+                        case RIGID_TRI_PY_COLLIDER: { collider = new TriangularPyramid(*((TriangularPyramid*) rb.collider)); break; }
+                        case RIGID_NONE:            { collider = nullptr;                                                    break; }
+                    }
                 }
 
                 return *this;
@@ -137,41 +177,17 @@ namespace Zeta {
 
             ~RigidBody3D() {
                 switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider; break; }
-                    case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;   break; }
-                    case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;   break; }
-                    case RIGID_TRI_PY_COLLIDER: { delete (Tri_Py*) collider; break; }
+                    case RIGID_SPHERE_COLLIDER: { delete (Sphere*) collider;            break; }
+                    case RIGID_AABB_COLLIDER:   { delete (AABB*) collider;              break; }
+                    case RIGID_CUBE_COLLIDER:   { delete (Cube*) collider;              break; }
+                    case RIGID_TRI_PY_COLLIDER: { delete (TriangularPyramid*) collider; break; }
                 }
             };
 
 
-            // * =======================
-            // * Fields and Functions
-            // * =======================
-
-            // * Handle and store the collider.
-
-            RigidBodyCollider colliderType;
-            void* collider;
-
-            // * Handle and store the physics.
-
-            float mass; // Must remain constant.
-            float invMass; // 1/mass. Must remain constant.
-
-            // Coefficient of Restitution.
-            // Represents a loss of kinetic energy due to heat.
-            // Between 0 and 1 for our purposes.
-            // 1 = perfectly elastic.
-            float cor;
-
-            // Linear damping.
-            // Acts as linear friction on the rigidbody.
-            float linearDamping;
-
-            ZMath::Vec3D pos; // centerpoint of the rigidbody.
-            ZMath::Vec3D vel; // velocity of the rigidbody.
-            ZMath::Vec3D netForce; // sum of all forces acting on the rigidbody.
+            // * ===================
+            // * Update Function
+            // * ===================
 
             void update(ZMath::Vec3D const &g, float dt) {
                 // ? assuming g is gravity, and it is already negative
@@ -184,10 +200,10 @@ namespace Zeta {
 
                 // Update the pos of the collider.
                 switch(colliderType) {
-                    case RIGID_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos;   break; }
-                    case RIGID_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos;   break; }
-                    case RIGID_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos;   break; }
-                    case RIGID_TRI_PY_COLLIDER: { ((Tri_Py*) collider)->pos = pos; break; }
+                    case RIGID_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos;              break; }
+                    case RIGID_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos;              break; }
+                    case RIGID_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos;              break; }
+                    case RIGID_TRI_PY_COLLIDER: { ((TriangularPyramid*) collider)->pos = pos; break; }
                 }
             };
     };
@@ -298,69 +314,29 @@ namespace Zeta {
     };
 
     class KinematicBody3D {
-    public:
-        KinematicBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
+        public:
+            KinematicBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
 
-        /**
-            * @brief Create a 3D KinematicBody.
-            * 
-            * @param pos Centerpoint of the kinematicbody.
-            * @param mass Mass of the kinematicbody.
-            * @param linearDamping The linear damping of the kinematicbody. This should fall on (0, 1].
-            * @param colliderType The type of collider attached to the kinematicbody. This should be set to KINEMATIC_NONE if there will not be one attached.
-            * @param collider A pointer to the collider of the kinematicbody. If this does not match the colliderType specified, it will
-            *                   cause undefined behavior to occur. If you specify KINEMATIC_NONE, this should be set to nullptr. 
-            */
-        KinematicBody3D(ZMath::Vec3D const &pos, float mass, float cor, float linearDamping, KinematicBodyCollider colliderType, void* collider) 
-                : pos(pos), mass(mass), invMass(1.0f/mass), cor(cor), linearDamping(linearDamping),
-                    colliderType(colliderType), collider(collider) {};
+            /**
+                * @brief Create a 3D KinematicBody.
+                * 
+                * @param pos Centerpoint of the kinematicbody.
+                * @param mass Mass of the kinematicbody.
+                * @param linearDamping The linear damping of the kinematicbody. This should fall on (0, 1].
+                * @param colliderType The type of collider attached to the kinematicbody. This should be set to KINEMATIC_NONE if there will not be one attached.
+                * @param collider A pointer to the collider of the kinematicbody. If this does not match the colliderType specified, it will
+                *                   cause undefined behavior to occur. If you specify KINEMATIC_NONE, this should be set to nullptr. 
+                */
+            KinematicBody3D(ZMath::Vec3D const &pos, float mass, float cor, float linearDamping, KinematicBodyCollider colliderType, void* collider) 
+                    : pos(pos), mass(mass), invMass(1.0f/mass), cor(cor), linearDamping(linearDamping),
+                        colliderType(colliderType), collider(collider) {};
 
 
-        // * ===================
-        // * Rule of 5 Stuff
-        // * ===================
+            // * ===================
+            // * Rule of 5 Stuff
+            // * ===================
 
-        KinematicBody3D(KinematicBody3D const &kb) {
-            pos = kb.pos;
-            colliderType = kb.colliderType;
-            mass = kb.mass;
-            invMass = kb.invMass;
-            cor = kb.cor;
-            linearDamping = kb.linearDamping;
-
-            switch(colliderType) {
-                case KINEMATIC_SPHERE_COLLIDER: { collider = new Sphere(*(Sphere*) kb.collider);                        break; }
-                case KINEMATIC_AABB_COLLIDER:   { collider = new AABB(*(AABB*) kb.collider);                            break; }
-                case KINEMATIC_CUBE_COLLIDER:   { collider = new Cube(*(Cube*) kb.collider);                            break; }
-                case KINEMATIC_TRI_PY_COLLIDER: { collider = new TriangularPyramid(*(TriangularPyramid*) kb.collider);  break; }
-                case KINEMATIC_NONE:            { collider = nullptr;                                                   break; }
-            }
-        };
-
-        KinematicBody3D(KinematicBody3D &&kb) {
-            pos = std::move(kb.pos);
-            colliderType = kb.colliderType;
-            collider = kb.collider;
-
-            mass = kb.mass;
-            invMass = kb.invMass;
-            cor = kb.cor;
-            linearDamping = kb.linearDamping;
-
-            kb.collider = nullptr;
-        };
-
-        KinematicBody3D& operator = (KinematicBody3D const &kb) {
-            if (this != &kb) {
-                if (collider) {
-                    switch(colliderType) {
-                        case KINEMATIC_SPHERE_COLLIDER: { delete (Sphere*) collider;            break; }
-                        case KINEMATIC_AABB_COLLIDER:   { delete (AABB*) collider;              break; }
-                        case KINEMATIC_CUBE_COLLIDER:   { delete (Cube*) collider;              break; }
-                        case KINEMATIC_TRI_PY_COLLIDER: { delete (TriangularPyramid*) collider; break; }
-                    }
-                }
-
+            KinematicBody3D(KinematicBody3D const &kb) {
                 pos = kb.pos;
                 colliderType = kb.colliderType;
                 mass = kb.mass;
@@ -369,95 +345,135 @@ namespace Zeta {
                 linearDamping = kb.linearDamping;
 
                 switch(colliderType) {
-                    case KINEMATIC_SPHERE_COLLIDER:   { collider = new Sphere(*(Sphere*) kb.collider);                       break; }
-                    case KINEMATIC_AABB_COLLIDER:     { collider = new AABB(*(AABB*) kb.collider);                           break; }
-                    case KINEMATIC_CUBE_COLLIDER:     { collider = new Cube(*(Cube*) kb.collider);                           break; }
-                    case KINEMATIC_TRI_PY_COLLIDER:   { collider = new TriangularPyramid(*(TriangularPyramid*) kb.collider); break; }
-                    case KINEMATIC_NONE:              { collider = nullptr;                                                  break; }
+                    case KINEMATIC_SPHERE_COLLIDER: { collider = new Sphere(*(Sphere*) kb.collider);                        break; }
+                    case KINEMATIC_AABB_COLLIDER:   { collider = new AABB(*(AABB*) kb.collider);                            break; }
+                    case KINEMATIC_CUBE_COLLIDER:   { collider = new Cube(*(Cube*) kb.collider);                            break; }
+                    case KINEMATIC_TRI_PY_COLLIDER: { collider = new TriangularPyramid(*(TriangularPyramid*) kb.collider);  break; }
+                    case KINEMATIC_NONE:            { collider = nullptr;                                                   break; }
                 }
+            };
 
-                // zero the velocity and net force
-                vel.zero();
-                netForce.zero();
-            }
-
-            return *this;
-        };
-
-        KinematicBody3D& operator = (KinematicBody3D &&kb) {
-            if (this != &kb) {
+            KinematicBody3D(KinematicBody3D &&kb) {
                 pos = std::move(kb.pos);
                 colliderType = kb.colliderType;
                 collider = kb.collider;
-                kb.collider = nullptr;
 
                 mass = kb.mass;
                 invMass = kb.invMass;
                 cor = kb.cor;
                 linearDamping = kb.linearDamping;
 
-                // zero the velocity and net force
-                vel.zero();
+                kb.collider = nullptr;
+            };
+
+            KinematicBody3D& operator = (KinematicBody3D const &kb) {
+                if (this != &kb) {
+                    if (collider) {
+                        switch(colliderType) {
+                            case KINEMATIC_SPHERE_COLLIDER: { delete (Sphere*) collider;            break; }
+                            case KINEMATIC_AABB_COLLIDER:   { delete (AABB*) collider;              break; }
+                            case KINEMATIC_CUBE_COLLIDER:   { delete (Cube*) collider;              break; }
+                            case KINEMATIC_TRI_PY_COLLIDER: { delete (TriangularPyramid*) collider; break; }
+                        }
+                    }
+
+                    pos = kb.pos;
+                    colliderType = kb.colliderType;
+                    mass = kb.mass;
+                    invMass = kb.invMass;
+                    cor = kb.cor;
+                    linearDamping = kb.linearDamping;
+
+                    switch(colliderType) {
+                        case KINEMATIC_SPHERE_COLLIDER:   { collider = new Sphere(*(Sphere*) kb.collider);                       break; }
+                        case KINEMATIC_AABB_COLLIDER:     { collider = new AABB(*(AABB*) kb.collider);                           break; }
+                        case KINEMATIC_CUBE_COLLIDER:     { collider = new Cube(*(Cube*) kb.collider);                           break; }
+                        case KINEMATIC_TRI_PY_COLLIDER:   { collider = new TriangularPyramid(*(TriangularPyramid*) kb.collider); break; }
+                        case KINEMATIC_NONE:              { collider = nullptr;                                                  break; }
+                    }
+
+                    // zero the velocity and net force
+                    vel.zero();
+                    netForce.zero();
+                }
+
+                return *this;
+            };
+
+            KinematicBody3D& operator = (KinematicBody3D &&kb) {
+                if (this != &kb) {
+                    pos = std::move(kb.pos);
+                    colliderType = kb.colliderType;
+                    collider = kb.collider;
+                    kb.collider = nullptr;
+
+                    mass = kb.mass;
+                    invMass = kb.invMass;
+                    cor = kb.cor;
+                    linearDamping = kb.linearDamping;
+
+                    // zero the velocity and net force
+                    vel.zero();
+                    netForce.zero();
+                }
+
+                return *this;
+            };
+
+            ~KinematicBody3D() {
+                switch(colliderType) {
+                    case KINEMATIC_SPHERE_COLLIDER:   { delete (Sphere*) collider;            break; }
+                    case KINEMATIC_AABB_COLLIDER:     { delete (AABB*) collider;              break; }
+                    case KINEMATIC_CUBE_COLLIDER:     { delete (Cube*) collider;              break; }
+                    case KINEMATIC_TRI_PY_COLLIDER:   { delete (TriangularPyramid*) collider; break; }
+                }
+            };
+
+
+            // * ========================
+            // * Fields and Functions
+            // * ========================
+
+            // * Information related to the kinematic body.
+
+            float mass; // Must remain constant.
+            float invMass; // 1/mass. Must remain constant.
+
+            // Coefficient of Restitution.
+            // Represents a loss of kinetic energy due to heat.
+            // Between 0 and 1 for our purposes.
+            // 1 = perfectly elastic.
+            float cor;
+
+            // Linear damping.
+            // Acts as linear friction on the kinematicbody.
+            float linearDamping;
+
+            ZMath::Vec3D pos; // centerpoint of the kinematicbody.
+            ZMath::Vec3D vel; // velocity of the kinematicbody.
+            ZMath::Vec3D netForce; // sum of all forces acting on the kinematicbody.
+
+            // * Handle and store the collider.
+
+            KinematicBodyCollider colliderType;
+            void* collider;
+
+            void update(ZMath::Vec3D const &g, float dt) {
+                // ? This assumes that g (gravity) is already negative.
+                netForce += g * mass;
+                vel += (netForce * invMass) * dt;
+                pos += vel *dt;
+
+                vel *= linearDamping;
                 netForce.zero();
-            }
 
-            return *this;
-        };
-
-        ~KinematicBody3D() {
-            switch(colliderType) {
-                case KINEMATIC_SPHERE_COLLIDER:   { delete (Sphere*) collider;            break; }
-                case KINEMATIC_AABB_COLLIDER:     { delete (AABB*) collider;              break; }
-                case KINEMATIC_CUBE_COLLIDER:     { delete (Cube*) collider;              break; }
-                case KINEMATIC_TRI_PY_COLLIDER:   { delete (TriangularPyramid*) collider; break; }
-            }
-        };
-
-
-        // * ========================
-        // * Fields and Functions
-        // * ========================
-
-        // * Information related to the kinematic body.
-
-        float mass; // Must remain constant.
-        float invMass; // 1/mass. Must remain constant.
-
-        // Coefficient of Restitution.
-        // Represents a loss of kinetic energy due to heat.
-        // Between 0 and 1 for our purposes.
-        // 1 = perfectly elastic.
-        float cor;
-
-        // Linear damping.
-        // Acts as linear friction on the kinematicbody.
-        float linearDamping;
-
-        ZMath::Vec3D pos; // centerpoint of the kinematicbody.
-        ZMath::Vec3D vel; // velocity of the kinematicbody.
-        ZMath::Vec3D netForce; // sum of all forces acting on the kinematicbody.
-
-        // * Handle and store the collider.
-
-        KinematicBodyCollider colliderType;
-        void* collider;
-
-        void update(ZMath::Vec3D const &g, float dt) {
-            // ? This assumes that g (gravity) is already negative.
-            netForce += g * mass;
-            vel += (netForce * invMass) * dt;
-            pos += vel *dt;
-
-            vel *= linearDamping;
-            netForce.zero();
-
-            // Update the pos of the collider.
-            switch(colliderType) {
-                case KINEMATIC_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos;              break; }
-                case KINEMATIC_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos;              break; }
-                case KINEMATIC_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos;              break; }
-                case KINEMATIC_TRI_PY_COLLIDER: { ((TriangularPyramid*) collider)->pos = pos; break; }
-            }
-        };
+                // Update the pos of the collider.
+                switch(colliderType) {
+                    case KINEMATIC_SPHERE_COLLIDER: { ((Sphere*) collider)->c = pos;              break; }
+                    case KINEMATIC_AABB_COLLIDER:   { ((AABB*) collider)->pos = pos;              break; }
+                    case KINEMATIC_CUBE_COLLIDER:   { ((Cube*) collider)->pos = pos;              break; }
+                    case KINEMATIC_TRI_PY_COLLIDER: { ((TriangularPyramid*) collider)->pos = pos; break; }
+                }
+            };
     };
 }
