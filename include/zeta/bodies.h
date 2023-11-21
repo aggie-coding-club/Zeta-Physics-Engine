@@ -310,7 +310,6 @@ namespace Zeta {
 
             StaticBodyCollider colliderType;
             void* collider;
-        };
     };
 
     class KinematicBody3D {
