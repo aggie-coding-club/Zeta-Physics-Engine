@@ -51,6 +51,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+        GameInputMouse(button, GLFW_PRESS);
+    }else if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+        GameInputMouse(button, GLFW_RELEASE);
+    }
+}
+
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     SetCursorPosition((float)xpos, (float)ypos);
@@ -90,11 +99,16 @@ int main(void)
 {
 
     /* Initialize the library */
-    if (!glfwInit())
+    if (!glfwInit()){
+        printf("failed to init GLFW\n");
         return -1;
+    }
 
 
     /* Create a windowed mode window and its OpenGL context */
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zeta Physics Engine Demo", NULL, NULL);
     if (!window)
     {
@@ -111,7 +125,8 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback); 
-    
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+   
     #ifdef __EMSCRIPTEN__
     #else
 
@@ -136,8 +151,8 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-
         /* Render here */
+        PrintGLError();
         glEnable(GL_DEPTH_TEST);
         glClearColor(CLEAR_COLOR);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -155,6 +170,15 @@ int main(void)
         dt = current_time - previous_time;
         time_step += dt;
         previous_time = current_time;
+
+        // * Check for errors to make it easier to debug
+        // ! this will be removed in the final build
+#if 0
+        GLenum err;
+        while((err = glGetError()) != GL_NO_ERROR) {
+            std::cout << "[Error] " << err << "\n";
+        }
+#endif
     }
     #endif
 

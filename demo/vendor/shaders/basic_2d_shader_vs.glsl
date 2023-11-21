@@ -1,18 +1,18 @@
-#version 300 es
+#version 330 core
 
-// add support for texturing later
-in vec2 position;
-in vec4 color;
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 tex_coords;
+layout(location = 2) in vec4 color;
 
-in vec2 center;
-in vec2 half_size;
+layout(location = 3) in vec2 center;
+layout(location = 4) in vec2 half_size;
 
-in vec4 border_color;
-in float border_width;
-in float roundness;
-
+layout(location = 5) in vec4 border_color;
+layout(location = 6) in float border_width;
+layout(location = 7) in float roundness;
 
 ////////////////////////
+out vec2 f_tex_coords;
 out vec4 f_color;
 out vec2 f_world_pos;
 
@@ -37,4 +37,6 @@ void main(){
     f_border_color = border_color;
     f_border_width = border_width;
     f_roundness = roundness;
+
+    f_tex_coords = tex_coords;
 }
