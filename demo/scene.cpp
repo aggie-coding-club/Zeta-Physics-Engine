@@ -56,7 +56,7 @@ namespace Scene{
         scene->phase = SCENE_PHASE_SETUP;
     }
 
-    void update(Scene *scene, float time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im){
+    void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im){
         if(scene->phase == SCENE_PHASE_PLAYING){
 
         } else if(scene->phase == SCENE_PHASE_PAUSED){
