@@ -874,7 +874,7 @@ namespace Zeta {
                     }
                 }
 
-                return -1;
+                return 1;
             };
 
 
@@ -918,7 +918,9 @@ namespace Zeta {
                     clearCollisions();
 
                     // Update our rigidbodies
-                    for (int i = 0; i < rbs.count; ++i) { rbs.rigidBodies[i]->update(g, updateStep); }
+                    for (int i = 0; i < rbs.count; ++i) { 
+						rbs.rigidBodies[i]->update(g, updateStep); 
+					}
 
                     dt -= updateStep;
                     ++count;

@@ -163,4 +163,4 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
 void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
 
 void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader);
-void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, unsigned int entity_count, TexturesManager *tm, InputManager *im);
+void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities[], unsigned int entity_count, TexturesManager *tm, InputManager *im);

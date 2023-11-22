@@ -1,5 +1,7 @@
 #pragma once
 #include "entity.h"
+#include "renderer.h"
+#include <zeta/physicshandler.h>
 
 #define SCENE_PHASE_SETUP 0x1
 #define SCENE_PHASE_PAUSED 0x2
@@ -17,13 +19,15 @@ namespace Scene{
         InitialEntityValues iev[MAX_ENTITIES];
         int index;
         int phase;
+        
+        Zeta::Handler *physics_handler;
     };
 
-    void add_entity(Scene *scene, E_::Entity *entity);
-    void remove_entity(Scene *scene, E_::Entity *entity);
+    bool add_entity(Scene *scene, E_::Entity *entity);
+    bool remove_entity(Scene *scene, E_::Entity *entity);
 
     void setup(Scene *scene);
     void pause(Scene *scene);
     void reset(Scene *scene);
-    void update(Scene *scene);
+    void update(Scene *scene, float time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im);
 };

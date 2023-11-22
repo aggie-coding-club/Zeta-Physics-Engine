@@ -15,15 +15,6 @@ float global_dt = 0.0f;
 HMM_Vec3 cursor_position = {};
 RendererData global_rd = {};
 
-// void PrintGLError(){
-//     int gl_error = glGetError(); 
-
-//     GLenum err;
-//     while((err = glGetError()) != GL_NO_ERROR) {
-//         std::cout << "[GL Error] " << err << "\n";
-//     }
-// }
-
 template <typename Out>
 void SplitString(const std::string &s, char delim, Out result) {
     std::istringstream iss(s);
@@ -286,7 +277,7 @@ float time_btw_physics_updates = 1.0f / 60.0f;
 float count_down = time_btw_physics_updates;
 float start_time = (float)glfwGetTime();
 
-Scene::Scene scene = {};
+Scene::Scene gravity_scene = {};
 
 RawModel model = {};
 RawModel ground_model = {};
@@ -509,7 +500,7 @@ void app_start(void *window){
     debug_zmover_entity->color = {0.0f, 0.0, 1.0f};
     debug_zmover_entity->def_texture = TEXTURE_WHITE;
 
-    test_entity = E_::create_entity(&em, HMM_Vec3{0, 24, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+    test_entity = E_::create_entity(&em, HMM_Vec3{0, 48, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
 
     test_entity->color = {0.0f, 1.0f, 0.0f};
@@ -588,6 +579,11 @@ void app_start(void *window){
     global_im.window = (GLFWwindow *)window;
     init_renderer(&global_rd);
 
+
+    // scene setup
+    Scene::setup(&gravity_scene);
+    Scene::add_entity(&gravity_scene,  test_entity); 
+    Scene::add_entity(&gravity_scene,  ground_entity); 
 }
 
 float angle = 0.0f;
@@ -606,6 +602,8 @@ void app_update(float &time_step, float dt){
     global_im.cursor_world_pos_x = cursor_world_pos.X;
     global_im.cursor_world_pos_y = cursor_world_pos.Y;
 
+    Scene::update(&gravity_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
+
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
@@ -615,12 +613,14 @@ void app_update(float &time_step, float dt){
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->theta += dt * 100.0f;
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->phi += dt * 100.0f;
 
-    render_entities(&global_rd, &camera, &em.entities[0], em.index, &textures_manager, &global_im);  
-    glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
+    // render_entities(&global_rd, &camera, em.entity_pointers, em.index, &textures_manager, &global_im);  
+    //glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
     // DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
-    glBindTexture(GL_TEXTURE_2D, 0);
+    //glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************
+
+#if 0
     int physics_updates = handler.update(time_step);
 
     ZMath::Vec3D normal = {};
@@ -645,6 +645,7 @@ void app_update(float &time_step, float dt){
         dt_accum = 0.0f;
         dt_ticks = 0;
     }
+#endif
 
     
     String dt_string = Create_String("dt : ");

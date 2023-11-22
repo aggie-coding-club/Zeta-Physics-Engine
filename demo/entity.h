@@ -30,6 +30,7 @@ namespace E_{
     struct EntityManager{
         unsigned int index;
         Entity entities[MAX_ENTITIES];
+        Entity *entity_pointers[MAX_ENTITIES];
     };
 
     Entity *em_get_new_entity(EntityManager *em);
@@ -43,7 +44,7 @@ namespace E_{
             float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider);
 
     void init(Entity *entity, RawModel model);
-    Entity *get_entity(Entity *entities, unsigned int entity_count, unsigned int identifier);
+    Entity *get_entity(Entity *entities[], unsigned int entity_count, unsigned int identifier);
 
     // order matters
     void add_texture(Entity *entity, unsigned int texture);
