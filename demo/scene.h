@@ -3,11 +3,12 @@
 #include "renderer.h"
 #include <zeta/physicshandler.h>
 
-#define SCENE_PHASE_SETUP 0x1
-#define SCENE_PHASE_PAUSED 0x2
-#define SCENE_PHASE_PLAYING 0x2
-
 namespace Scene{
+    enum ScenePhase {
+        SCENE_PHASE_SETUP,
+        SCENE_PHASE_PAUSED,
+        SCENE_PHASE_PLAYING
+    };
 
     struct InitialEntityValues{
         void *entity_id;
@@ -18,7 +19,7 @@ namespace Scene{
         E_::Entity *entities[MAX_ENTITIES];
         InitialEntityValues iev[MAX_ENTITIES];
         int index;
-        int phase;
+        ScenePhase phase;
         
         Zeta::Handler *physics_handler;
     };

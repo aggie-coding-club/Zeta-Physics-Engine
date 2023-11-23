@@ -25,7 +25,7 @@ namespace Scene{
     }
     
     bool remove_entity(Scene *scene, E_::Entity *entity){
-        if(scene->phase == SCENE_PHASE_SETUP){
+        if(scene->phase != SCENE_PHASE_SETUP){
             Assert(!"not in setup phase!");
             return false;
         }
