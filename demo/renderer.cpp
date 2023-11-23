@@ -469,7 +469,7 @@ void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManage
     shadow_pass_render(rd, entity, textures_manager, shader);
 }
 
-void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, unsigned int entity_count, TexturesManager *tm, InputManager *im){
+void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities[], unsigned int entity_count, TexturesManager *tm, InputManager *im){
     
     #if 0
     prepare_shadow_renderer(rd);
@@ -494,9 +494,11 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, uns
     
     prepare_picker_renderer(rd, camera);
     for(int i = 0; i < entity_count; i++){
-        E_::Entity *entity = entities + i;
-        if(entity->initialized == true){
-            picker_pass_render(rd, entity); 
+        E_::Entity *entity = entities[i];
+        if(entity){
+            if(entity->initialized == true){
+                picker_pass_render(rd, entity); 
+            }
         }
     }
 
@@ -569,9 +571,11 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities, uns
     // lighting pass
     prepare_renderer(rd, camera);
     for(int i = 0; i < entity_count; i++){
-        E_::Entity *entity = entities + i;
-        if(entity->initialized == true){
-            lighting_pass_render(rd, entity, tm, &rd->main_shader); 
+        E_::Entity *entity = entities[i];
+        if(entity){
+            if(entity->initialized == true){
+                lighting_pass_render(rd, entity, tm, &rd->main_shader); 
+            }
         }
     }
 }

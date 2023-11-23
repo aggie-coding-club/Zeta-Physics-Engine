@@ -1,31 +1,41 @@
 #include "scene.h"
-#include "renderer.h"
-#include "ui.cpp"
 
 namespace Scene{
 
-    bool *add_entity(Scene *scene, Entity *entity){
+    bool add_entity(Scene *scene, E_::Entity *entity){
         if(scene->phase != SCENE_PHASE_SETUP){
-            // Assert()
+            Assert(!"not in setup phase!");
             return false;
         }
         
         scene->entities[scene->index] = entity;
-        scene->iev[scene->index] = entity;
+        scene->iev[scene->index].entity_id = entity;
+
+        if(entity->rb){
+            Assert(scene->physics_handler);
+            scene->physics_handler->addRigidBody(entity->rb);
+        } else if(entity->sb){
+            Assert(scene->physics_handler);
+            scene->physics_handler->addStaticBody(entity->sb);
+        }
+
         scene->index++;
 
         return true;
     }
     
-    void remove_entity(Scene *scene, Entity *entity){
-        if(scene->phase == SCENE_PHASE_SETUP){
-            // Assert()
+    bool remove_entity(Scene *scene, E_::Entity *entity){
+        if(scene->phase != SCENE_PHASE_SETUP){
+            Assert(!"not in setup phase!");
             return false;
         }
+
+        return true;
     }
 
     void setup(Scene *scene){
-        scene->phase = SCENE_PHASE_PAUSED;
+        scene->phase = SCENE_PHASE_SETUP;
+        scene->physics_handler = new Zeta::Handler(ZMath::Vec3D(0, -5.8f, 0));
     }
 
     void toggle_pause(Scene *scene){
@@ -34,28 +44,32 @@ namespace Scene{
         }else if(scene->phase == SCENE_PHASE_PLAYING){
             scene->phase = SCENE_PHASE_PAUSED;
         } else{
-            // Assert(!"invalid scene status");
+            Assert(!"invalid scene status");
         }  
+    }
+
+    void play(Scene *scene){
+        scene->phase = SCENE_PHASE_PLAYING;
     }
 
     void reset(Scene *scene){
         scene->phase = SCENE_PHASE_SETUP;
     }
 
-    void update(Scene *scene, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im){
-
-        if(scene->phase == SCENE_PHASE_SETUP){
-            scene->phase = SCENE_PHASE_PLAYING;
-        }
-        
+    void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im){
         if(scene->phase == SCENE_PHASE_PLAYING){
+            int physics_updates = scene->physics_handler->update(time_step);
+
+            for(int i = 0; i < scene->index; i++){
+                E_::Entity *entity = scene->entities[i];
+                if(entity->physics_behavior){
+                    entity->physics_behavior(entity, time_step, physics_updates);
+                }
+            }
 
         } else if(scene->phase == SCENE_PHASE_PAUSED){
 
-        }else{
-            // Assert(!"invalid scene status");
         }
-
         // draw entities
         render_entities(rd, camera, scene->entities, scene->index, tm, im);
     }
