@@ -515,7 +515,7 @@ namespace Zeta {
             };
 
 
-            // todo factor in the free node
+            // todo factor in the free node (deferred cleanup)
 
             // Insert the given point into the octree.
             // Returns the index of the element inserted.
@@ -953,11 +953,11 @@ namespace Zeta {
             // Clear the octree.
             inline void clear() {
                 delete[] nodes;
-                capacity = 32;
+                capacity = 33;
                 count = 0;
                 nodes = new Node[capacity];
                 freeNode = -1;
-                // elements.clear();
+                elements.clear();
                 elmNodes.clear();
             };
 
