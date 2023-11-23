@@ -28,6 +28,7 @@ namespace Scene{
 
     void setup(Scene *scene);
     void pause(Scene *scene);
+    void play(Scene *scene);
     void reset(Scene *scene);
     void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im);
 };

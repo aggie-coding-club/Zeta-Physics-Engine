@@ -25,6 +25,7 @@ namespace E_{
 
         Zeta::RigidBody3D *rb = 0;
         Zeta::StaticBody3D *sb = 0;
+        void (*physics_behavior)(Entity*, float&, int);
     };
 
     struct EntityManager{

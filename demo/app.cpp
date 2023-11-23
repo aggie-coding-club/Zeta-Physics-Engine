@@ -446,6 +446,23 @@ void TempLightMovement(int key, int state){
     }
 }
 
+void test_entity_physics_behavior(E_::Entity *entity, float &time_step, int physics_updates){
+    if(entity == test_entity){
+        ZMath::Vec3D normal = {};
+        float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
+        
+        if(ground_cube_colliding){
+            for(int i = 0; i < physics_updates; i++){
+                test_entity->rb->vel = 0;
+                test_entity->rb->netForce -= handler.g * test_entity->rb->mass;
+            }
+            ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
+        }else{
+            ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
+        }
+    }
+}
+
 void app_start(void *window){
     SetEditMode(0);
 
@@ -579,11 +596,15 @@ void app_start(void *window){
     global_im.window = (GLFWwindow *)window;
     init_renderer(&global_rd);
 
+    // entity behaviors
+    test_entity->physics_behavior = &test_entity_physics_behavior;
 
     // scene setup
     Scene::setup(&gravity_scene);
     Scene::add_entity(&gravity_scene,  test_entity); 
     Scene::add_entity(&gravity_scene,  ground_entity); 
+
+    Scene::play(&gravity_scene);
 }
 
 float angle = 0.0f;
@@ -619,34 +640,6 @@ void app_update(float &time_step, float dt){
     //glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************
-
-#if 0
-    int physics_updates = handler.update(time_step);
-
-    ZMath::Vec3D normal = {};
-    float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(test_entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
-    
-    if(ground_cube_colliding){
-        for(int i = 0; i < physics_updates; i++){
-            test_entity->rb->vel = 0;
-            test_entity->rb->netForce -= handler.g * test_entity->rb->mass;
-        }
-        ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
-    }else{
-        ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
-    }
-    
-    dt_ticks++;
-    dt_accum += dt;
-    if(dt_ticks >= 1000){
-        dt_accum /= dt_ticks;  
-        dt_avg = dt_accum;
-
-        dt_accum = 0.0f;
-        dt_ticks = 0;
-    }
-#endif
-
     
     String dt_string = Create_String("dt : ");
     AddToString(&dt_string, dt_avg);

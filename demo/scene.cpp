@@ -58,11 +58,18 @@ namespace Scene{
 
     void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im){
         if(scene->phase == SCENE_PHASE_PLAYING){
+            int physics_updates = scene->physics_handler->update(time_step);
+
+            for(int i = 0; i < scene->index; i++){
+                E_::Entity *entity = scene->entities[i];
+                if(entity->physics_behavior){
+                    entity->physics_behavior(entity, time_step, physics_updates);
+                }
+            }
 
         } else if(scene->phase == SCENE_PHASE_PAUSED){
 
         }
-        scene->physics_handler->update(time_step);
         // draw entities
         render_entities(rd, camera, scene->entities, scene->index, tm, im);
     }
