@@ -26,6 +26,10 @@
 // todo apparently this makes moving objects simple, too
 
 
+// todo I think we should store the point alongside the next index in an element struct
+// todo this would allow for comparisons for removal and for splitting up areas when we get too many guys in one area
+
+
 namespace Zeta {
     // Array allowing removal of elements from anywhere with O(1) without invalidating indices.
     // This can only be used for datatypes that are trivially constructible and destructible.
@@ -180,6 +184,9 @@ namespace Zeta {
     // It is expected for you to store the list of objects where you use this Octree.
     class Octree {
         private:
+            // todo I don't think the count value is needed for Node
+            // todo refactor to not use it and instead represent each node as an int32_t (int64_t if we end up needing more values)
+            // todo (or we could do uint32_t and use uint32_MAX as the null value)
             struct Node {
                 // ? We can store firstChild as a uint16_t since the next index in element stores a 32bit int
 
@@ -188,6 +195,18 @@ namespace Zeta {
 
                 // Stores the number of elements in the leaf or -1 if this node is not a leaf.
                 int32_t count;
+            };
+
+
+            // ? We split up Element and ElementNode as then we can insert Element nodes a singular time and let the smaller
+            // ?  struct be inserted more frequently to reduce caches misses.
+
+            struct Element {
+                // The index of the element in the main list of bodies.
+                uint32_t index;
+
+                // The point corresponding to the position of the body.
+                ZMath::Vec3D pos;
             };
 
             struct ElementNode {
@@ -215,9 +234,13 @@ namespace Zeta {
             // todo we'll need an easy way to update the tree after a physics object moves into a different portion
             // todo probs just do that directly in the physicshandler with the remove and insert functions
 
-            // Stores every element in the octree.
-            // Elements are stored as the indices of each index in the original list of elements.
+            // Stores every ElementNode in the octree.
+            // ElementNodes store an index corresponding to the element in the elements list and the next element node.
             FreeList<ElementNode> elmNodes;
+
+            // Stores every element node in the octree.
+            // Elements are stored as the indices of each index in the original list of elements and a point.
+            FreeList<Element> elements;
 
             // Stores every node in the octree.
             // The first node will always be the root.
@@ -492,7 +515,7 @@ namespace Zeta {
             };
 
 
-            // todo factor in the free node
+            // todo factor in the free node (deferred cleanup)
 
             // Insert the given point into the octree.
             // Returns the index of the element inserted.
@@ -558,30 +581,285 @@ namespace Zeta {
                         // check if we should expand the tree
                         if (nodes[region].count >= maxElementCapacity && depth < maxDepth) {
                             // add the 8 new nodes
-                            if (count >= capacity) { grow(); }
+                            if (count+8 >= capacity) { grow(); }
+                            
+                            // ? determine the points that should be added to each new region
+                            // ? do this by first determining the region each node should occupy
+                            // ? then, check if the point is within a certain region
+                            // ? if it is within that certain region, add it to the region's linked list of elements
+                            // ? insert it at the front most likely to ensure O(1) operation
 
-                            // todo figure out how to split up all of the rbs in the region when it splits
-                            // todo adjust the firstChild and count values for each of the 8 nodes added
+                            // value to be used as the point being added to a new region
+                            // stored for readability
+                            ZMath::Vec3D p;
 
-                            nodes[count++];
-                            nodes[count++];
-                            nodes[count++];
-                            nodes[count++];
-                            nodes[count++];
-                            nodes[count++];
-                            nodes[count++];
-                            nodes[count++];
+                            // cache the indices for each new region
+                            // note: octant 1 will be accessed using count
+                            int oct2 = count + 1, oct3 = count + 2, oct4 = count + 3, oct5 = count + 4;
+                            int oct6 = count + 5, oct7 = count + 6, oct8 = count + 7;
 
-                            // todo after figuring out how to split up the region, see if we need the count-8 for nodes[region].firstChild
+                            // * Initialize the new nodes to be ready for adding the points to each region
+                            // octant 1
+                            nodes[count].firstChild = 0;
+                            nodes[count].count = -1;
 
+                            // octant 2
+                            nodes[oct2].firstChild = 0;
+                            nodes[oct2].count = -1;
+
+                            // octant 3
+                            nodes[oct3].firstChild = 0;
+                            nodes[oct3].count = -1;
+
+                            // octant 4
+                            nodes[oct4].firstChild = 0;
+                            nodes[oct4].count = -1;
+
+                            // octant 5
+                            nodes[oct5].firstChild = 0;
+                            nodes[oct5].count = -1;
+
+                            // octant 6
+                            nodes[oct6].firstChild = 0;
+                            nodes[oct6].count = -1;
+
+                            // octant 7
+                            nodes[oct7].firstChild = 0;
+                            nodes[oct7].count = -1;
+
+                            // octant 8
+                            nodes[oct8].firstChild = 0;
+                            nodes[oct8].count = -1;
+                            
+
+                            // * Loop through each point in the region and determine its new region
+
+                            for (int32_t curr = nodes[region].firstChild; elmNodes[curr].next != -1; curr = elmNodes[curr].next) {
+                                // Determine the value of p
+                                // This is only stored as a variable for readability as it is technically slightly less efficient
+                                // todo may update in the future to save the 3 clock cycles per loop
+                                // todo (realistically they're done concurrently so more like 1 clock cycle)
+                                p = elements[elmNodes[curr].element].pos;
+
+                                // Determine the region the point falls in and add it to that region
+                                if (p.x < center.x && p.y < center.y && p.z < center.z) { // octant 1
+                                    if (nodes[count].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[count].firstChild;
+                                        ++nodes[count].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[count].count = 1;
+                                    }
+
+                                    nodes[count].firstChild = curr;
+
+                                } else if (p.x < center.x && p.y >= center.y && p.z < center.z) { // octant 2
+                                    if (nodes[oct2].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[oct2].firstChild;
+                                        ++nodes[oct2].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[oct2].count = 1;
+                                    }
+
+                                    nodes[oct2].firstChild = curr;
+
+                                } else if (p.x < center.x && p.y < center.y && p.z >= center.z) { // octant 3
+                                    if (nodes[oct3].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[oct3].firstChild;
+                                        ++nodes[oct3].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[oct3].count = 1;
+                                    }
+
+                                    nodes[oct3].firstChild = curr;
+
+                                } else if (p.x < center.x && p.y >= center.y && p.z >= center.z) { // octant 4
+                                    if (nodes[oct4].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[oct4].firstChild;
+                                        ++nodes[oct4].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[oct4].count = 1;
+                                    }
+
+                                    nodes[oct4].firstChild = curr;
+
+                                } else if (p.x >= center.x && p.y < center.y && p.z < center.z) { // octant 5
+                                    if (nodes[oct5].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[oct5].firstChild;
+                                        ++nodes[oct5].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[oct5].count = 1;
+                                    }
+
+                                    nodes[oct5].firstChild = curr;
+
+                                } else if (p.x >= center.x && p.y >= center.y && p.z < center.z) { // octant 6
+                                    if (nodes[oct6].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[oct6].firstChild;
+                                        ++nodes[oct6].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[oct6].count = 1;
+                                    }
+
+                                    nodes[oct6].firstChild = curr;
+
+                                } else if (p.x >= center.x && p.y < center.y && p.z >= center.z) { // octant 7
+                                    if (nodes[oct7].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[oct7].firstChild;
+                                        ++nodes[oct7].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[oct7].count = 1;
+                                    }
+
+                                    nodes[oct7].firstChild = curr;
+
+                                } else { // octant 8
+                                    if (nodes[oct8].count != -1) { // the node already has a child
+                                        elmNodes[curr].next = nodes[oct8].firstChild;
+                                        ++nodes[oct8].count;
+
+                                    } else { // the node has no children
+                                        elmNodes[curr].next = -1;
+                                        nodes[oct8].count = 1;
+                                    }
+
+                                    nodes[oct8].firstChild = curr;
+                                }
+                            }
+                            
+                            nodes[region].firstChild = count;
                             nodes[region].count = -1;
-                            nodes[region].firstChild = count - 8;
+
+                            count += 8;
+
+                            // insert the new point
+                            int curr = elmNodes.count;
+                            ElementNode elm = {-1, elements.count};
+
+                            elmNodes.insert(elm);
+                            elements.insert({index, point});
+
+                            // determine the region to place the point in
+                            if (point.x < center.x && point.y < center.y && point.z < center.z) { // octant 1
+                                if (nodes[count].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[count].firstChild;
+                                    ++nodes[count].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[count].count = 1;
+                                }
+
+                                nodes[count].firstChild = curr;
+
+                            } else if (point.x < center.x && point.y >= center.y && point.z < center.z) { // octant 2
+                                if (nodes[oct2].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[oct2].firstChild;
+                                    ++nodes[oct2].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[oct2].count = 1;
+                                }
+
+                                nodes[oct2].firstChild = curr;
+
+                            } else if (point.x < center.x && point.y < center.y && point.z >= center.z) { // octant 3
+                                if (nodes[oct3].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[oct3].firstChild;
+                                    ++nodes[oct3].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[oct3].count = 1;
+                                }
+
+                                nodes[oct3].firstChild = curr;
+
+                            } else if (point.x < center.x && point.y >= center.y && point.z >= center.z) { // octant 4
+                                if (nodes[oct4].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[oct4].firstChild;
+                                    ++nodes[oct4].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[oct4].count = 1;
+                                }
+
+                                nodes[oct4].firstChild = curr;
+
+                            } else if (point.x >= center.x && point.y < center.y && point.z < center.z) { // octant 5
+                                if (nodes[oct5].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[oct5].firstChild;
+                                    ++nodes[oct5].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[oct5].count = 1;
+                                }
+
+                                nodes[oct5].firstChild = curr;
+
+                            } else if (point.x >= center.x && point.y >= center.y && point.z < center.z) { // octant 6
+                                if (nodes[oct6].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[oct6].firstChild;
+                                    ++nodes[oct6].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[oct6].count = 1;
+                                }
+
+                                nodes[oct6].firstChild = curr;
+
+                            } else if (point.x >= center.x && point.y < center.y && point.z >= center.z) { // octant 7
+                                if (nodes[oct7].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[oct7].firstChild;
+                                    ++nodes[oct7].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[oct7].count = 1;
+                                }
+
+                                nodes[oct7].firstChild = curr;
+
+                            } else { // octant 8
+                                if (nodes[oct8].count != -1) { // the node already has a child
+                                    elmNodes[curr].next = nodes[oct8].firstChild;
+                                    ++nodes[oct8].count;
+
+                                } else { // the node has no children
+                                    elmNodes[curr].next = -1;
+                                    nodes[oct8].count = 1;
+                                }
+
+                                nodes[oct8].firstChild = curr;
+                            }
+
+                            return; // insertion is complete
                         }
 
-                        // todo make sure this is right
+                        ElementNode elm = {-1, elements.count};
+                        ++nodes[region].count;
 
-                        elmNodes.insert({-1, index});
-                        ++(nodes[region].count);
+                        elmNodes.insert(elm);
+                        elements.insert({index, point});
+
+                        return; // insertion is complete
                     }
                 }
             };
@@ -675,11 +953,11 @@ namespace Zeta {
             // Clear the octree.
             inline void clear() {
                 delete[] nodes;
-                capacity = 32;
+                capacity = 33;
                 count = 0;
                 nodes = new Node[capacity];
                 freeNode = -1;
-                // elements.clear();
+                elements.clear();
                 elmNodes.clear();
             };
 
