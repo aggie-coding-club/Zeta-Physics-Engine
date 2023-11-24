@@ -18,7 +18,7 @@ namespace Scene{
     struct Scene{
         E_::Entity *entities[MAX_ENTITIES];
         InitialEntityValues iev[MAX_ENTITIES];
-        int index;
+        int entity_count;
         ScenePhase phase;
         float time_paused;
         

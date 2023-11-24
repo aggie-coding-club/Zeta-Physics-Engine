@@ -372,12 +372,9 @@ void SetEditMode(int mode){
     g_editor_mode = mode;
 
     if(g_editor_mode){
-        ShowCursor(last_mouse_x, last_mouse_y);
+        ShowCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
     }else{
-        // -		cursor_position	{X=1225.00000 Y=788.000000 Z=0.00000000 ...}	HMM_Vec3
-
-        // HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
-        HideCursor(1225.0f, 788.0f);
+        HideCursor(last_mouse_x, last_mouse_y);
     }   
 }
 
@@ -646,12 +643,22 @@ void app_update(float &time_step, float dt){
     //glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************
-    
+    // getting the average fps
+    dt_ticks++;
+    dt_accum += dt;
+    if(dt_ticks >= 1000){
+        dt_accum /= dt_ticks;  
+        dt_avg = dt_accum;
+
+        dt_accum = 0.0f;
+        dt_ticks = 0;
+    }
+
     String dt_string = Create_String("dt : ");
     AddToString(&dt_string, dt_avg);
 #endif
 
-    float x_pos = 100.0f;
+    float x_pos = 150.0f;
     float y_pos = WINDOW_HEIGHT - 60.0f;
 
     float button_width = 220.0f;
@@ -661,7 +668,7 @@ void app_update(float &time_step, float dt){
     
     if(g_editor_mode){
         
-        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
 
         if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
             printf("Collision Detection Scene!\n");
@@ -670,23 +677,44 @@ void app_update(float &time_step, float dt){
         // if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
         //     printf("Quit!\n");
         // }
-
-
         
-        if(Button(Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
-            Scene::pause(gravity_scene, time_step);
-        
-            printf("Pause!\n");
-        }
+        if(current_scene){
+            if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
+                if(Button(Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                    Scene::pause(gravity_scene, time_step);
+                
+                    printf("Scene Pause!\n");
+                }
+            } else {
+                if(Button(Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                    Scene::play(current_scene, time_step); 
+                    printf("Scene Play!\n");
+                }
+            }
 
-        
-        if(Button(Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width * 2 + 50.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
-            Scene::play(current_scene, time_step); 
-            printf("Play!\n");
+            if(current_scene->phase != Scene::SCENE_PHASE_SETUP){
+                if(Button(Scene::reset, &global_im, &trm,  Create_String("RESET"), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                    Scene::reset(current_scene); 
+                    printf("Scene Reset!\n");
+                }
+            }            
         }
 
     }else{
-        
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Enter Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
+    }
+
+    if(current_scene){
+        String scene_status_str = {};
+        if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
+            scene_status_str = Create_String("Scene Playing");
+        }else if(current_scene->phase == Scene::SCENE_PHASE_PAUSED){
+            scene_status_str = Create_String("Scene Paused");
+        } else if(current_scene->phase == Scene::SCENE_PHASE_SETUP){
+            scene_status_str = Create_String("Scene Setup Mode");
+        }
+
+        Text(&trm, &global_im, 0.4f, scene_status_str, {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 50.0f},  {175.0f, 175.0f, 175.0f});
     }
 
     String picker_selection_string = Create_String("Picker ID : ");
@@ -749,14 +777,23 @@ void app_update(float &time_step, float dt){
     HMM_Vec4 world_coords = HMM_MulM4V4(HMM_InvGeneralM4(global_rd.view_matrix), eye_coords);
     HMM_Vec4 world_ray = {world_coords.X, world_coords.Y, world_coords.Z};
 
-    String cursor_pos_str = Create_String("Cursor {");
-    AddToString(&cursor_pos_str, (float)world_ray.X);
+    String cursor_pos_str = Create_String("Current Cursor {");
+    AddToString(&cursor_pos_str, (float)cursor_position.X);
     AddToString(&cursor_pos_str, ',');
-    AddToString(&cursor_pos_str, (float)world_ray.Y);
+    AddToString(&cursor_pos_str, (float)cursor_position.Y);
     AddToString(&cursor_pos_str, ',');
-    AddToString(&cursor_pos_str, (float)world_ray.Z);
+    AddToString(&cursor_pos_str, (float)cursor_position.Z);
     AddToString(&cursor_pos_str, '}');
     Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+    
+    String cursor_last_pos_str = Create_String("Last Cursor {");
+    AddToString(&cursor_last_pos_str, (float)last_mouse_x);
+    AddToString(&cursor_last_pos_str, ',');
+    AddToString(&cursor_last_pos_str, (float)last_mouse_x);
+    AddToString(&cursor_last_pos_str, ',');
+    AddToString(&cursor_last_pos_str, (float)0);
+    AddToString(&cursor_last_pos_str, '}');
+    Text(&trm, &global_im, 0.4f, cursor_last_pos_str, {470.0f, WINDOW_HEIGHT - 370.0f},  {255.0f, 180.0f, 0.0f});
 
 
     if(global_im.active_entity == debug_xmover_entity){
@@ -793,7 +830,7 @@ void app_update(float &time_step, float dt){
 
     String fps_string = Create_String("F P S : ");
     AddToString(&fps_string, 1 / dt_avg);
-    Text(&trm, &global_im, 0.4f, fps_string, {x_pos + 470.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 0.0f});
+    Text(&trm, &global_im, 0.4f, fps_string, {10.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 150.0f});
     DeleteString(&dt_string);
     DeleteString(&fps_string);
 }
