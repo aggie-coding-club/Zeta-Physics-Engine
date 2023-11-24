@@ -1074,4 +1074,31 @@ namespace Zeta {
 
         return 1;
     };
+
+    // Returns 1 if the given point is within the given triangular pyramid, 0 otherwise
+    // @param point: The point that needs to be checked
+    // @param tri: The triangular pyramid that is being checked for containing the point
+    inline bool TriangularPyramidAndPoint(TriangularPyramid const &tri, ZMath::Vec3D const &point) {
+        ZMath::Mat3D unrotate = tri.rot.transpose(); // Is the inverse of the rotation matrix of the triangular pyramid (can just use transpose bc it is an orthogonal matrix)
+        ZMath::Vec3D pointUnrotated = unrotate * (point - tri.pos); // Coordinates of the point if the coordinate system was centered on the center point of the triangular pyramid and oriented to match its rotation
+        // We can now treat the problem as if the pyramid was centred at the origin
+        float zLower = -(0.1530931089f * tri.sideLength); // From impl of triangular pyramid primitive
+        float zUpper = 0.6123724357f * tri.sideLength;
+        if(!(pointUnrotated.z <= zUpper && pointUnrotated.z >= zLower)) { 
+            return 0;
+        } else {
+            //If z coord within bounds, there is an equilateral triangle centered at (0, 0) the x and y coordinates must lie within (side length varies based on z value)
+            float sideLen = (tri.sideLength / (zUpper - zLower)) * (zUpper - pointUnrotated.z); // This is the side length of the trinagle mentioned above
+            float sqrt3 = 1.732050808f;
+            float xUpper = sideLen / sqrt3; // One of the vertices points in the +x direction by default
+            float xLower = -sideLen / (2.0f * sqrt3);
+            if(!(pointUnrotated.x >= xLower && pointUnrotated.x <= xUpper)) {
+                return 0;
+            } else {
+                float yUpper = (pointUnrotated.x * (-1.0f / sqrt3)) + (sideLen / 3.0f);
+                // Lower limit for y is just -yUpper
+                return (pointUnrotated.y <= yUpper) && (pointUnrotated.y >= (-yUpper));
+            }
+        }
+    };
 }
