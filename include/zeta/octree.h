@@ -45,13 +45,15 @@ namespace Zeta {
             };
 
         public:
-            const uint32_t npos = -1;
+            // Uint32 value corresponding to there not being a value present.
+            const static uint32_t npos = -1;
 
+            // Number of elements currently in the FreeList.
             uint32_t count;
 
             // By default, allocate 16 data slots.
             // Cap must be strictly greater than 0.
-            inline FreeList(int cap = 16) : data(new FreeElement[cap]), capacity(cap), count(0), freeFirst(-1) {
+            inline FreeList(int cap = 16) : data(new FreeElement[cap]), capacity(cap), count(0), freeFirst(npos) {
                 static_assert(cap > 0, "The capacity must be strictly greater than 0.");
             };
 
@@ -116,7 +118,7 @@ namespace Zeta {
             // Insert an element to the list.
             // Returns the index of the element inserted.
             inline int insert(T const &element) {
-                if (freeFirst != -1) {
+                if (freeFirst != npos) {
                     int index = freeFirst;
                     freeFirst = data[freeFirst].next;
                     data[index].element = element;
@@ -131,7 +133,7 @@ namespace Zeta {
             // Insert an element to the list.
             // Returns the index of the element inserted.
             inline int insert(T &&element) {
-                if (freeFirst != -1) {
+                if (freeFirst != npos) {
                     int index = freeFirst;
                     freeFirst = data[freeFirst].next;
                     data[index].element = std::move(element);
@@ -156,7 +158,7 @@ namespace Zeta {
                 capacity = 16;
                 count = 0;
                 data = new FreeElement[capacity];
-                freeFirst = -1;
+                freeFirst = npos;
             };
 
             // Returns the range of valid indices.
@@ -173,22 +175,17 @@ namespace Zeta {
     // It is expected for you to store the list of objects where you use this Octree.
     class Octree {
         private:
-            // todo I don't think the count value is needed for Node
-            // todo refactor to not use it and instead represent each node as an int32_t (int64_t if we end up needing more values)
-            // todo (or we could do uint32_t and use uint32_MAX as the null value)
             struct Node {
-                // ? We can store firstChild as a uint16_t since the next index in element stores a 32bit int
-
                 // index of the first child if this is a node or the first element if this is a leaf.
-                uint16_t firstChild;
+                uint32_t firstChild;
 
-                // Stores the number of elements in the leaf or -1 if this node is not a leaf.
-                int32_t count;
+                // Stores the number of elements in the leaf or npos16 if this node is not a leaf.
+                uint16_t count;
             };
 
 
             // ? We split up Element and ElementNode as then we can insert Element nodes a singular time and let the smaller
-            // ?  struct be inserted more frequently to reduce caches misses.
+            // ?  struct be inserted more frequently to reduce cache misses.
 
             struct Element {
                 // The index of the element in the main list of bodies.
@@ -200,8 +197,8 @@ namespace Zeta {
 
             struct ElementNode {
                 // Points to the next element in the leaf node.
-                // -1 indicates the end of the list
-                int32_t next;
+                // npos32 indicates the end of the list
+                uint32_t next;
 
                 // stores the element index
                 uint32_t element;
@@ -220,8 +217,11 @@ namespace Zeta {
 
 
         public:
-            // todo we'll need an easy way to update the tree after a physics object moves into a different portion
-            // todo probs just do that directly in the physicshandler with the remove and insert functions
+            // Uint16 value corresponding to there not being a value present.
+            const static uint16_t npos16 = -1;
+
+            // Uint32 value corresponding to there not being a value present.
+            const static uint32_t npos32 = -1;
 
             // Stores every ElementNode in the octree.
             // ElementNodes store an index corresponding to the element in the elements list and the next element node.
@@ -234,8 +234,8 @@ namespace Zeta {
             // Stores every node in the octree.
             // The first node will always be the root.
             Node* nodes;
-            int capacity;
-            int count;
+            uint32_t capacity;
+            uint32_t count;
 
             // The bounds of the entire octree.
             ZMath::Vec3D center;
@@ -251,15 +251,18 @@ namespace Zeta {
             // int freeNode = -1;
 
             // Maximum number of elements allowed at each leaf node.
-            int maxElementCapacity;
+            uint16_t maxElementCapacity;
 
             // Maximum depth of the octree allowed.
-            int maxDepth;
+            uint16_t maxDepth;
 
 
             // * ===============
             // * Constructors
             // * ===============
+
+            // todo constructors don't work because it'll think the firstChild and count are weird when comparing to root node later
+            // todo fix this
 
             /**
              * @brief Construct a new Octree object
@@ -270,8 +273,8 @@ namespace Zeta {
              * @param maxDepth The maximum depth of the octree allowed. Default of 8.
              * @param nodeCap The initial capacity of the node array. Must be a multiple of 8. Default of 32.
              */
-            Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max, int maxElementCapacity = OCT_MAX_CAPACITY,
-                    int maxDepth = OCT_MAX_DEPTH) : maxDepth(maxDepth), maxElementCapacity(maxElementCapacity)
+            Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max, uint16_t maxElementCapacity = OCT_MAX_CAPACITY,
+                    uint16_t maxDepth = OCT_MAX_DEPTH) : maxDepth(maxDepth), maxElementCapacity(maxElementCapacity)
             {
                 // todo ask josh how this would affect the vectors
 
@@ -351,7 +354,7 @@ namespace Zeta {
                 nodes = new Node[capacity];
                 for (int i = 0; i < count; ++i) { nodes[i] = tree.nodes[i]; }
 
-                // elements = tree.elements;
+                elements = tree.elements;
                 elmNodes = tree.elmNodes;
             };
 
@@ -366,7 +369,7 @@ namespace Zeta {
                 center = std::move(tree.center);
                 halfsize = std::move(tree.halfsize);
 
-                // elements = std::move(tree.elements);
+                elements = std::move(tree.elements);
                 elmNodes = std::move(tree.elmNodes);
 
                 tree.nodes = nullptr;
@@ -388,7 +391,7 @@ namespace Zeta {
                     nodes = new Node[capacity];
                     for (int i = 0; i < count; ++i) { nodes[i] = tree.nodes[i]; }
 
-                    // elements = tree.elements;
+                    elements = tree.elements;
                     elmNodes = tree.elmNodes;
                 }
 
@@ -409,7 +412,7 @@ namespace Zeta {
                     center = std::move(tree.center);
                     halfsize = std::move(tree.halfsize);
 
-                    // elements = std::move(tree.elements);
+                    elements = std::move(tree.elements);
                     elmNodes = std::move(tree.elmNodes);
 
                     tree.nodes = nullptr;
@@ -438,7 +441,7 @@ namespace Zeta {
                 ZMath::Vec3D center = this->center; // centerpoint of the region
 
                 for (;;) {
-                    if (nodes[region].count == -1) { // not a leaf node
+                    if (nodes[region].count == npos16) { // not a leaf node
                         // * Find the next region to search
 
                         if (point.x < center.x && point.y < center.y && point.z < center.z) { // octant 1
@@ -488,10 +491,13 @@ namespace Zeta {
 
                     } else { // leaf node
                         // * Since this is a leaf node, we begin our search for the match
-                        
+
+                        // ensure there are elements contained within this region
+                        if (!nodes[region].count) { return 0; } // there is no match if there are no elements
+
                         // traverse the singly linked list
-                        for (int32_t i = nodes[region].firstChild; i != -1; i = elmNodes[i].next) {
-                            if (elmNodes[i].element == index) { return 1; } // we've found our match
+                        for (int32_t i = nodes[region].firstChild; i != npos32; i = elmNodes[i].next) {
+                            if (elements[elmNodes[i].element].index == index) { return 1; } // we've found our match
                         }
 
                         return 0; // there is no possible match if this point is reached
@@ -502,12 +508,6 @@ namespace Zeta {
                 // the code will never reach this point
                 return 0;
             };
-
-
-            // todo currently traversing the singly linked list will fail if the count of a region is 0
-            // todo when I update it to purely use the firstChild variable it should fix this problem
-
-            // todo factor in the free node (deferred cleanup)
 
             // Insert the given point into the octree.
             // Returns the index of the element inserted.
