@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <stdexcept>
 #include <utility>
 #include "primitives.h"
@@ -303,8 +304,8 @@ namespace Zeta {
             Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max, uint32_t maxElementCapacity = OCT_MAX_CAPACITY,
                     uint16_t maxDepth = OCT_MAX_DEPTH) : maxDepth(maxDepth), maxElementCapacity(maxElementCapacity)
             {
-                _ASSERT(maxElementCapacity >= 4, "The maximum elements allowed in a node must be at least 4.");
-                _ASSERT(maxDepth >= 3, "The maximum depth must be at least 3.");
+                assert(maxElementCapacity >= 4 && "The maximum elements allowed in a node must be at least 4.");
+                assert(maxDepth >= 3 && "The maximum depth must be at least 3.");
 
                 // todo ask josh how this would affect the vectors
 
@@ -328,8 +329,8 @@ namespace Zeta {
              * @param maxDepth The maximum depth of the octree allowed. Default of 8.
              */
             Octree(AABB const &aabb, uint32_t maxElementCapacity = OCT_MAX_CAPACITY, uint16_t maxDepth = OCT_MAX_DEPTH) {
-                _ASSERT(maxElementCapacity >= 4, "The maximum elements allowed in a node must be at least 4.");
-                _ASSERT(maxDepth >= 3, "The maximum depth must be at least 3.");
+                assert(maxElementCapacity >= 4 && "The maximum elements allowed in a node must be at least 4.");
+                assert(maxDepth >= 3 && "The maximum depth must be at least 3.");
 
                 center = aabb.pos;
                 halfsize = aabb.getHalfSize();
@@ -354,8 +355,8 @@ namespace Zeta {
              * @param maxDepth The maximum depth of the octree allowed. Default of 8.
              */
             Octree(AABB &&aabb, uint32_t maxElementCapacity = OCT_MAX_CAPACITY, uint16_t maxDepth = OCT_MAX_DEPTH) {
-                _ASSERT(maxElementCapacity >= 4, "The maximum elements allowed in a node must be at least 4.");
-                _ASSERT(maxDepth >= 3, "The maximum depth must be at least 3.");
+                assert(maxElementCapacity >= 4 && "The maximum elements allowed in a node must be at least 4.");
+                assert(maxDepth >= 3 && "The maximum depth must be at least 3.");
 
                 center = std::move(aabb.pos);
                 halfsize = std::move(aabb.getHalfSize());
