@@ -2,7 +2,7 @@
 #include "entity.h"
 #include "renderer.h"
 #include <zeta/physicshandler.h>
-
+#define MAX_SCENES 10
 namespace Scene{
     enum ScenePhase {
         SCENE_PHASE_SETUP,
@@ -20,16 +20,24 @@ namespace Scene{
         InitialEntityValues iev[MAX_ENTITIES];
         int index;
         ScenePhase phase;
+        float time_paused;
         
         Zeta::Handler *physics_handler;
+    };
+
+    struct SceneManager{
+        Scene scenes[MAX_SCENES];
+        unsigned int index;
     };
 
     bool add_entity(Scene *scene, E_::Entity *entity);
     bool remove_entity(Scene *scene, E_::Entity *entity);
 
+    Scene *new_scene(SceneManager *sm);
+
     void setup(Scene *scene);
-    void pause(Scene *scene);
-    void play(Scene *scene);
+    void play(Scene *scene, float &time_step);
+    void pause(Scene *scene, float time_step);
     void reset(Scene *scene);
     void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im);
 };

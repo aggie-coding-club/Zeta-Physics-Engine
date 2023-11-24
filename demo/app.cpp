@@ -14,6 +14,8 @@
 float global_dt = 0.0f;
 HMM_Vec3 cursor_position = {};
 RendererData global_rd = {};
+Scene::SceneManager global_sm = {};
+Scene::Scene *current_scene = 0;
 
 template <typename Out>
 void SplitString(const std::string &s, char delim, Out result) {
@@ -277,7 +279,7 @@ float time_btw_physics_updates = 1.0f / 60.0f;
 float count_down = time_btw_physics_updates;
 float start_time = (float)glfwGetTime();
 
-Scene::Scene gravity_scene = {};
+Scene::Scene *gravity_scene = {};
 
 RawModel model = {};
 RawModel ground_model = {};
@@ -600,11 +602,15 @@ void app_start(void *window){
     test_entity->physics_behavior = &test_entity_physics_behavior;
 
     // scene setup
-    Scene::setup(&gravity_scene);
-    Scene::add_entity(&gravity_scene,  test_entity); 
-    Scene::add_entity(&gravity_scene,  ground_entity); 
+    gravity_scene = Scene::new_scene(&global_sm);
+    Scene::setup(gravity_scene);
+    Scene::add_entity(gravity_scene,  test_entity); 
+    Scene::add_entity(gravity_scene,  ground_entity); 
 
-    Scene::play(&gravity_scene);
+    float time_step = 0;
+    Scene::play(gravity_scene, time_step);
+
+    current_scene = gravity_scene;
 }
 
 float angle = 0.0f;
@@ -623,7 +629,7 @@ void app_update(float &time_step, float dt){
     global_im.cursor_world_pos_x = cursor_world_pos.X;
     global_im.cursor_world_pos_y = cursor_world_pos.Y;
 
-    Scene::update(&gravity_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
+    Scene::update(gravity_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
 
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
@@ -654,16 +660,30 @@ void app_update(float &time_step, float dt){
     float border_width = 2.0f;
     
     if(g_editor_mode){
+        
         Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
 
         if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
             printf("Collision Detection Scene!\n");
         }
 
-        if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
-            printf("Quit!\n");
+        // if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+        //     printf("Quit!\n");
+        // }
+
+
+        
+        if(Button(Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+            Scene::pause(gravity_scene, time_step);
+        
+            printf("Pause!\n");
         }
 
+        
+        if(Button(Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width * 2 + 50.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+            Scene::play(current_scene, time_step); 
+            printf("Play!\n");
+        }
 
     }else{
         

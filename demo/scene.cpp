@@ -32,6 +32,12 @@ namespace Scene{
 
         return true;
     }
+    
+    Scene *new_scene(SceneManager *sm){
+        Scene *result = 0;
+        result = &sm->scenes[sm->index++];
+        return result;
+    }
 
     void setup(Scene *scene){
         scene->phase = SCENE_PHASE_SETUP;
@@ -48,8 +54,15 @@ namespace Scene{
         }  
     }
 
-    void play(Scene *scene){
+    void play(Scene *scene, float &time_step){
         scene->phase = SCENE_PHASE_PLAYING;
+        // avoiding skipping because of time
+        time_step = scene->time_paused;
+    }
+    
+    void pause(Scene *scene, float time_step){
+        scene->phase = SCENE_PHASE_PAUSED;
+        scene->time_paused = time_step;
     }
 
     void reset(Scene *scene){
