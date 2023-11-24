@@ -12,25 +12,12 @@
 // todo test with a benchmark OpenGL program to determine an ideal depth
 #define OCT_MAX_DEPTH 8
 
-// todo test to see if caching the AABBs or computing them on the fly is faster when scenes are developed
-// todo computing on the fly may only be faster due to cahce misses when traversing the tree
-// todo but I feel computing AABBs that use floats will take longer as we can't use out bitwise operators
-
-// todo store children so that they are contiguous in memory
-// firstChild == index to first child
-// firstChild + 1 == index to second child
-// ...
-
-// todo deferred cleanup and constant time removal
-// todo look through the stack overflow post about this
-// todo apparently this makes moving objects simple, too
-
-
-// todo I think we should store the point alongside the next index in an element struct
-// todo this would allow for comparisons for removal and for splitting up areas when we get too many guys in one area
+// todo implement deferred cleanup in the octree
+// todo do not have enough time to properly optimize it and figure it out currently
 
 
 namespace Zeta {
+    // todo update to use unit32_ts instead of int32_ts
     // Array allowing removal of elements from anywhere with O(1) without invalidating indices.
     // This can only be used for datatypes that are trivially constructible and destructible.
     template <typename T>
@@ -257,9 +244,9 @@ namespace Zeta {
             // ? We will free nodes of the octree as 8 contiguous nodes at once.
             // ? Whenever freeNode is -1, we will just insert 8 nodes to the back of the array.
 
-            // Stores the first free node in the octree.
-            // -1 indicates that the free list is empty.
-            int freeNode = -1;
+            // // Stores the first free node in the octree.
+            // // -1 indicates that the free list is empty.
+            // int freeNode = -1;
 
             // Maximum number of elements allowed at each leaf node.
             int maxElementCapacity;
@@ -514,6 +501,9 @@ namespace Zeta {
                 return 0;
             };
 
+
+            // todo currently traversing the singly linked list will fail if the count of a region is 0
+            // todo when I update it to purely use the firstChild variable it should fix this problem
 
             // todo factor in the free node (deferred cleanup)
 
@@ -927,18 +917,33 @@ namespace Zeta {
 
                     } else { // leaf node
                         // * Check each element contained within this leaf node.
-                        // * If we find the element to be removed, add it to be freed and return 1.
+                        // * If we find the element to be removed, remove it from the list and return 1.
 
+                        // first we want to traverse the singly linked list until we find the element we are searching for
+                        // once we find that element, we wanna make sure we were storing the previous element
+                        // we wanna set the previous element's next to the current element's next
+                        // we then remove the current guy from our list and return 1
+
+                        // track the previous element
+                        int32_t prev = -1;
+
+                        // todo traversal currently fails in the same way it does for in the insert function
                         // traverse the singly linked list
-                        for (int32_t i = nodes[region].firstChild; i != -1; i = elmNodes[i].next) {
-                            // todo probs make it so that the freeNode points to the next element to be freed after it
-                            // todo update this guy accordingly
+                        for (int32_t curr = nodes[region].firstChild; curr != -1; curr = elmNodes[curr].next) {
+                            if (elements[elmNodes[curr].element].index == index) {
+                                // update the next values in the linked list
+                                if (prev == -1) { nodes[region].firstChild = elmNodes[curr].next; } // curr is head
+                                else { elmNodes[prev].next = elmNodes[curr].next; } // curr is not head
 
-                            if (elmNodes[i].element == index) {
-                                // we've found our match and have added it to be freed
-                                freeNode = i;
+                                // remove the current element
+                                elements.remove(elmNodes[curr].element);
+                                elmNodes.remove(curr);
+                                --nodes[region].count;
+
                                 return 1;
                             }
+
+                            prev = curr;
                         }
 
                         return 0; // there is no possible match if this point is reached
@@ -950,10 +955,13 @@ namespace Zeta {
                 return 0;
             };
 
+            // Update the regions after adding or removing elements.
+            void update();
+
             // Clear the octree.
             inline void clear() {
                 delete[] nodes;
-                capacity = 33;
+                capacity = 17;
                 count = 0;
                 nodes = new Node[capacity];
                 freeNode = -1;
