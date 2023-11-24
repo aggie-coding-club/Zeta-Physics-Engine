@@ -545,8 +545,6 @@ namespace Zeta {
                 return 0;
             };
 
-            // todo update to actually return
-
             // Insert the given point into the octree.
             void insert(ZMath::Vec3D const &point, uint32_t index) {
                 // ? We are guarenteed to have at least the root node by construction.
