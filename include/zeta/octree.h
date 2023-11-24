@@ -17,7 +17,6 @@
 
 
 namespace Zeta {
-    // todo update to use unit32_ts instead of int32_ts
     // Array allowing removal of elements from anywhere with O(1) without invalidating indices.
     // This can only be used for datatypes that are trivially constructible and destructible.
     template <typename T>
@@ -263,6 +262,8 @@ namespace Zeta {
 
             // todo constructors don't work because it'll think the firstChild and count are weird when comparing to root node later
             // todo fix this
+            // todo add a limit of at least 4 objects in a region and at least a depth of 3
+            // todo update the @param text
 
             /**
              * @brief Construct a new Octree object
@@ -496,7 +497,7 @@ namespace Zeta {
                         if (!nodes[region].count) { return 0; } // there is no match if there are no elements
 
                         // traverse the singly linked list
-                        for (int32_t i = nodes[region].firstChild; i != npos32; i = elmNodes[i].next) {
+                        for (uint32_t i = nodes[region].firstChild; i != npos32; i = elmNodes[i].next) {
                             if (elements[elmNodes[i].element].index == index) { return 1; } // we've found our match
                         }
 
@@ -625,8 +626,9 @@ namespace Zeta {
                             
 
                             // * Loop through each point in the region and determine its new region
+                            // ? Note: we do not need to worry about the case where the count is 0 as this would never be reached if that's the case.
 
-                            for (int32_t curr = nodes[region].firstChild; elmNodes[curr].next != -1; curr = elmNodes[curr].next) {
+                            for (uint32_t curr = nodes[region].firstChild; elmNodes[curr].next != npos32; curr = elmNodes[curr].next) {
                                 // Determine the value of p
                                 // This is only stored as a variable for readability as it is technically slightly less efficient
                                 // todo may update in the future to save the 3 clock cycles per loop
@@ -744,96 +746,96 @@ namespace Zeta {
 
                             // determine the region to place the point in
                             if (point.x < center.x && point.y < center.y && point.z < center.z) { // octant 1
-                                if (nodes[count].count != -1) { // the node already has a child
+                                if (nodes[count].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[count].firstChild;
                                     ++nodes[count].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[count].count = 1;
                                 }
 
                                 nodes[count].firstChild = curr;
 
                             } else if (point.x < center.x && point.y >= center.y && point.z < center.z) { // octant 2
-                                if (nodes[oct2].count != -1) { // the node already has a child
+                                if (nodes[oct2].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[oct2].firstChild;
                                     ++nodes[oct2].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[oct2].count = 1;
                                 }
 
                                 nodes[oct2].firstChild = curr;
 
                             } else if (point.x < center.x && point.y < center.y && point.z >= center.z) { // octant 3
-                                if (nodes[oct3].count != -1) { // the node already has a child
+                                if (nodes[oct3].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[oct3].firstChild;
                                     ++nodes[oct3].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[oct3].count = 1;
                                 }
 
                                 nodes[oct3].firstChild = curr;
 
                             } else if (point.x < center.x && point.y >= center.y && point.z >= center.z) { // octant 4
-                                if (nodes[oct4].count != -1) { // the node already has a child
+                                if (nodes[oct4].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[oct4].firstChild;
                                     ++nodes[oct4].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[oct4].count = 1;
                                 }
 
                                 nodes[oct4].firstChild = curr;
 
                             } else if (point.x >= center.x && point.y < center.y && point.z < center.z) { // octant 5
-                                if (nodes[oct5].count != -1) { // the node already has a child
+                                if (nodes[oct5].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[oct5].firstChild;
                                     ++nodes[oct5].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[oct5].count = 1;
                                 }
 
                                 nodes[oct5].firstChild = curr;
 
                             } else if (point.x >= center.x && point.y >= center.y && point.z < center.z) { // octant 6
-                                if (nodes[oct6].count != -1) { // the node already has a child
+                                if (nodes[oct6].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[oct6].firstChild;
                                     ++nodes[oct6].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[oct6].count = 1;
                                 }
 
                                 nodes[oct6].firstChild = curr;
 
                             } else if (point.x >= center.x && point.y < center.y && point.z >= center.z) { // octant 7
-                                if (nodes[oct7].count != -1) { // the node already has a child
+                                if (nodes[oct7].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[oct7].firstChild;
                                     ++nodes[oct7].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[oct7].count = 1;
                                 }
 
                                 nodes[oct7].firstChild = curr;
 
                             } else { // octant 8
-                                if (nodes[oct8].count != -1) { // the node already has a child
+                                if (nodes[oct8].count != npos16) { // the node already has a child
                                     elmNodes[curr].next = nodes[oct8].firstChild;
                                     ++nodes[oct8].count;
 
                                 } else { // the node has no children
-                                    elmNodes[curr].next = -1;
+                                    elmNodes[curr].next = npos32;
                                     nodes[oct8].count = 1;
                                 }
 
@@ -955,6 +957,9 @@ namespace Zeta {
                                 elements.remove(elmNodes[curr].element);
                                 elmNodes.remove(curr);
                                 --nodes[region].count;
+
+                                // todo add the removed element to a list of removed elements
+                                // todo resize the region only after all removals
 
                                 return 1;
                             }
