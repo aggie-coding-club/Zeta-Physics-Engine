@@ -25,13 +25,13 @@ namespace Zeta {
         private:
             union FreeElement {
                 T element;
-                int next;
+                uint32_t next;
             };
 
             FreeElement* data;
-            int capacity;
+            uint32_t capacity;
 
-            int freeFirst;
+            uint32_t freeFirst;
 
             // Helper grow function for ease of use.
             inline void grow() {
@@ -45,7 +45,9 @@ namespace Zeta {
             };
 
         public:
-            int count;
+            const uint32_t npos = -1;
+
+            uint32_t count;
 
             // By default, allocate 16 data slots.
             // Cap must be strictly greater than 0.
@@ -339,7 +341,7 @@ namespace Zeta {
             inline Octree(Octree const &tree) {
                 capacity = tree.capacity;
                 count = tree.count;
-                freeNode = tree.freeNode;
+                // freeNode = tree.freeNode;
                 maxDepth = tree.maxDepth;
                 maxElementCapacity = tree.maxElementCapacity;
 
@@ -357,7 +359,7 @@ namespace Zeta {
                 nodes = tree.nodes;
                 capacity = tree.capacity;
                 count = tree.count;
-                freeNode = tree.freeNode;
+                // freeNode = tree.freeNode;
                 maxDepth = tree.maxDepth;
                 maxElementCapacity = tree.maxElementCapacity;
 
@@ -376,7 +378,7 @@ namespace Zeta {
 
                     capacity = tree.capacity;
                     count = tree.count;
-                    freeNode = tree.freeNode;
+                    // freeNode = tree.freeNode;
                     maxDepth = tree.maxDepth;
                     maxElementCapacity = tree.maxElementCapacity;
 
@@ -400,7 +402,7 @@ namespace Zeta {
                     nodes = tree.nodes;
                     capacity = tree.capacity;
                     count = tree.count;
-                    freeNode = tree.freeNode;
+                    // freeNode = tree.freeNode;
                     maxDepth = tree.maxDepth;
                     maxElementCapacity = tree.maxElementCapacity;
 
@@ -964,7 +966,7 @@ namespace Zeta {
                 capacity = 17;
                 count = 0;
                 nodes = new Node[capacity];
-                freeNode = -1;
+                // freeNode = -1;
                 elements.clear();
                 elmNodes.clear();
             };
