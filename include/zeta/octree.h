@@ -733,15 +733,13 @@ namespace Zeta {
                             }
                             
                             nodes[region].firstChild = count;
-                            nodes[region].count = npos16;
+                            nodes[region].count = npos16; // todo maybe should be set to 0
 
                             count += 8;
 
                             // insert the new point
-                            int curr = elmNodes.count;
-                            ElementNode elm = {npos32, elements.count};
-
-                            elmNodes.insert(elm);
+                            uint32_t curr = elmNodes.count;
+                            elmNodes.insert({npos32, elements.count});
                             elements.insert({index, point});
 
                             // determine the region to place the point in
@@ -845,10 +843,23 @@ namespace Zeta {
                             return; // insertion is complete
                         }
 
-                        ElementNode elm = {npos32, elements.count};
-                        ++nodes[region].count;
+                        // * Insert the element as the new head of the node's linked list
 
-                        elmNodes.insert(elm);
+                        if (!nodes[region].count) { // no elements contained in the region
+                            nodes[region].firstChild = elmNodes.count;
+                            elmNodes.insert({npos32, elements.count});
+                        
+                        } else { // elements already in the region
+                            // preliminary
+                            uint32_t temp = elmNodes.count;
+                            elmNodes.insert({npos32, elements.count});
+
+                            // insert the element's index into the linked list
+                            elmNodes[temp].next = nodes[region].firstChild;
+                            nodes[region].firstChild = temp;
+                        }
+
+                        ++nodes[region].count;
                         elements.insert({index, point});
 
                         return; // insertion is complete
@@ -961,7 +972,10 @@ namespace Zeta {
             };
 
             // Update the regions after adding or removing elements.
-            void update();
+            // This should be called each physics frame after your physics handler updates the positions of the objects.
+            void update() {
+
+            };
 
             // Clear the octree.
             inline void clear() { // todo reinitialize the root node
