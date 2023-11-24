@@ -40,7 +40,7 @@ namespace Zeta {
                 capacity *= 2;
                 FreeElement* temp = new FreeElement[capacity];
 
-                for (int i = 0; i < count; ++i) { temp[i] = std::move(data[i]); }
+                for (uint32_t i = 0; i < count; ++i) { temp[i] = std::move(data[i]); }
 
                 delete[] data;
                 data = temp;
@@ -121,7 +121,7 @@ namespace Zeta {
             // Returns the index of the element inserted.
             inline int insert(T const &element) {
                 if (freeFirst != npos) {
-                    int index = freeFirst;
+                    uint32_t index = freeFirst;
                     freeFirst = data[freeFirst].next;
                     data[index].element = element;
                     return index;
@@ -136,7 +136,7 @@ namespace Zeta {
             // Returns the index of the element inserted.
             inline int insert(T &&element) {
                 if (freeFirst != npos) {
-                    int index = freeFirst;
+                    uint32_t index = freeFirst;
                     freeFirst = data[freeFirst].next;
                     data[index].element = std::move(element);
                     return index;
@@ -210,7 +210,7 @@ namespace Zeta {
                 capacity *= 2;
                 Node* temp = new Node[capacity];
 
-                for (int i = 0; i < count; ++i) { temp[i] = std::move(nodes[i]); }
+                for (uint32_t i = 0; i < count; ++i) { temp[i] = std::move(nodes[i]); }
 
                 delete[] nodes;
                 nodes = temp;
@@ -1063,7 +1063,14 @@ namespace Zeta {
                 addElements(freeNode, oct7);
                 addElements(freeNode, oct8);
 
-                // todo resize the array and remove the children from it
+                // remove the children nodes from the array
+                Node* temp = new Node[capacity];
+
+                for (uint32_t i = 0; i < oct1; ++i) { temp[i] = std::move(nodes[i]); }
+                for (uint32_t i = oct1; i < count-8; ++i) { temp[i] = std::move(nodes[i+8]); }
+
+                delete[] nodes;
+                nodes = temp;
             };
 
             // Clear the octree.
