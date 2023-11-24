@@ -292,10 +292,6 @@ namespace Zeta {
             // * Constructors
             // * ===============
 
-            // todo update the @param text
-            // todo should call cleanup on the other Octree this is getting assigned to before assigning it (probs)
-            // todo freeNode stuff
-
             /**
              * @brief Construct a new Octree object
              * 
@@ -303,7 +299,6 @@ namespace Zeta {
              * @param max The maximum vertex of the region encompassed by the octree.
              * @param maxElementCapacity The maximum number of elements allowed at each leaf node. Default of 16.
              * @param maxDepth The maximum depth of the octree allowed. Default of 8.
-             * @param nodeCap The initial capacity of the node array. Must be a multiple of 8. Default of 32.
              */
             Octree(ZMath::Vec3D const &min, ZMath::Vec3D const &max, uint32_t maxElementCapacity = OCT_MAX_CAPACITY,
                     uint16_t maxDepth = OCT_MAX_DEPTH) : maxDepth(maxDepth), maxElementCapacity(maxElementCapacity)
@@ -385,7 +380,7 @@ namespace Zeta {
             inline Octree(Octree const &tree) {
                 capacity = tree.capacity;
                 count = tree.count;
-                // freeNode = tree.freeNode;
+                freeNode = tree.freeNode;
                 maxDepth = tree.maxDepth;
                 maxElementCapacity = tree.maxElementCapacity;
 
@@ -403,7 +398,7 @@ namespace Zeta {
                 nodes = tree.nodes;
                 capacity = tree.capacity;
                 count = tree.count;
-                // freeNode = tree.freeNode;
+                freeNode = tree.freeNode;
                 maxDepth = tree.maxDepth;
                 maxElementCapacity = tree.maxElementCapacity;
 
@@ -422,7 +417,7 @@ namespace Zeta {
 
                     capacity = tree.capacity;
                     count = tree.count;
-                    // freeNode = tree.freeNode;
+                    freeNode = tree.freeNode;
                     maxDepth = tree.maxDepth;
                     maxElementCapacity = tree.maxElementCapacity;
 
@@ -446,7 +441,7 @@ namespace Zeta {
                     nodes = tree.nodes;
                     capacity = tree.capacity;
                     count = tree.count;
-                    // freeNode = tree.freeNode;
+                    freeNode = tree.freeNode;
                     maxDepth = tree.maxDepth;
                     maxElementCapacity = tree.maxElementCapacity;
 
@@ -1079,7 +1074,7 @@ namespace Zeta {
             };
 
             // Clear the octree.
-            inline void clear() { // todo reinitialize the root node and freeNode stuff
+            inline void clear() {
                 delete[] nodes;
                 capacity = 17;
                 count = 1;
@@ -1087,6 +1082,10 @@ namespace Zeta {
                 freeNode = npos;
                 elements.clear();
                 elmNodes.clear();
+
+                // reinitialize the root node
+                nodes[0].firstChild = npos;
+                nodes[0].count = 0;
             };
 
             // Determine if the octree is empty.
