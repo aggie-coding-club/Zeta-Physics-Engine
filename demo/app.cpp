@@ -283,6 +283,9 @@ Scene::Scene *gravity_scene = {};
 
 RawModel model = {};
 RawModel ground_model = {};
+#define CUBE_ENTITIES_COUNT 32
+E_::Entity *cube_entities[CUBE_ENTITIES_COUNT] = {};
+
 E_::Entity *test_entity = 0;
 E_::Entity *light_entity = 0;
 E_::Entity *ground_entity = 0;
@@ -445,21 +448,19 @@ void TempLightMovement(int key, int state){
     }
 }
 
-void test_entity_physics_behavior(E_::Entity *entity, float &time_step, int physics_updates){
-    if(entity == test_entity){
-        ZMath::Vec3D normal = {};
-        float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
-        
-        if(ground_cube_colliding){
-            for(int i = 0; i < physics_updates; i++){
-                test_entity->rb->vel = 0;
-                test_entity->rb->netForce -= handler.g * test_entity->rb->mass;
-            }
-            ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
-        }else{
-            ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
-        }
-    }
+void default_cube_entity_physics_behavior(E_::Entity *entity, float &time_step, int physics_updates){
+    ZMath::Vec3D normal = {};
+    // float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
+    
+    // if(ground_cube_colliding){
+    //     for(int i = 0; i < physics_updates; i++){
+    //         entity->rb->vel = 0;
+    //         entity->rb->netForce -= handler.g * entity->rb->mass;
+    //     }
+    //     ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
+    // }else{
+    //     ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
+    // }
 }
 
 void app_start(void *window){
@@ -516,7 +517,7 @@ void app_start(void *window){
     debug_zmover_entity->color = {0.0f, 0.0, 1.0f};
     debug_zmover_entity->def_texture = TEXTURE_WHITE;
 
-    test_entity = E_::create_entity(&em, HMM_Vec3{0, 48, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+    test_entity = E_::create_entity(&em, HMM_Vec3{0, 48, -20.0f}, 1.0f, 100.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
 
     test_entity->color = {0.0f, 1.0f, 0.0f};
@@ -529,7 +530,7 @@ void app_start(void *window){
     light_entity->def_texture = TEXTURE_WHITE;
     
     ground_entity = E_::create_entity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0));
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-40.0f, -3.0f, -40.0f}, {40.0f, 3.0f, 40.0f}, 0, 0));
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
@@ -596,13 +597,36 @@ void app_start(void *window){
     init_renderer(&global_rd);
 
     // entity behaviors
-    test_entity->physics_behavior = &test_entity_physics_behavior;
+    test_entity->physics_behavior = &default_cube_entity_physics_behavior;
+
 
     // scene setup
     gravity_scene = Scene::new_scene(&global_sm);
     Scene::setup(gravity_scene);
-    Scene::add_entity(gravity_scene,  test_entity); 
+    // Scene::add_entity(gravity_scene,  test_entity); 
     Scene::add_entity(gravity_scene,  ground_entity); 
+
+    // generating the random entities for gravity test scene
+    HMM_Vec3 current_pos = {-20.0f, 48.0f, -20.0f};
+    int index = 0;
+    for(int x = 0; x < 6; x++){
+        for(int z = 0; z < 6; z++){
+            current_pos.Z += 10.0f;
+            float mass = 100.0f + (z + x) * 100.0f;
+            E_::Entity *entity = E_::create_entity(&em, current_pos, 1.0f, mass, 0.0f, 0.0f, 0.0f, 
+            Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-4, -4, -4}, {4, 4, 4}, 0, 0));
+
+            entity->color = {0.0f, 1.0f, 0.0f, 1.0f};
+            entity->def_texture = TEXTURE_WHITE;
+            entity->physics_behavior = &default_cube_entity_physics_behavior;
+
+            init(entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)entity->rb->collider)->getVertices())));
+            // cube_entities[index++] = entity;
+            Scene::add_entity(gravity_scene,  entity); 
+        }
+        current_pos.X += 10.0f;
+        current_pos.Z = -20.0f;
+    }
 
     float time_step = 0;
     Scene::play(gravity_scene, time_step);
@@ -680,20 +704,20 @@ void app_update(float &time_step, float dt){
         
         if(current_scene){
             if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
-                if(Button(Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void *)Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::pause(gravity_scene, time_step);
                 
                     printf("Scene Pause!\n");
                 }
             } else {
-                if(Button(Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void *)Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::play(current_scene, time_step); 
                     printf("Scene Play!\n");
                 }
             }
 
             if(current_scene->phase != Scene::SCENE_PHASE_SETUP){
-                if(Button(Scene::reset, &global_im, &trm,  Create_String("RESET"), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void *)Scene::reset, &global_im, &trm,  Create_String("RESET"), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::reset(current_scene); 
                     printf("Scene Reset!\n");
                 }
@@ -850,7 +874,7 @@ void clean_up() {
 	}
 
     // clean entities
-    for(int i = 0; i < em.index; i++){
+    for(int i = 0; i < em.count; i++){
         E_::Entity *e = &em.entities[0];
     }
 }

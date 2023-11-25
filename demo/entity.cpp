@@ -29,8 +29,13 @@ namespace E_{
 
     Entity *em_get_new_entity(EntityManager *em){
         Entity *result = 0;
-        result = &em->entities[++em->index];
-        em->entity_pointers[em->index] = result;
+        if(em->count >= MAX_ENTITIES){
+            Assert(!"Max entities exceeded");
+        } else {
+            result = &em->entities[++em->count];
+            em->entity_pointers[em->count] = result;
+            result->internal_identifier = em->count;
+        }
         return result;
     }
     
@@ -137,11 +142,10 @@ namespace E_{
         entity->textures[entity->textureIndex++] = texture;
     }
 
-    Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
+    Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, float mass,
         float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider){
         Entity *result = em_get_new_entity(em);
         result->initialized = true;
-        result->internal_identifier = em->index * 25.0f;
 
         result->scale = scale;
         result->rotation_x = rotation_x;
@@ -150,7 +154,7 @@ namespace E_{
 
         result->rb = new Zeta::RigidBody3D(
             {position.X, position.Y, position.Z}, 
-            100.0f, 0.1f, 1.0f, colliderType, collider);
+            mass, 0.1f, 1.0f, colliderType, collider);
 
         return result;
     }
@@ -159,7 +163,6 @@ namespace E_{
         float rotation_x, float rotation_y, float rotation_z,  Zeta::StaticBodyCollider colliderType, void *collider){
         Entity *result = em_get_new_entity(em);
         result->initialized = true;
-        result->internal_identifier = em->index * 25.0f;
 
         result->scale = scale;
         result->rotation_x = rotation_x;

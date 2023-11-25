@@ -15,6 +15,7 @@ namespace Scene{
         } else if(entity->sb){
             scene->iev[scene->entity_count].position = {entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z};
         }
+        scene->entity_count++;
 
         if(entity->rb){
             Assert(scene->physics_handler);
@@ -24,7 +25,6 @@ namespace Scene{
             scene->physics_handler->addStaticBody(entity->sb);
         }
 
-        scene->entity_count++;
 
         return true;
     }

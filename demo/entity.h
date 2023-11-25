@@ -2,7 +2,7 @@
 #include "app.h"
 #include <zeta/physicshandler.h>
 
-#define MAX_ENTITIES 100
+#define MAX_ENTITIES 512
 #define MAX_ENTITY_TEXTURES 4
 
 namespace E_{
@@ -29,7 +29,7 @@ namespace E_{
     };
 
     struct EntityManager{
-        unsigned int index;
+        unsigned int count;
         Entity entities[MAX_ENTITIES];
         Entity *entity_pointers[MAX_ENTITIES];
     };
@@ -38,7 +38,7 @@ namespace E_{
 
     void physics_verts_to_render_verts(ZMath::Vec3D *zeta_verts, VertexData *vertex_data);
 
-    Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, 
+    Entity *create_entity(EntityManager *em, HMM_Vec3 position, float scale, float mass,
             float rotation_x, float rotation_y, float rotation_z, Zeta::RigidBodyCollider colliderType, void *collider);
 
     Entity *create_entity(EntityManager*em, HMM_Vec3 position, float scale, 
