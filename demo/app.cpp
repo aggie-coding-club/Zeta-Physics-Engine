@@ -450,7 +450,7 @@ void TempLightMovement(int key, int state){
 
 void default_cube_entity_physics_behavior(E_::Entity *entity, float &time_step, int physics_updates){
     ZMath::Vec3D normal = {};
-    // float ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
+    // int ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
     
     // if(ground_cube_colliding){
     //     for(int i = 0; i < physics_updates; i++){

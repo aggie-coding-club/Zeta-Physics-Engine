@@ -6,6 +6,8 @@
 #include <iostream>
 #include "HandmadeMath.h"
 
+#define DISABLE_SPATIAL_PARTITIONING
+
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
 #include <emscripten.h>
