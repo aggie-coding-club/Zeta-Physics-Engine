@@ -466,7 +466,7 @@ namespace Zeta {
 
                     // todo update to not be through iterative deepening -- look into this in the future
                     // todo use spacial partitioning
-                    Narrow phase: Impulse resolution
+                    // Narrow phase: Impulse resolution
                     for (int k = 0; k < IMPULSE_ITERATIONS; ++k) {
                         for (int i = 0; i < rCol.count; ++i) {
                             applyImpulse(rCol.bodies1[i], rCol.bodies2[i], rCol.manifolds[i]);

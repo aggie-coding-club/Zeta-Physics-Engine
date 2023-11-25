@@ -19,7 +19,7 @@
 // todo implement deferred cleanup in the octree
 // todo do not have enough time to properly optimize it and figure it out currently
 
-
+#if 0
 namespace Zeta {
     // Array allowing removal of elements from anywhere with O(1) without invalidating indices.
     // This can only be used for datatypes that are trivially constructible and destructible.
@@ -1097,3 +1097,4 @@ namespace Zeta {
             inline bool empty() const { return !elmNodes.count; };
     };
 }
+#endif
