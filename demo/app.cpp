@@ -14,6 +14,8 @@
 float global_dt = 0.0f;
 HMM_Vec3 cursor_position = {};
 RendererData global_rd = {};
+Scene::SceneManager global_sm = {};
+Scene::Scene *current_scene = 0;
 
 template <typename Out>
 void SplitString(const std::string &s, char delim, Out result) {
@@ -277,10 +279,13 @@ float time_btw_physics_updates = 1.0f / 60.0f;
 float count_down = time_btw_physics_updates;
 float start_time = (float)glfwGetTime();
 
-Scene::Scene gravity_scene = {};
+Scene::Scene *gravity_scene = {};
 
 RawModel model = {};
 RawModel ground_model = {};
+#define CUBE_ENTITIES_COUNT 32
+E_::Entity *cube_entities[CUBE_ENTITIES_COUNT] = {};
+
 E_::Entity *test_entity = 0;
 E_::Entity *light_entity = 0;
 E_::Entity *ground_entity = 0;
@@ -370,12 +375,9 @@ void SetEditMode(int mode){
     g_editor_mode = mode;
 
     if(g_editor_mode){
-        ShowCursor(last_mouse_x, last_mouse_y);
+        ShowCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
     }else{
-        // -		cursor_position	{X=1225.00000 Y=788.000000 Z=0.00000000 ...}	HMM_Vec3
-
-        // HideCursor(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
-        HideCursor(1225.0f, 788.0f);
+        HideCursor(last_mouse_x, last_mouse_y);
     }   
 }
 
@@ -446,21 +448,19 @@ void TempLightMovement(int key, int state){
     }
 }
 
-void test_entity_physics_behavior(E_::Entity *entity, float &time_step, int physics_updates){
-    if(entity == test_entity){
-        ZMath::Vec3D normal = {};
-        int ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
-        
-        if(ground_cube_colliding){
-            for(int i = 0; i < physics_updates; i++){
-                test_entity->rb->vel = 0;
-                test_entity->rb->netForce -= handler.g * test_entity->rb->mass;
-            }
-            ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
-        }else{
-            ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
-        }
-    }
+void default_cube_entity_physics_behavior(E_::Entity *entity, float &time_step, int physics_updates){
+    ZMath::Vec3D normal = {};
+    // int ground_cube_colliding = Zeta::CubeAndCube(*((Zeta::Cube *)(entity->rb->collider)), *((Zeta::Cube *)ground_entity->sb->collider), normal);
+    
+    // if(ground_cube_colliding){
+    //     for(int i = 0; i < physics_updates; i++){
+    //         entity->rb->vel = 0;
+    //         entity->rb->netForce -= handler.g * entity->rb->mass;
+    //     }
+    //     ground_entity->color = HMM_Vec4{1.0f, 1.0f, 0.0f, 1.0f};
+    // }else{
+    //     ground_entity->color = HMM_Vec4{1.0f, 1.0f, 1.0f, 1.0f};
+    // }
 }
 
 void app_start(void *window){
@@ -517,7 +517,7 @@ void app_start(void *window){
     debug_zmover_entity->color = {0.0f, 0.0, 1.0f};
     debug_zmover_entity->def_texture = TEXTURE_WHITE;
 
-    test_entity = E_::create_entity(&em, HMM_Vec3{0, 48, -20.0f}, 1.0f, 0.0f, 0.0f, 0.0f, 
+    test_entity = E_::create_entity(&em, HMM_Vec3{0, 48, -20.0f}, 1.0f, 100.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
 
     test_entity->color = {0.0f, 1.0f, 0.0f};
@@ -530,7 +530,7 @@ void app_start(void *window){
     light_entity->def_texture = TEXTURE_WHITE;
     
     ground_entity = E_::create_entity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-30.0f, -3.0f, -30.0f}, {30.0f, 3.0f, 30.0f}, 0, 0));
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-40.0f, -3.0f, -40.0f}, {40.0f, 3.0f, 40.0f}, 0, 0));
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
@@ -597,14 +597,41 @@ void app_start(void *window){
     init_renderer(&global_rd);
 
     // entity behaviors
-    test_entity->physics_behavior = &test_entity_physics_behavior;
+    test_entity->physics_behavior = &default_cube_entity_physics_behavior;
+
 
     // scene setup
-    Scene::setup(&gravity_scene);
-    Scene::add_entity(&gravity_scene,  test_entity); 
-    Scene::add_entity(&gravity_scene,  ground_entity); 
+    gravity_scene = Scene::new_scene(&global_sm);
+    Scene::setup(gravity_scene);
+    // Scene::add_entity(gravity_scene,  test_entity); 
+    Scene::add_entity(gravity_scene,  ground_entity); 
 
-    Scene::play(&gravity_scene);
+    // generating the random entities for gravity test scene
+    HMM_Vec3 current_pos = {-20.0f, 48.0f, -20.0f};
+    int index = 0;
+    for(int x = 0; x < 6; x++){
+        for(int z = 0; z < 6; z++){
+            current_pos.Z += 10.0f;
+            float mass = 100.0f + (z + x) * 100.0f;
+            E_::Entity *entity = E_::create_entity(&em, current_pos, 1.0f, mass, 0.0f, 0.0f, 0.0f, 
+            Zeta::RigidBodyCollider::RIGID_CUBE_COLLIDER, new Zeta::Cube({-4, -4, -4}, {4, 4, 4}, 0, 0));
+
+            entity->color = {0.0f, 1.0f, 0.0f, 1.0f};
+            entity->def_texture = TEXTURE_WHITE;
+            entity->physics_behavior = &default_cube_entity_physics_behavior;
+
+            init(entity, create_cube_raw_model(&global_rd, (((Zeta::Cube *)entity->rb->collider)->getVertices())));
+            // cube_entities[index++] = entity;
+            Scene::add_entity(gravity_scene,  entity); 
+        }
+        current_pos.X += 10.0f;
+        current_pos.Z = -20.0f;
+    }
+
+    float time_step = 0;
+    Scene::play(gravity_scene, time_step);
+
+    current_scene = gravity_scene;
 }
 
 float angle = 0.0f;
@@ -623,7 +650,7 @@ void app_update(float &time_step, float dt){
     global_im.cursor_world_pos_x = cursor_world_pos.X;
     global_im.cursor_world_pos_y = cursor_world_pos.Y;
 
-    Scene::update(&gravity_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
+    Scene::update(gravity_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
 
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
@@ -640,12 +667,22 @@ void app_update(float &time_step, float dt){
     //glBindTexture(GL_TEXTURE_2D, 0);
     
     // **************
-    
+    // getting the average fps
+    dt_ticks++;
+    dt_accum += dt;
+    if(dt_ticks >= 1000){
+        dt_accum /= dt_ticks;  
+        dt_avg = dt_accum;
+
+        dt_accum = 0.0f;
+        dt_ticks = 0;
+    }
+
     String dt_string = Create_String("dt : ");
     AddToString(&dt_string, dt_avg);
 #endif
 
-    float x_pos = 100.0f;
+    float x_pos = 150.0f;
     float y_pos = WINDOW_HEIGHT - 60.0f;
 
     float button_width = 220.0f;
@@ -654,19 +691,54 @@ void app_update(float &time_step, float dt){
     float border_width = 2.0f;
     
     if(g_editor_mode){
-        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor Mode "), {x_pos + 580.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 100.0f, 0.0f});
+        
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
 
         if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
             printf("Collision Detection Scene!\n");
         }
 
-        if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
-            printf("Quit!\n");
+        // if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+        //     printf("Quit!\n");
+        // }
+        
+        if(current_scene){
+            if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
+                if(Button((void *)(void*) Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                    Scene::pause(gravity_scene, time_step);
+                
+                    printf("Scene Pause!\n");
+                }
+            } else {
+                if(Button((void *)Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                    Scene::play(current_scene, time_step); 
+                    printf("Scene Play!\n");
+                }
+            }
+
+            if(current_scene->phase != Scene::SCENE_PHASE_SETUP){
+                if(Button((void *)Scene::reset, &global_im, &trm,  Create_String("RESET"), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                    Scene::reset(current_scene); 
+                    printf("Scene Reset!\n");
+                }
+            }            
         }
 
-
     }else{
-        
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Enter Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
+    }
+
+    if(current_scene){
+        String scene_status_str = {};
+        if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
+            scene_status_str = Create_String("Scene Playing");
+        }else if(current_scene->phase == Scene::SCENE_PHASE_PAUSED){
+            scene_status_str = Create_String("Scene Paused");
+        } else if(current_scene->phase == Scene::SCENE_PHASE_SETUP){
+            scene_status_str = Create_String("Scene Setup Mode");
+        }
+
+        Text(&trm, &global_im, 0.4f, scene_status_str, {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 50.0f},  {175.0f, 175.0f, 175.0f});
     }
 
     String picker_selection_string = Create_String("Picker ID : ");
@@ -729,14 +801,23 @@ void app_update(float &time_step, float dt){
     HMM_Vec4 world_coords = HMM_MulM4V4(HMM_InvGeneralM4(global_rd.view_matrix), eye_coords);
     HMM_Vec4 world_ray = {world_coords.X, world_coords.Y, world_coords.Z};
 
-    String cursor_pos_str = Create_String("Cursor {");
-    AddToString(&cursor_pos_str, (float)world_ray.X);
+    String cursor_pos_str = Create_String("Current Cursor {");
+    AddToString(&cursor_pos_str, (float)cursor_position.X);
     AddToString(&cursor_pos_str, ',');
-    AddToString(&cursor_pos_str, (float)world_ray.Y);
+    AddToString(&cursor_pos_str, (float)cursor_position.Y);
     AddToString(&cursor_pos_str, ',');
-    AddToString(&cursor_pos_str, (float)world_ray.Z);
+    AddToString(&cursor_pos_str, (float)cursor_position.Z);
     AddToString(&cursor_pos_str, '}');
     Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+    
+    String cursor_last_pos_str = Create_String("Last Cursor {");
+    AddToString(&cursor_last_pos_str, (float)last_mouse_x);
+    AddToString(&cursor_last_pos_str, ',');
+    AddToString(&cursor_last_pos_str, (float)last_mouse_x);
+    AddToString(&cursor_last_pos_str, ',');
+    AddToString(&cursor_last_pos_str, (float)0);
+    AddToString(&cursor_last_pos_str, '}');
+    Text(&trm, &global_im, 0.4f, cursor_last_pos_str, {470.0f, WINDOW_HEIGHT - 370.0f},  {255.0f, 180.0f, 0.0f});
 
 
     if(global_im.active_entity == debug_xmover_entity){
@@ -773,7 +854,7 @@ void app_update(float &time_step, float dt){
 
     String fps_string = Create_String("F P S : ");
     AddToString(&fps_string, 1 / dt_avg);
-    Text(&trm, &global_im, 0.4f, fps_string, {x_pos + 470.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 0.0f});
+    Text(&trm, &global_im, 0.4f, fps_string, {10.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 150.0f});
     DeleteString(&dt_string);
     DeleteString(&fps_string);
 }
@@ -793,7 +874,7 @@ void clean_up() {
 	}
 
     // clean entities
-    for(int i = 0; i < em.index; i++){
+    for(int i = 0; i < em.count; i++){
         E_::Entity *e = &em.entities[0];
     }
 }
