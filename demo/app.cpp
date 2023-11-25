@@ -395,22 +395,27 @@ void GameInputCamera(int key, int state){
         SetEditMode(!g_editor_mode);
     }
     
-    if(!g_editor_mode){  
+    if(!g_editor_mode && !camera.moving){  
+        camera.start_position = camera.position;
         // hide cursor
         if (key == GLFW_KEY_D){
-            camera.position += HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            // camera.position += HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            camera.desired_position = camera.position + HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
         }
 
         if (key == GLFW_KEY_A){
-            camera.position -= HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed; 
+            // camera.position -= HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed; 
+            camera.desired_position = camera.position - HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
         }
 
         if (key == GLFW_KEY_W){
-            camera.position += camera.front * temp_speed;
+            // camera.position += camera.front * temp_speed;
+            camera.desired_position = camera.position + camera.front * temp_speed;
         }
 
         if (key == GLFW_KEY_S){
-            camera.position -= camera.front * temp_speed;
+            // camera.position -= camera.front * temp_speed;
+            camera.desired_position = camera.position - camera.front * temp_speed;
         }
 
 
@@ -463,6 +468,28 @@ void default_cube_entity_physics_behavior(E_::Entity *entity, float &time_step, 
     // }
 }
 
+
+bool vector_equals(HMM_Vec3 a, HMM_Vec3 b, float precision){
+    bool result = true;
+
+    if(HMM_ABS(a.X - b.X) > precision){
+        result = false;
+    } else if(HMM_ABS(a.Y - b.Y) > precision){
+        result = false;
+    } else if(HMM_ABS(a.Z - b.Z) > precision){
+        result = false;
+    }
+
+    return result;
+}
+
+float get_dist(HMM_Vec3 a, HMM_Vec3 b){
+    float result = 0;
+    result = HMM_SQUARE(b.X - a.X) + HMM_SQUARE(b.Y - a.Y) + HMM_SQUARE(b.Z - a.Z);
+    result = HMM_SqrtF(result); 
+    return result;
+}
+
 void app_start(void *window){
     SetEditMode(0);
 
@@ -498,7 +525,9 @@ void app_start(void *window){
 
     camera.world_up = {0.0f, 1.0f, 0.0f};
     camera.front = {0.0f, 0.0f, -1.0f};
-    
+
+    camera.desired_position = camera.position;
+
     // >>>>>> Entity Stufff
     // ========================================
     ZMath::Vec3D debug_movers_halfsize = {8.0f, 0.5f, 0.5f};
@@ -651,6 +680,21 @@ void app_update(float &time_step, float dt){
     global_im.cursor_world_pos_y = cursor_world_pos.Y;
 
     Scene::update(gravity_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
+
+    if(!vector_equals(camera.position, camera.desired_position, 0.01f)){
+        HMM_Vec3 direction = camera.desired_position - camera.position;
+        direction = HMM_NormV3(direction);
+        float initial_dist = get_dist(camera.start_position, camera.desired_position);
+        float distance = get_dist(camera.position, camera.desired_position);
+        // float k = 0.5f;
+        // float speed = exp(5.0f * (1 / distance));
+        float speed = 100.0f;
+        camera.position += direction * speed * dt;
+
+        if (HMM_Dot(direction, camera.desired_position - camera.position) < 0) {
+            camera.position = camera.desired_position;
+        }
+    }
 
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};

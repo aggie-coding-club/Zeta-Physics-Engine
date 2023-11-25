@@ -20,6 +20,7 @@
 #define FPS_50 0.02f
 #define FPS_60 0.0167f
 
+#define DISABLE_SPATIAL_PARTITIONING 1
 
 // * =========================
 // * Impulse Resolution
@@ -46,7 +47,7 @@ namespace Zeta {
     // todo test if this is reasonable for the impulse resolution
     // Resolve a collision between a rigidbody and a staticbody.
     static void applyImpulse(RigidBody3D* rb, StaticBody3D* sb, CollisionManifold const &manifold) {
-        float J = ((ZMath::abs(rb->vel) * -(1 + rb->cor)) * manifold.normal);
+        float J = ((ZMath::abs(rb->vel) * -(1 + rb->cor)) * manifold.normal) / (rb->invMass * (rb->mass / 50));
         rb->vel -= manifold.normal * (rb->invMass * J);
     };
 }

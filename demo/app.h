@@ -6,8 +6,6 @@
 #include <iostream>
 #include "HandmadeMath.h"
 
-#define DISABLE_SPATIAL_PARTITIONING
-
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
 #include <emscripten.h>
@@ -66,10 +64,14 @@ struct Camera{
     HMM_Vec3 position;
     HMM_Vec3 front;
     HMM_Vec3 world_up;
+    HMM_Vec3 desired_position;
+    HMM_Vec3 start_position;
     float speed;
     float pitch;
     float yaw;
     float roll;
+
+    bool moving;
 };
 
 struct InputManager{
