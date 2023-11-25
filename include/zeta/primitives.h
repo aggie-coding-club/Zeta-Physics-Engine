@@ -2,6 +2,8 @@
 
 #include "zmath.h"
 
+// todo ask josh about some move semantics stuff
+
 namespace Zeta {
     class Ray3D {
         public:
@@ -12,7 +14,7 @@ namespace Zeta {
             // 
             // @param position The origin of the ray.
             // @param direction The direction of the ray as a normalized vector.
-            Ray3D(ZMath::Vec3D origin, ZMath::Vec3D direction) : origin(origin), dir(direction) {};
+            Ray3D(ZMath::Vec3D const &origin, ZMath::Vec3D const &direction) : origin(origin), dir(direction) {};
     };
 
     class Line3D {
@@ -111,7 +113,7 @@ namespace Zeta {
             Sphere(ZMath::Vec3D const &center, float rho) : r(rho), c(center) {};
     };
 
-    class AABB {
+    class AABB { // todo ask josh how move semantics would work with this guy
         private:
             ZMath::Vec3D halfSize;
 
@@ -126,7 +128,10 @@ namespace Zeta {
              * @param min (Vec3D) Min vertex of the AABB.
              * @param max (Vec3D) Max vertex of the AABB.
              */
-            AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) : halfSize((max - min) * 0.5f), pos(min + halfSize) {};
+            AABB(ZMath::Vec3D const &min, ZMath::Vec3D const &max) {
+                halfSize = (max - min) * 0.5f;
+                pos = min + halfSize;
+            };
 
             inline ZMath::Vec3D getMin() const { return pos - halfSize; };
             inline ZMath::Vec3D getMax() const { return pos + halfSize; };
