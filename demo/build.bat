@@ -2,7 +2,7 @@
 
 
 @REM ENV (environment) can either be GNU, MSVC, or WEB
-set ENV= MSVC
+set ENV= GNU
 set makecall= mingw32-make
 
 if not exist ".\build" (

@@ -704,7 +704,7 @@ void app_update(float &time_step, float dt){
         
         if(current_scene){
             if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
-                if(Button((void *)Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void *)(void*) Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::pause(gravity_scene, time_step);
                 
                     printf("Scene Pause!\n");
