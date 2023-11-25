@@ -313,7 +313,7 @@ namespace Zeta {
                 assert(maxElementCapacity >= 4 && "The maximum elements allowed in a node must be at least 4.");
                 assert(maxDepth >= 3 && "The maximum depth must be at least 3.");
 
-                // todo ask josh how this would affect the vectors
+                // todo ask josh how this would affect the vectors (or if this even does anything)
 
                 center = std::move(max - min);
                 halfsize = std::move(center - min);

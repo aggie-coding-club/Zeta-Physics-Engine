@@ -517,16 +517,24 @@ namespace Zeta {
                 BodyType type;
             };
 
+            struct Collisions {
+                Body** bodies1; // First list of colliding bodies.
+                Body** bodies2; // Second list of colliding bodies.
+                CollisionManifold* manifolds; // The respective manifolds.
+            };
+
 
             // * =================
             // * Attributes
             // * =================
 
-            Octree partitions;
+            Octree partitions; // The partitions of the screen. Used for spatial partitioning.
 
-            Body* bodies;
+            Body* bodies; // List of bodies for the handler to update.
             uint32_t capacity;
             uint32_t count;
+
+            Collisions collisions; // List of all collisions and their respective data.
 
             float updateStep; // amount of dt to update after
 
@@ -566,22 +574,39 @@ namespace Zeta {
             // * Constructors, Destructors, Etc.
             // * ===================================
 
-            // Make a physics handler with a default gravity of -9.8 and an update speed of 60FPS.
-
             /**
              * @brief Create a physics handler.
              * 
+             * @param screenMin The minimum vertex encompassed by your computer's screen.
+             * @param screenMax The maximum vertex encompassed by your computer's screen.
              * @param g (Vec3D) The force applied by gravity. Default of <0, 0, -9.8f>.
              * @param timeStep (float) The amount of time in seconds that must pass before the handler updates physics.
-             *    Default speed of 60FPS. Anything above 60FPS is not recommended as it can cause lag in lower end hardware.
+             *      Default speed of 60FPS. Anything above 60FPS is not recommended as it can cause lag in lower end hardware.
+             * @param octMaxElementCapacity The maximum number of elements a partition can contain before splitting. Default of 16.
+             * @param octMaxDepth The maximum allowed depth of the octree handling partitions. Default of 8.
              */
-            Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = FPS_60) : g(g), updateStep(timeStep) {
-                if (timeStep < FPS_60) { updateStep = FPS_60; } // hard cap at 60 FPS
+            Handler(ZMath::Vec3D const &screenMin, ZMath::Vec3D const &screenMax,
+                    ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = FPS_60,
+                    uint32_t octMaxElementCapacity = OCT_MAX_CAPACITY, uint32_t octMaxDepth = OCT_MAX_DEPTH)
+            {
+                this->g = g;
+
+                // hard cap at 60 FPS
+                if (timeStep < FPS_60) { updateStep = FPS_60; }
+                else { updateStep = timeStep; }
 
                 // Initialize the bodies list.
                 bodies = new Body[startingSlots];
                 capacity = startingSlots;
                 count = 0;
+
+                // Initialize the collisions lists.
+                collisions.bodies1 = new Body*[halfStartingSlots];
+                collisions.bodies2 = new Body*[halfStartingSlots];
+                collisions.manifolds = new CollisionManifold[halfStartingSlots];
+
+                // Initialize the octree.
+                partitions = std::move(Octree(std::move(AABB(screenMin, screenMax)), octMaxElementCapacity, octMaxDepth));
             };
 
             // Do not allow for construction from an existing physics handler.
@@ -639,6 +664,8 @@ namespace Zeta {
             // Update the physics.
             // dt will be updated to the appropriate value after the updates run for you so DO NOT modify it yourself.
             int update(float &dt) {
+                // todo time to figure out how to get octrees to work for partitioning :(
+
                 int count = 0;
 
                 // todo combine the loops together later with an equation
