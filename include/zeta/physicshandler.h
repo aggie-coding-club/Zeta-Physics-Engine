@@ -1,6 +1,7 @@
 #pragma once
 
 #include "collisions.h"
+#include "octree.h"
 #include <stdexcept>
 
 // todo use a preprocessor directive to allow the user to choose if they want spatial partitioning or not
@@ -543,115 +544,34 @@ namespace Zeta {
 
     class Handler {
         private:
+            enum BodyType {
+                RIGID_BODY,
+                STATIC_BODY,
+                KINEMATIC_BODY
+            };
+
+            struct Body {
+                void* body;
+                BodyType type;
+            };
+
+
             // * =================
             // * Attributes
             // * =================
 
-            RBS rbs; // rigid bodies to update
-            SBS sbs; // static bodies to check for collisions with
-            RCol rCol; // collisions between rigid bodies
-            RSCol rsCol; // collisions between rigid and static bodies
+            Octree partitions;
+
+            Body* bodies;
+            uint32_t capacity;
+            uint32_t count;
 
             float updateStep; // amount of dt to update after
-            static const int IMPULSE_ITERATIONS = 6; // number of times to apply the impulse update.
 
 
             // * ==============================
             // * Functions for Ease of Use
             // * ==============================
-
-            inline void addCollision(RigidBody3D* rb1, RigidBody3D* rb2, Manifold const &manifold) {
-                if (rCol.count == rCol.capacity) { // 99.9% of the time this part of the code will not execute. This is for an edge case.
-                    rCol.capacity *= 2;
-
-                    RigidBody3D** temp1 = new RigidBody3D*[rCol.capacity];
-                    RigidBody3D** temp2 = new RigidBody3D*[rCol.capacity];
-                    Manifold* temp3 = new Manifold[rCol.capacity];
-
-                    for (int i = 0; i < rCol.count; i++) {
-                        temp1[i] = rCol.bodies1[i];
-                        temp2[i] = rCol.bodies2[i];
-                        temp3[i] = std::move(rCol.manifolds[i]);
-                    }
-
-                    delete[] rCol.bodies1;
-                    delete[] rCol.bodies2;
-                    delete[] rCol.manifolds;
-
-                    rCol.bodies1 = temp1;
-                    rCol.bodies2 = temp2;
-                    rCol.manifolds = temp3;
-                }
-
-                rCol.bodies1[rCol.count] = rb1;
-                rCol.bodies2[rCol.count] = rb2;
-                rCol.manifolds[rCol.count++] = manifold;
-            };
-
-            inline void addCollision(RigidBody3D* rb, StaticBody3D* sb, Manifold const &manifold) {
-                if (rsCol.count == rsCol.capacity) {
-                    rsCol.capacity *= 2;
-
-                    RigidBody3D** temp1 = new RigidBody3D*[rsCol.capacity];
-                    StaticBody3D** temp2 = new StaticBody3D*[rsCol.capacity];
-                    Manifold* temp3 = new Manifold[rsCol.capacity];
-
-                    for (int i = 0; i < rsCol.count; ++i) {
-                        temp1[i] = rsCol.rbs[i];
-                        temp2[i] = rsCol.sbs[i];
-                        temp3[i] = std::move(rsCol.manifolds[i]);
-                    }
-
-                    delete[] rsCol.rbs;
-                    delete[] rsCol.sbs;
-                    delete[] rsCol.manifolds;
-
-                    rsCol.rbs = temp1;
-                    rsCol.sbs = temp2;
-                    rsCol.manifolds = temp3;
-                }
-
-                rsCol.rbs[rsCol.count] = rb;
-                rsCol.sbs[rsCol.count] = sb;
-                rsCol.manifolds[rsCol.count++] = manifold;
-            };
-
-            inline void clearCollisions() {
-                // ? We do not need to check for nullptrs because if this function is reached it is guarenteed none of the pointers inside of here will be NULL
-
-                // * rCol
-
-                int halfRbs = rbs.capacity/2;
-
-                delete[] rCol.bodies1;
-                delete[] rCol.bodies2;
-
-                for (int i = 0; i < rCol.count; ++i) { delete[] rCol.manifolds[i].contactPoints; }
-                delete[] rCol.manifolds;
-
-                rCol.bodies1 = new RigidBody3D*[halfRbs];
-                rCol.bodies2 = new RigidBody3D*[halfRbs];
-                rCol.manifolds = new Manifold[halfRbs];
-
-                rCol.capacity = halfRbs;
-                rCol.count = 0;
-
-
-                // * rsCol
-
-                delete[] rsCol.rbs;
-                delete[] rsCol.sbs;
-
-                for (int i = 0; i < rsCol.count; ++i) { delete[] rsCol.manifolds[i].contactPoints; }
-                delete[] rsCol.manifolds;
-
-                rsCol.rbs = new RigidBody3D*[halfRbs];
-                rsCol.sbs = new StaticBody3D*[halfRbs];
-                rsCol.manifolds = new Manifold[halfRbs];
-
-                rsCol.capacity = halfRbs;
-                rsCol.count = 0;
-            };
 
         public:
             // * =====================
@@ -674,32 +594,9 @@ namespace Zeta {
              *    Default speed of 60FPS. Anything above 60FPS is not recommended as it can cause lag in lower end hardware.
              */
             Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = FPS_60) : g(g), updateStep(timeStep) {
-                if (updateStep < FPS_60) { updateStep = FPS_60; } // hard cap at 60 FPS
-
-                // * Bodies
-
-                rbs.rigidBodies = new RigidBody3D*[startingSlots];
-                rbs.capacity = startingSlots;
-                rbs.count = 0;
-
-                sbs.staticBodies = new StaticBody3D*[startingSlots];
-                sbs.capacity = startingSlots;
-                sbs.count = 0;
+                if (timeStep < FPS_60) { updateStep = FPS_60; } // hard cap at 60 FPS
 
 
-                // * Collisions
-
-                rCol.bodies1 = new RigidBody3D*[halfStartingSlots];
-                rCol.bodies2 = new RigidBody3D*[halfStartingSlots];
-                rCol.manifolds = new Manifold[halfStartingSlots];
-                rCol.capacity = halfStartingSlots;
-                rCol.count = 0;
-
-                rsCol.rbs = new RigidBody3D*[halfStartingSlots];
-                rsCol.sbs = new StaticBody3D*[halfStartingSlots];
-                rsCol.manifolds = new Manifold[halfStartingSlots];
-                rsCol.capacity = halfStartingSlots;
-                rsCol.count = 0;
             };
 
             // Do not allow for construction from an existing physics handler.
@@ -710,27 +607,8 @@ namespace Zeta {
             Handler& operator = (Handler const &handler) { throw std::runtime_error("PhysicsHandler object CANNOT be reassigned to another PhysicsHandler."); };
             Handler& operator = (Handler&& handler) { throw std::runtime_error("PhysicsHandler object CANNOT be reassigned to another PhysicsHandler."); };
 
-            ~Handler() { // todo could probs combine some of the loops together
-                // If one of the pointers is not NULL, none of them are.
-                if (rbs.rigidBodies) {
-                    for (int i = 0; i < rbs.count; ++i) { delete rbs.rigidBodies[i]; }
-                    delete[] rbs.rigidBodies;
+            ~Handler() {
 
-                    // ? Note: we do not need to delete each RigidBody pointer in bodies1 and bodies2 as the main rigidBodies list
-                    // ?       is guarenteed to contain those same pointers.
-                    delete[] rCol.bodies1;
-                    delete[] rCol.bodies2;
-                    
-                    delete[] rsCol.rbs;
-                    delete[] rsCol.sbs;
-
-                    // ? We do not need to check for nullptr for contactPoints as if rCol.count > 0, it is guarenteed manifolds[i].contactPoints != nullptr.
-                    for (int i = 0; i < rCol.count; ++i) { delete[] rCol.manifolds[i].contactPoints; }
-                    delete[] rCol.manifolds;
-
-                    for (int i = 0; i < rsCol.count; ++i) { delete[] rsCol.manifolds[i].contactPoints; }
-                    delete[] rsCol.manifolds;
-                }
             };
 
 
@@ -740,69 +618,26 @@ namespace Zeta {
 
             // Add a rigid body to the list of rigid bodies to be updated.
             void addRigidBody(RigidBody3D* rb) {
-                if (rbs.count == rbs.capacity) {
-                    rbs.capacity *= 2;
-                    RigidBody3D** temp = new RigidBody3D*[rbs.capacity];
-
-                    for (int i = 0; i < rbs.count; ++i) { temp[i] = rbs.rigidBodies[i]; }
-
-                    delete[] rbs.rigidBodies;
-                    rbs.rigidBodies = temp;
-                }
-
-                rbs.rigidBodies[rbs.count++] = rb;
+                
             };
 
             // Add a list of rigid bodies to be updated
             void addRigidBodies(RigidBody3D** rbs, int size) {
-                if (this->rbs.count + size - 1 >= this->rbs.capacity) {
-                    this->rbs.capacity += size;
-                    RigidBody3D** temp = new RigidBody3D*[this->rbs.capacity];
-
-                    for (int i = 0; i < this->rbs.count; ++i) { temp[i] = this->rbs.rigidBodies[i]; }
-
-                    delete[] this->rbs.rigidBodies;
-                    this->rbs.rigidBodies = temp;
-                }
-
-                for (int i = 0; i < size; ++i) { this->rbs.rigidBodies[this->rbs.count++] = rbs[i]; }
+                
             };
 
             // Remove a rigid body.
             // This returns 1 if the rigid body is found and removed and 0 if it was not found.
             // If the rigid body is found, the data pointed to by rb gets deleted by this function.
             bool removeRigidBody(RigidBody3D* rb) {
-                for (int i = rbs.count; i >= 0; --i) {
-                    if (rbs.rigidBodies[i] == rb) {
-                        delete rb;
-                        for (int j = i; j < rbs.count - 1; ++j) { rbs.rigidBodies[j] = rbs.rigidBodies[j + 1]; }
-                        rbs.count--;
-                        return 1;
-                    }
-                }
-
-                return 0;
+                
             };
 
             // Will go through an array of rigid bodies, look for them in the handler and remove if found
             // Returns -1 if all rigid bodies found and removed
             // If not all rigid bodies in the array are in the handler, it will return the index of the first rigid body not found in the handler 
             int removeRigidBodies(RigidBody3D** rbs, int size) {
-                for (int i = 0; i < size; ++i) {
-                    for (int j = 0; j < this->rbs.count; ++j) {
-                        if (this->rbs.rigidBodies[j] == rbs[i]) {
-                            delete rbs[i];
-                            for (int k = j; k < this->rbs.count - 1; ++k) { this->rbs.rigidBodies[k] = this->rbs.rigidBodies[k + 1]; }
-                            --this->rbs.count;
-                            break;
-
-                        } else if (j == this->rbs.count - 1) {
-                            return i;
-                        }
-                    }
-                }
-
-                return -1;
+                
             };
 
 
@@ -812,69 +647,26 @@ namespace Zeta {
 
             // Add a static body to the list of rigid bodies to be updated.
             void addStaticBody(StaticBody3D* sb) {
-                if (sbs.count == sbs.capacity) {
-                    sbs.capacity *= 2;
-                    StaticBody3D** temp = new StaticBody3D*[sbs.capacity];
-
-                    for (int i = 0; i < sbs.count; ++i) { temp[i] = sbs.staticBodies[i]; }
-
-                    delete[] sbs.staticBodies;
-                    sbs.staticBodies = temp;
-                }
-
-                sbs.staticBodies[sbs.count++] = sb;
+                
             };
 
             // Add a list of static bodies to be updated
             void addStaticBodies(StaticBody3D** sbs, int size) {
-                if (this->sbs.count + size - 1 >= this->sbs.capacity) {
-                    this->sbs.capacity += size;
-                    StaticBody3D** temp = new StaticBody3D*[this->sbs.capacity];
-
-                    for (int i = 0; i < this->sbs.count; ++i) { temp[i] = this->sbs.staticBodies[i]; }
-
-                    delete[] this->sbs.staticBodies;
-                    this->sbs.staticBodies = temp;
-                }
-
-                for (int i = 0; i < size; ++i) { this->sbs.staticBodies[this->sbs.count++] = sbs[i]; }
+                
             };
 
             // Remove a static body.
             // This returns 1 if the static body is found and removed and 0 if it was not found.
             // If the static body is found, the data pointed to by sb gets deleted by this function.
             bool removeStaticBody(StaticBody3D* sb) {
-                for (int i = sbs.count; i >= 0; --i) {
-                    if (sbs.staticBodies[i] == sb) {
-                        delete sb;
-                        for (int j = i; j < sbs.count - 1; ++j) { sbs.staticBodies[j] = sbs.staticBodies[j + 1]; }
-                        sbs.count--;
-                        return 1;
-                    }
-                }
-
-                return 0;
+                
             };
 
             // Will go through an array of static bodies, look for them in the handler and remove if found
             // Returns -1 if all static bodies found and removed
             // If not all static bodies in the array are in the handler, it will return the index of the first static body not found in the handler 
             bool removeStaticBodies(StaticBody3D** sbs, int size) {
-                for (int i = 0; i < size; ++i) {
-                    for (int j = 0; j < this->sbs.count; ++j) {
-                        if (this->sbs.staticBodies[j] == sbs[i]) {
-                            delete sbs[i];
-                            for (int k = j; k < this->sbs.count - 1; ++k) { this->sbs.staticBodies[k] = this->sbs.staticBodies[k + 1]; }
-                            --this->sbs.count;
-                            break;
-
-                        } else if (j == this->sbs.count - 1) {
-                            return i;
-                        }
-                    }
-                }
-
-                return 1;
+                
             };
 
 
@@ -889,38 +681,7 @@ namespace Zeta {
 
                 // todo combine the loops together later with an equation
                 while (dt >= updateStep) {
-                    // Broad phase: collision detection
-                    for (int i = 0; i < rbs.count - 1; ++i) {
-                        for (int j = i + 1; j < rbs.count; ++j) {
-                            Manifold result = findCollisionFeatures(rbs.rigidBodies[i], rbs.rigidBodies[j]);
-                            if (result.hit) { addCollision(rbs.rigidBodies[i], rbs.rigidBodies[j], result); }
-                        }
-
-                        for (int j = 0; j < sbs.count; ++j) {
-                            Manifold result = findCollisionFeatures(sbs.staticBodies[j], rbs.rigidBodies[i]);
-                            if (result.hit) { addCollision(rbs.rigidBodies[i], sbs.staticBodies[j], result); }
-                        }
-                    }
-
-                    // todo update to not be through iterative deepening -- look into this in the future
-                    // todo use spacial partitioning
-                    // Narrow phase: Impulse resolution
-                    for (int k = 0; k < IMPULSE_ITERATIONS; ++k) {
-                        for (int i = 0; i < rCol.count; ++i) {
-                            applyImpulse(rCol.bodies1[i], rCol.bodies2[i], rCol.manifolds[i]);
-                        }
-
-                        for (int i = 0; i < rsCol.count; ++i) {
-                            applyImpulse(rsCol.rbs[i], rsCol.sbs[i], rsCol.manifolds[i]);
-                        }
-                    }
-
-                    clearCollisions();
-
-                    // Update our rigidbodies
-                    for (int i = 0; i < rbs.count; ++i) { 
-						rbs.rigidBodies[i]->update(g, updateStep); 
-					}
+                    
 
                     dt -= updateStep;
                     ++count;

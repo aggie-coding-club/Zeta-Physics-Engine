@@ -294,6 +294,12 @@ namespace Zeta {
             // * ===============
 
             /**
+             * @brief Default constructor for Octree objects. If used, be sure to initialize the values yourself.
+             * 
+             */
+            Octree() {};
+
+            /**
              * @brief Construct a new Octree object
              * 
              * @param min The minimum vertex of the region encompassed by the octree.
