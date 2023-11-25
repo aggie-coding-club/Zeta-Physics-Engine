@@ -680,20 +680,20 @@ void app_update(float &time_step, float dt){
         
         if(current_scene){
             if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
-                if(Button(Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void*) Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::pause(gravity_scene, time_step);
                 
                     printf("Scene Pause!\n");
                 }
             } else {
-                if(Button(Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void*) Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::play(current_scene, time_step); 
                     printf("Scene Play!\n");
                 }
             }
 
             if(current_scene->phase != Scene::SCENE_PHASE_SETUP){
-                if(Button(Scene::reset, &global_im, &trm,  Create_String("RESET"), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void*) Scene::reset, &global_im, &trm,  Create_String("RESET"), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::reset(current_scene); 
                     printf("Scene Reset!\n");
                 }
