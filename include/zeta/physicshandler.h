@@ -4,13 +4,11 @@
 #include "octree.h"
 #include <stdexcept>
 
-// todo use a preprocessor directive to allow the user to choose if they want spatial partitioning or not
-// todo I think I will use octrees as the approach of my choice
-// todo look through the document for more details and look into the other methods, too
-
 // todo also provide an implementation based on 3 fixed levels of dense grids with row based optimizations as an alternative
 
-// todo use static_assert(0) for the rule of 5 stuff instead of just throwing a runtime error
+// todo go through the destructors and make it so the actual bodies are only deleted if the user calls a cleanup or deleteBodies function
+// todo make it so removing a body doesn't also free the memory of that body
+
 
 // * ====================================
 // * Common Framerates for Handler
@@ -497,45 +495,11 @@ namespace Zeta {
 // physics handler using spatial partitioning
 
 namespace Zeta {
-    // * ==============
-    // * Wrappers
-    // * ==============
-
-    // these are also likely just placeholders until we can find a good value
-    static const int startingSlots = 64;
-    static const int halfStartingSlots = 32;
-
-    // ? For now, default to allocating 64 slots for Objects. Probably up once we start implementing more stuff.
-
-    typedef struct RigidBodies {
-        RigidBody3D** rigidBodies = nullptr; // list of active rigid bodies
-        int capacity; // current max capacity
-        int count; // number of rigid bodies 
-    } RBS;
-
-    typedef struct StaticBodies {
-        StaticBody3D** staticBodies = nullptr; // list of active static bodies
-        int capacity; // current max capacity
-        int count; // number of static bodies
-    } SBS;
-
-    typedef struct RigidCollisionWrapper {
-        RigidBody3D** bodies1 = nullptr; // list of colliding bodies (Object A)
-        RigidBody3D** bodies2 = nullptr; // list of colliding bodies (Object B)
-        Manifold* manifolds = nullptr; // list of the collision manifolds between the objects
-
-        int capacity; // current max capacity
-        int count; // number of collisions
-    } RCol;
-
-    typedef struct RigidStaticCollisionWrapper {
-        RigidBody3D** rbs = nullptr;
-        StaticBody3D** sbs = nullptr;
-        Manifold* manifolds = nullptr;
-
-        int capacity;
-        int count;
-    } RSCol;
+    enum BodyType {
+        RIGID_BODY,
+        STATIC_BODY,
+        KINEMATIC_BODY
+    };
 
 
     // * ========================
@@ -544,12 +508,6 @@ namespace Zeta {
 
     class Handler {
         private:
-            enum BodyType {
-                RIGID_BODY,
-                STATIC_BODY,
-                KINEMATIC_BODY
-            };
-
             struct Body {
                 void* body;
                 BodyType type;
@@ -572,6 +530,26 @@ namespace Zeta {
             // * ==============================
             // * Functions for Ease of Use
             // * ==============================
+
+            inline void grow() {
+                capacity << 1;
+                Body* temp = new Body[capacity];
+
+                for (uint32_t i = 0; i < count; ++i) { temp[i] = std::move(bodies[i]); }
+
+                delete[] bodies;
+                bodies = temp;
+            };
+
+            inline void grow(uint32_t size) {
+                capacity += size;
+                Body* temp = new Body[capacity];
+
+                for (uint32_t i = 0; i < count; ++i) { temp[i] = std::move(bodies[i]); }
+
+                delete[] bodies;
+                bodies = temp;
+            };
 
         public:
             // * =====================
@@ -612,61 +590,37 @@ namespace Zeta {
             };
 
 
-            // * ============================
-            // * RigidBody List Functions
-            // * ============================
+            // * =======================
+            // * Body List Functions
+            // * =======================
 
-            // Add a rigid body to the list of rigid bodies to be updated.
-            void addRigidBody(RigidBody3D* rb) {
-                
+            // Add a body to the list of bodies to be updated.
+            // Note: adding a nullptr to the handler will result in undefined behavior.
+            void addBody(void* body, BodyType type) {
+                if (count == capacity) { grow(); }
+                bodies[count++] = {body, type};
             };
 
-            // Add a list of rigid bodies to be updated
-            void addRigidBodies(RigidBody3D** rbs, int size) {
-                
+            // Add a list of bodies to be updated.
+            // Note: adding any number of nullptrs to the handler will result in undefined behavior.
+            void addBodies(void** bodies, BodyType type, uint32_t size) {
+                if (count + size - 1 >= capacity) { grow(size); }
+                for (uint32_t i = 0; i < size; ++i) { this->bodies[count++] = {bodies[i], type}; }
             };
 
-            // Remove a rigid body.
-            // This returns 1 if the rigid body is found and removed and 0 if it was not found.
-            // If the rigid body is found, the data pointed to by rb gets deleted by this function.
-            bool removeRigidBody(RigidBody3D* rb) {
-                
-            };
+            // Remove a body.
+            // This returns 1 if the body is found and removed and 0 if it was not found.
+            // The body will NOT be freed when found. You MUST free the memory yourself.
+            bool removeBody(void* body) {
+                for (uint32_t i = 0; i < count; ++i) {
+                    if (body == bodies[i].body) { // this should be fine since both are just addresses anyway
+                        for (uint32_t j = i; j < count - 1; ++j) { bodies[j] = bodies[j + 1]; }
+                        --count;
+                        return 1;
+                    }
+                }
 
-            // Will go through an array of rigid bodies, look for them in the handler and remove if found
-            // Returns -1 if all rigid bodies found and removed
-            // If not all rigid bodies in the array are in the handler, it will return the index of the first rigid body not found in the handler 
-            int removeRigidBodies(RigidBody3D** rbs, int size) {
-                
-            };
-
-
-            // * ============================
-            // * StaticBody List Functions
-            // * ============================
-
-            // Add a static body to the list of rigid bodies to be updated.
-            void addStaticBody(StaticBody3D* sb) {
-                
-            };
-
-            // Add a list of static bodies to be updated
-            void addStaticBodies(StaticBody3D** sbs, int size) {
-                
-            };
-
-            // Remove a static body.
-            // This returns 1 if the static body is found and removed and 0 if it was not found.
-            // If the static body is found, the data pointed to by sb gets deleted by this function.
-            bool removeStaticBody(StaticBody3D* sb) {
-                
-            };
-
-            // Will go through an array of static bodies, look for them in the handler and remove if found
-            // Returns -1 if all static bodies found and removed
-            // If not all static bodies in the array are in the handler, it will return the index of the first static body not found in the handler 
-            bool removeStaticBodies(StaticBody3D** sbs, int size) {
-                
+                return 0;
             };
 
 
