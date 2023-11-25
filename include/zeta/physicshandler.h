@@ -508,6 +508,10 @@ namespace Zeta {
 
     class Handler {
         private:
+            // these are also likely just placeholders until we can find a good value
+            const static uint8_t startingSlots = 64;
+            const static uint8_t halfStartingSlots = 32;
+
             struct Body {
                 void* body;
                 BodyType type;
@@ -574,7 +578,10 @@ namespace Zeta {
             Handler(ZMath::Vec3D const &g = ZMath::Vec3D(0, 0, -9.8f), float timeStep = FPS_60) : g(g), updateStep(timeStep) {
                 if (timeStep < FPS_60) { updateStep = FPS_60; } // hard cap at 60 FPS
 
-
+                // Initialize the bodies list.
+                bodies = new Body[startingSlots];
+                capacity = startingSlots;
+                count = 0;
             };
 
             // Do not allow for construction from an existing physics handler.
@@ -585,9 +592,10 @@ namespace Zeta {
             Handler& operator = (Handler const &handler) { throw std::runtime_error("PhysicsHandler object CANNOT be reassigned to another PhysicsHandler."); };
             Handler& operator = (Handler&& handler) { throw std::runtime_error("PhysicsHandler object CANNOT be reassigned to another PhysicsHandler."); };
 
-            ~Handler() {
-
-            };
+            // Note: The destructor does NOT delete the actual bodies inside of the array.
+            // This is in case you need to use the bodies after the handler is out of scope.
+            // You will need to cleanup the memory from the bodies or call the cleanup function to do it for you.
+            ~Handler() { delete[] bodies; };
 
 
             // * =======================
