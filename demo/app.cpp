@@ -808,7 +808,7 @@ void app_update(float &time_step, float dt){
     AddToString(&cursor_pos_str, ',');
     AddToString(&cursor_pos_str, (float)cursor_position.Z);
     AddToString(&cursor_pos_str, '}');
-    Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+    // Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
     
     String cursor_last_pos_str = Create_String("Last Cursor {");
     AddToString(&cursor_last_pos_str, (float)last_mouse_x);
@@ -817,7 +817,7 @@ void app_update(float &time_step, float dt){
     AddToString(&cursor_last_pos_str, ',');
     AddToString(&cursor_last_pos_str, (float)0);
     AddToString(&cursor_last_pos_str, '}');
-    Text(&trm, &global_im, 0.4f, cursor_last_pos_str, {470.0f, WINDOW_HEIGHT - 370.0f},  {255.0f, 180.0f, 0.0f});
+    // Text(&trm, &global_im, 0.4f, cursor_last_pos_str, {470.0f, WINDOW_HEIGHT - 370.0f},  {255.0f, 180.0f, 0.0f});
 
 
     if(global_im.active_entity == debug_xmover_entity){
@@ -843,7 +843,7 @@ void app_update(float &time_step, float dt){
         
     }
 
-#if 1
+#if 0
     String cursor_pos_string = Create_String("Cursor {");
     AddToString(&cursor_pos_string, (float)global_im.cursor_world_pos_x);
     AddToString(&cursor_pos_string, ',');

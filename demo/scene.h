@@ -13,6 +13,7 @@ namespace Scene{
     struct InitialEntityValues{
         void *entity_id;
         HMM_Vec3 position;
+        HMM_Vec3 velocity;
     };
 
     struct Scene{

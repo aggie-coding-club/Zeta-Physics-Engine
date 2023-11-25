@@ -12,6 +12,7 @@ namespace Scene{
         scene->iev[scene->entity_count].entity_id = entity;
         if(entity->rb){
             scene->iev[scene->entity_count].position = {entity->rb->pos.x, entity->rb->pos.y, entity->rb->pos.z};
+            scene->iev[scene->entity_count].velocity = {entity->rb->vel.x, entity->rb->vel.y, entity->rb->vel.z};
         } else if(entity->sb){
             scene->iev[scene->entity_count].position = {entity->sb->pos.x, entity->sb->pos.y, entity->sb->pos.z};
         }
@@ -79,6 +80,8 @@ namespace Scene{
             if(entity){
                 if(entity->rb){
                     entity->rb->pos = {iev.position.X, iev.position.Y, iev.position.Z};
+                    entity->rb->vel = {iev.velocity.X, iev.velocity.Y, iev.velocity.Z};
+                    entity->rb->netForce = {0.0f, 0.0f, 0.0f};
                 } else if(entity->sb){
                     entity->sb->pos = {iev.position.X, iev.position.Y, iev.position.Z};
                 }
