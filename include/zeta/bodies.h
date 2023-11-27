@@ -154,6 +154,10 @@ namespace Zeta {
             ZMath::Vec3D pos; // centerpoint of the rigidbody.
             ZMath::Vec3D vel = ZMath::Vec3D(); // velocity of the rigidbody.
             ZMath::Vec3D netForce = ZMath::Vec3D(); // sum of all forces acting on the rigidbody.
+                                                    //
+            // Rotational Values
+            ZMath::Mat3D inertialTensor;
+            ZMath::Vec3D angularVel;
 
             void update(ZMath::Vec3D const &g, float dt) {
                 // ? assuming g is gravity, and it is already negative
