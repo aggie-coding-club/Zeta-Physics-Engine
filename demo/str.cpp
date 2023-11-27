@@ -1,8 +1,6 @@
-#ifndef STRING_H
-struct String{
-    char *val;
-    unsigned int length;
-};
+#include <stdio.h>
+#include <stdlib.h>
+#include "str.h"
 
 unsigned int chars_length(const char *val){
     unsigned int result = 0;
@@ -99,7 +97,3 @@ void AddToString(struct String *string, float val){
 void DeleteString(String *string){
     free(string->val);
 }
-
-
-#define STRING_H 1
-#endif

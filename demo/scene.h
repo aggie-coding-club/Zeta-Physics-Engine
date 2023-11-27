@@ -1,4 +1,5 @@
 #pragma once
+#include "str.h"
 #include "entity.h"
 #include "renderer.h"
 #include <zeta/physicshandler.h>

@@ -1,6 +1,6 @@
 // #include <zeta/physicshandler.h>
 #include "app.h"
-#include "str.c"
+#include "str.h"
 #include "text.cpp"
 #include "ui.cpp"
 
@@ -673,7 +673,7 @@ float angle = 0.0f;
 float dt_accum = 0.0f;
 float dt_avg = 1.0f;
 int dt_ticks = 0;
-bool show_scene_changer_scene;
+bool show_scene_changer_screen = 0;
 void app_update(float &time_step, float dt){
     global_dt = dt;
     global_im.dt += dt;
@@ -745,14 +745,36 @@ void app_update(float &time_step, float dt){
         
         Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
 
-        if(Button((void *)1, &global_im, &trm,  Create_String("Change Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+        if(!show_scene_changer_screen){
+            if(Button(&show_scene_changer_screen, &global_im, &trm,  Create_String("Change Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                show_scene_changer_screen = true;
+                printf("Collision Detection Scene!\n");
+            }
+        }else{
+            HMM_Vec2 panel_size = {150.0f, 200.0f};
+            HMM_Vec2 panel_pos = {100.0f, WINDOW_HEIGHT - panel_size.Y * 2};
+            HMM_Vec2 panel_top_left = {panel_pos.X, panel_pos.Y + panel_size.Y};
 
-            printf("Collision Detection Scene!\n");
+            DrawRect(&trm, panel_pos, panel_size.X, panel_size.Y, {100.0f, 0.0f, 0.0f, 255.0f});
+
+            if(Button((&show_scene_changer_screen) + 1, &global_im, &trm,  Create_String("Hide"), roundness, border_width, panel_pos.X, panel_pos.Y, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                show_scene_changer_screen = false;
+            }
+
+            HMM_Vec2 current_pos = panel_top_left;
+            for(int i = 0; i < global_sm.index; i++){
+                Scene::Scene *scene = &global_sm.scenes[i];
+                String title = Create_String(scene->title.val);
+
+
+                if(Button(scene, &global_im, &trm,  title, roundness, border_width, current_pos.X, current_pos.Y, button_width, button_height, {76.5f, 176.5f, 76.5f, 255.0f})){
+                    show_scene_changer_screen = false;
+                    current_scene = scene;
+                }
+
+                current_pos.Y -= 50.0f;
+            }
         }
-
-        // if(Button((void *)3, &global_im, &trm,  Create_String("QUIT"), roundness, border_width, x_pos + 230.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
-        //     printf("Quit!\n");
-        // }
         
         if(current_scene){
             if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
