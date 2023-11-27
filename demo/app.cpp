@@ -1,5 +1,6 @@
 // #include <zeta/physicshandler.h>
 #include "app.h"
+#include "str.c"
 #include "text.cpp"
 #include "ui.cpp"
 
@@ -279,7 +280,8 @@ float time_btw_physics_updates = 1.0f / 60.0f;
 float count_down = time_btw_physics_updates;
 float start_time = (float)glfwGetTime();
 
-Scene::Scene *gravity_scene = {};
+Scene::Scene *gravity_scene = 0;
+Scene::Scene *sphere_scene = 0;
 
 RawModel model = {};
 RawModel ground_model = {};
@@ -629,10 +631,9 @@ void app_start(void *window){
     test_entity->physics_behavior = &default_cube_entity_physics_behavior;
 
 
-    // scene setup
+    // gravity scene setup
     gravity_scene = Scene::new_scene(&global_sm);
-    Scene::setup(gravity_scene);
-    // Scene::add_entity(gravity_scene,  test_entity); 
+    Scene::setup(gravity_scene, "Gravity Scene");
     Scene::add_entity(gravity_scene,  ground_entity); 
 
     // generating the random entities for gravity test scene
@@ -657,16 +658,22 @@ void app_start(void *window){
         current_pos.Z = -20.0f;
     }
 
-    float time_step = 0;
-    Scene::play(gravity_scene, time_step);
 
-    current_scene = gravity_scene;
+    // sphere scene setup
+    sphere_scene = Scene::new_scene(&global_sm);
+    Scene::setup(sphere_scene, "Sphere Scene");
+    Scene::add_entity(sphere_scene,  ground_entity); 
+
+    float time_step = 0;
+    current_scene = sphere_scene;
+    Scene::play(current_scene, time_step);
 }
 
 float angle = 0.0f;
 float dt_accum = 0.0f;
 float dt_avg = 1.0f;
 int dt_ticks = 0;
+bool show_scene_changer_scene;
 void app_update(float &time_step, float dt){
     global_dt = dt;
     global_im.dt += dt;
@@ -679,7 +686,7 @@ void app_update(float &time_step, float dt){
     global_im.cursor_world_pos_x = cursor_world_pos.X;
     global_im.cursor_world_pos_y = cursor_world_pos.Y;
 
-    Scene::update(gravity_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
+    Scene::update(current_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
 
     if(!vector_equals(camera.position, camera.desired_position, 0.01f)){
         HMM_Vec3 direction = camera.desired_position - camera.position;
@@ -738,7 +745,8 @@ void app_update(float &time_step, float dt){
         
         Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
 
-        if(Button((void *)1, &global_im, &trm,  Create_String("Collision Detection Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+        if(Button((void *)1, &global_im, &trm,  Create_String("Change Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+
             printf("Collision Detection Scene!\n");
         }
 
@@ -749,7 +757,7 @@ void app_update(float &time_step, float dt){
         if(current_scene){
             if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
                 if(Button((void *)(void*) Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
-                    Scene::pause(gravity_scene, time_step);
+                    Scene::pause(current_scene, time_step);
                 
                     printf("Scene Pause!\n");
                 }

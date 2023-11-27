@@ -45,9 +45,10 @@ namespace Scene{
         return result;
     }
 
-    void setup(Scene *scene){
+    void setup(Scene *scene, char *title){
         scene->phase = SCENE_PHASE_SETUP;
         scene->physics_handler = new Zeta::Handler(ZMath::Vec3D(0, -5.8f, 0));
+        scene->title = Create_String(title);
     }
 
     void toggle_pause(Scene *scene){

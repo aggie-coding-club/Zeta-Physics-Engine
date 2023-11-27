@@ -1,5 +1,4 @@
 #ifndef STRING_H
-
 struct String{
     char *val;
     unsigned int length;
@@ -102,5 +101,5 @@ void DeleteString(String *string){
 }
 
 
-#define STRING_H
+#define STRING_H 1
 #endif

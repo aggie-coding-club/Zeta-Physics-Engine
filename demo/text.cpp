@@ -1,6 +1,5 @@
 #ifndef TEXT_H
 
-#include "str.c"
 #include "HandmadeMath.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H

@@ -24,6 +24,7 @@ namespace Scene{
         float time_paused;
         
         Zeta::Handler *physics_handler;
+        String title;
     };
 
     struct SceneManager{
@@ -36,7 +37,7 @@ namespace Scene{
 
     Scene *new_scene(SceneManager *sm);
 
-    void setup(Scene *scene);
+    void setup(Scene *scene, char *title);
     void play(Scene *scene, float &time_step);
     void pause(Scene *scene, float time_step);
     void reset(Scene *scene);
