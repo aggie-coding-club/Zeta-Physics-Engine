@@ -170,7 +170,7 @@ namespace E_{
         result->rotation_z = rotation_z;
 
         result->sb = new Zeta::StaticBody3D(
-        {position.X, position.Y, position.Z}, 
+        {position.X, position.Y, position.Z},
         colliderType, collider);
 
         return result;   

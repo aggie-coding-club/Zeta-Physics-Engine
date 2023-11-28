@@ -44,11 +44,11 @@ namespace Zeta {
         rb2->vel += manifold.normal * (rb2->invMass * J);
     };
 
-    // todo test if this is reasonable for the impulse resolution
+    // todo this doesn't work
     // Resolve a collision between a rigidbody and a staticbody.
     static void applyImpulse(RigidBody3D* rb, StaticBody3D* sb, CollisionManifold const &manifold) {
-        float J = ((ZMath::abs(rb->vel) * -(1 + rb->cor)) * manifold.normal) / (rb->invMass * (rb->mass / 50));
-        rb->vel -= manifold.normal * (rb->invMass * J);
+        float J = ((ZMath::abs(rb->vel) * 0.9f) * -(1 + rb->cor * rb->cor)) * manifold.normal;
+        rb->vel -= manifold.normal * J;
     };
 }
 
@@ -449,6 +449,8 @@ namespace Zeta {
             // dt will be updated to the appropriate value after the updates run for you so DO NOT modify it yourself.
             int update(float &dt) {
                 int count = 0;
+
+                // todo add collision check if an object is moving so fast that it phases through another object
 
                 // todo combine the loops together later with an equation
                 while (dt >= updateStep) {

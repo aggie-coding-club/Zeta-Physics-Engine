@@ -213,6 +213,9 @@ namespace Zeta {
         public:
             StaticBody3D() {}; // Default constructor to make the compiler happy (for efficiency).
 
+            // // * @param bounceFactor The bounciness of a collision with the staticbody between 0 and 1 inclusive.
+
+
             /**
              * @brief Create a 3D staticbody.
              * 
@@ -221,8 +224,8 @@ namespace Zeta {
              * @param collider A pointer to the collider of the static body. If this does not match the colliderType specified, it will
              *                   cause undefined behvior to occur. If you specify STATIC_NONE, this should be set to nullptr. 
              */
-            StaticBody3D(ZMath::Vec3D const &pos, StaticBodyCollider colliderType, void* collider)
-                    : pos(pos), colliderType(colliderType), collider(collider) {};
+            StaticBody3D(ZMath::Vec3D const &pos, /*float bounceFactor, */StaticBodyCollider colliderType, void* collider)
+                    : pos(pos), /*bounceFactor(bounceFactor), */colliderType(colliderType), collider(collider) {};
 
 
             // * ===================
@@ -310,6 +313,10 @@ namespace Zeta {
 
             StaticBodyCollider colliderType;
             void* collider;
+
+            // // How much bounce do you want there to be after a rigid body collides with a static body?
+            // // This should be a number between 0 and 1 (Highly advise against picking 1).
+            // float bounceFactor;
     };
 
     class KinematicBody3D {

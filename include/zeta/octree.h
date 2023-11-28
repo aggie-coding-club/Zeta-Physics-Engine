@@ -71,7 +71,7 @@ namespace Zeta {
                 freeFirst = list.freeFirst;
 
                 data = new FreeElement[capacity];
-                for (int i = 0; i < count; ++i) { data[i] = list.data[i]; }
+                for (uint32_t i = 0; i < count; ++i) { data[i] = list.data[i]; }
             };
 
             inline FreeList(FreeList &&list) {
@@ -91,7 +91,7 @@ namespace Zeta {
                     freeFirst = list.freeFirst;
 
                     data = new FreeElement[capacity];
-                    for (int i = 0; i < count; ++i) { data[i] = list.data[i]; }
+                    for (uint32_t i = 0; i < count; ++i) { data[i] = list.data[i]; }
                 }
 
                 return *this;
@@ -120,7 +120,7 @@ namespace Zeta {
 
             // Insert an element to the list.
             // Returns the index of the element inserted.
-            inline int insert(T const &element) {
+            inline uint32_t insert(T const &element) {
                 if (freeFirst != npos) {
                     uint32_t index = freeFirst;
                     freeFirst = data[freeFirst].next;
@@ -135,7 +135,7 @@ namespace Zeta {
 
             // Insert an element to the list.
             // Returns the index of the element inserted.
-            inline int insert(T &&element) {
+            inline uint32_t insert(T &&element) {
                 if (freeFirst != npos) {
                     uint32_t index = freeFirst;
                     freeFirst = data[freeFirst].next;
@@ -149,7 +149,7 @@ namespace Zeta {
             };
 
             // Remove the nth element from the list.
-            inline void remove(int n) {
+            inline void remove(uint32_t n) {
                 data[n].next = freeFirst;
                 freeFirst = n;
             };
@@ -165,10 +165,10 @@ namespace Zeta {
             };
 
             // Returns the range of valid indices.
-            inline int range() const { return count; };
+            inline uint32_t range() const { return count; };
 
             // Returns the nth element.
-            inline T& operator[] (int n) const { return data[n].element; };
+            inline T& operator[] (uint32_t n) const { return data[n].element; };
     };
 
     // Data structure used for 3D spatial partitioning.
