@@ -397,10 +397,7 @@ void GameInputCamera(int key, int state){
         SetEditMode(!g_editor_mode);
     }
     
-    // if(!g_editor_mode && !camera.moving){  
     if(!g_editor_mode){
-        // camera.start_position = camera.position;
-        // hide cursor
         HMM_Vec3 cam_displacement = {};
         HMM_Vec3 prev_desired_pos = {};
         prev_desired_pos = camera.desired_positions[camera.desired_pos_next_index++]; 
@@ -431,19 +428,13 @@ void GameInputCamera(int key, int state){
         }
 
         if(camera_moved){
-            printf("-----\n\n");
-            for(int i = 0 ; i <= index; i++){
-                // printf("cliked %i : {%f, %f, %f}\n", i, camera.desired_positions[i].X, camera.desired_positions[i].Y, camera.desired_positions[i].Z);
-                // printf("cliked %i\n", i);
-            }
-            printf("-----\n\n");
             if(camera.desired_pos_next_index >= MAX_CAMERA_POSITIONS){
                 Assert(!"Ran out of array space for camera");
             }
         }else{
             camera.desired_pos_next_index--;
         }
-        
+
         TempLightMovement(key, state);
     }
 }

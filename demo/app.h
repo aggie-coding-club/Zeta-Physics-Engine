@@ -66,7 +66,6 @@ struct Camera{
     HMM_Vec3 position;
     HMM_Vec3 front;
     HMM_Vec3 world_up;
-    // HMM_Vec3 desired_position;
     HMM_Vec3 desired_positions[MAX_CAMERA_POSITIONS];
     unsigned int desired_pos_next_index;
 
@@ -75,8 +74,6 @@ struct Camera{
     float pitch;
     float yaw;
     float roll;
-
-    bool moving;
 };
 
 struct InputManager{
