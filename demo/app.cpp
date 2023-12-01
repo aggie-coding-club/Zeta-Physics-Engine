@@ -434,7 +434,7 @@ void GameInputCamera(int key, int state){
             printf("-----\n\n");
             for(int i = 0 ; i <= index; i++){
                 // printf("cliked %i : {%f, %f, %f}\n", i, camera.desired_positions[i].X, camera.desired_positions[i].Y, camera.desired_positions[i].Z);
-                printf("cliked %i\n", i);
+                // printf("cliked %i\n", i);
             }
             printf("-----\n\n");
             if(camera.desired_pos_next_index >= MAX_CAMERA_POSITIONS){
@@ -728,6 +728,8 @@ void app_update(float &time_step, float dt){
         // float k = 0.5f;
         // float speed = exp(5.0f * (1 / distance));
         float speed = 100.0f;
+        speed += 100.0 * (camera.desired_pos_next_index / 5); // faster the further away the camera is from input
+
         camera.position += direction * speed * dt;
 
         if (HMM_Dot(direction, cam_desired_pos - camera.position) < 0) {
