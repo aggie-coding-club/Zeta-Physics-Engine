@@ -60,11 +60,16 @@ struct VertexData{
 };
 
 
+#define MAX_CAMERA_POSITIONS 1024
+
 struct Camera{
     HMM_Vec3 position;
     HMM_Vec3 front;
     HMM_Vec3 world_up;
-    HMM_Vec3 desired_position;
+    // HMM_Vec3 desired_position;
+    HMM_Vec3 desired_positions[MAX_CAMERA_POSITIONS];
+    unsigned int desired_pos_next_index;
+
     HMM_Vec3 start_position;
     float speed;
     float pitch;

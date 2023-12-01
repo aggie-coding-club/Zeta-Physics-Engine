@@ -397,28 +397,57 @@ void GameInputCamera(int key, int state){
         SetEditMode(!g_editor_mode);
     }
     
-    if(!g_editor_mode && !camera.moving){  
-        camera.start_position = camera.position;
+    // if(!g_editor_mode && !camera.moving){  
+    if(!g_editor_mode){
+        // camera.start_position = camera.position;
         // hide cursor
+        HMM_Vec3 cam_displacement = {};
+        HMM_Vec3 prev_desired_pos = {};
+        prev_desired_pos = camera.desired_positions[camera.desired_pos_next_index++]; 
+        unsigned int index = camera.desired_pos_next_index;
+        bool camera_moved = false;
         if (key == GLFW_KEY_D){
-            // camera.position += HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
-            camera.desired_position = camera.position + HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            // cam_displacement += HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            camera.desired_positions[index] = prev_desired_pos + HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            camera_moved = true;
         }
 
         if (key == GLFW_KEY_A){
-            // camera.position -= HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed; 
-            camera.desired_position = camera.position - HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            // cam_displacement -= HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            camera.desired_positions[index] = prev_desired_pos - HMM_Norm(HMM_Cross(camera.front, camera.world_up)) * temp_speed;
+            camera_moved = true;
         }
 
         if (key == GLFW_KEY_W){
-            // camera.position += camera.front * temp_speed;
-            camera.desired_position = camera.position + camera.front * temp_speed;
+            // cam_displacement += camera.front * temp_speed;
+            camera.desired_positions[index] = prev_desired_pos + camera.front * temp_speed;
+            camera_moved = true;
         }
 
         if (key == GLFW_KEY_S){
-            // camera.position -= camera.front * temp_speed;
-            camera.desired_position = camera.position - camera.front * temp_speed;
+            // cam_displacement -= camera.front * temp_speed;
+            camera.desired_positions[index] = prev_desired_pos - camera.front * temp_speed;
+            camera_moved = true;
         }
+
+        if(camera_moved){
+            printf("-----\n\n");
+            for(int i = 0 ; i <= index; i++){
+                // printf("cliked %i : {%f, %f, %f}\n", i, camera.desired_positions[i].X, camera.desired_positions[i].Y, camera.desired_positions[i].Z);
+                printf("cliked %i\n", i);
+            }
+            printf("-----\n\n");
+            if(camera.desired_pos_next_index >= MAX_CAMERA_POSITIONS){
+                Assert(!"Ran out of array space for camera");
+            }
+        }else{
+            camera.desired_pos_next_index--;
+        }
+        // if(!(cam_displacement.X == 0 || cam_displacement.Y == 0 && cam_displacement.Z == 0)){
+            
+
+            // camera.desired_positions[camera.desired_pos_next_index] = camera.position + cam_displacement;
+        // }
 
 
         TempLightMovement(key, state);
@@ -528,7 +557,8 @@ void app_start(void *window){
     camera.world_up = {0.0f, 1.0f, 0.0f};
     camera.front = {0.0f, 0.0f, -1.0f};
 
-    camera.desired_position = camera.position;
+    camera.desired_positions[0] = camera.position;
+    camera.desired_pos_next_index = 0;
 
     // >>>>>> Entity Stufff
     // ========================================
@@ -688,21 +718,33 @@ void app_update(float &time_step, float dt){
 
     Scene::update(current_scene, time_step, &global_rd, &camera, &textures_manager, &global_im);
 
-    if(!vector_equals(camera.position, camera.desired_position, 0.01f)){
-        HMM_Vec3 direction = camera.desired_position - camera.position;
+    HMM_Vec3 cam_desired_pos = camera.desired_positions[0];
+    if(!vector_equals(camera.position, cam_desired_pos, 0.1f)){
+        
+        HMM_Vec3 direction = cam_desired_pos - camera.position;
         direction = HMM_NormV3(direction);
-        float initial_dist = get_dist(camera.start_position, camera.desired_position);
-        float distance = get_dist(camera.position, camera.desired_position);
+        // float initial_dist = get_dist(camera.start_position, cam_desired_pos);
+        // float distance = get_dist(camera.position, cam_desired_pos);
         // float k = 0.5f;
         // float speed = exp(5.0f * (1 / distance));
         float speed = 100.0f;
         camera.position += direction * speed * dt;
 
-        if (HMM_Dot(direction, camera.desired_position - camera.position) < 0) {
-            camera.position = camera.desired_position;
+        if (HMM_Dot(direction, cam_desired_pos - camera.position) < 0) {
+            camera.position = cam_desired_pos;
+        }
+    }else{
+        if(camera.desired_pos_next_index > 0){
+            // shift all elements in camera desired positions to the left by one...optimize?
+            for(int i = 0; i <= camera.desired_pos_next_index; i++){
+                camera.desired_positions[i] = camera.desired_positions[i + 1];
+                camera.desired_positions[i + 1] = {};
+            }
+            
+            camera.desired_pos_next_index--;
         }
     }
-
+    
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
