@@ -443,13 +443,7 @@ void GameInputCamera(int key, int state){
         }else{
             camera.desired_pos_next_index--;
         }
-        // if(!(cam_displacement.X == 0 || cam_displacement.Y == 0 && cam_displacement.Z == 0)){
-            
-
-            // camera.desired_positions[camera.desired_pos_next_index] = camera.position + cam_displacement;
-        // }
-
-
+        
         TempLightMovement(key, state);
     }
 }
