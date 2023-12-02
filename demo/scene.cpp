@@ -92,7 +92,7 @@ namespace Scene{
         }
     }
 
-    void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im){
+    void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, _T::TexturesManager *tm, InputManager *im){
         if(scene->phase == SCENE_PHASE_PLAYING){
             int physics_updates = scene->physics_handler->update(time_step);
 

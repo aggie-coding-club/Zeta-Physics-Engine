@@ -54,19 +54,6 @@ String String::operator+(const char *str){
     return result;
 }
 
-String String::operator+=(String& str){
-    String result = {};
-    
-    // result = 
-    return result;
-}
-
-String String::operator=(const char *str){
-    String result = {};
-
-    return result;
-}
-
 String String::operator+=(char str){
     String result = {};
     char *temp = this->val;
@@ -82,6 +69,12 @@ String String::operator+=(char str){
     this->length += 1;
     free(temp);
     return result;
+}
+
+String String::operator+=(String& str){
+    *this += str.val;
+    
+    return *this;
 }
 
 String String::operator+=(const char *str){
@@ -141,13 +134,14 @@ unsigned int chars_length(const char *val){
 
 // null terminated string
 String Create_String(const char *val){
-    String result = {0};
-    result.length = chars_length(val);
-    result.val = (char *)calloc(result.length, sizeof(char));
+    String result = val;
 
-    for(int i = 0; i < result.length; i++){
-        result.val[i] = val[i];
-    }
+    // result.length = chars_length(val);
+    // result.val = (char *)calloc(result.length, sizeof(char));
+
+    // for(int i = 0; i < result.length; i++){
+    //     result.val[i] = val[i];
+    // }
 
     return result;
 }

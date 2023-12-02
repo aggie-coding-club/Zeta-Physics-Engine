@@ -9,28 +9,31 @@ namespace _T{
         Texture result = {};
         result.file_path = file_path;
         String texture_src = file_path;
-        String web_texture_src = texture_src;
-        web_texture_src += "vendor/";
+        // String web_texture_src = "vendor/" + texture_src;
+        String web_texture_src = "vendor/";
+        web_texture_src += texture_src;
+        // web_texture_src += "vendor/";
         // AddCharsToString("vendor/", &texture_src);
+        int x = 0;
 
-#if 0
+#if 1
         int width = 0;
         int height = 0;
         int nr_channels = 0;
 
         // Note(Lenny) : texture might need to be flipped
         #if __EMSCRIPTEN__
-        unsigned char *data = stbi_load(&web_texture_src[0], &width, &height, &nr_channels, 0);
+        unsigned char *data = stbi_load(web_texture_src.val, &width, &height, &nr_channels, 0);
 
         #else
         
-        unsigned char *data = stbi_load(&texture_src[0], &width, &height, &nr_channels, 0);
+        unsigned char *data = stbi_load(texture_src.val, &width, &height, &nr_channels, 0);
         
         #endif
         if(data){
-            std::cout << "loaded png \n" << texture_src << std::endl;
+            printf("loaded png : %s\n", texture_src.val);
         } else {
-            std::cout << "failed to load png \n" << texture_src << std::endl;
+            printf("failed to load png : \n", texture_src.val);
         }
 
         glGenTextures(1, &result.id);
@@ -46,7 +49,7 @@ namespace _T{
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
                 GL_UNSIGNED_BYTE, data);
         } else{
-            std::cout << "failed to load file type\n" << texture_src << std::endl;
+            printf("failed to load file type : %s\n", texture_src.val);
             Assert(!"Failed to load texture!");
         }
 
@@ -69,15 +72,28 @@ namespace _T{
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    unsigned int GetTextureIdentifier(unsigned int def_name){
+    unsigned int GetTextureIdentifier(TexturesManager *tm, unsigned int def_name){
         unsigned int result = 0;
 
+        for(int i = 0; i < tm->textures_count + 1; i++){
+            if(tm->textures[i].def_name == def_name){
+                result = tm->textures[i].id;
+                break;
+            }
+        }
 
         return result;
     }
 
-    Texture GetTexture(unsigned int identifer){
+    Texture GetTexture(TexturesManager *tm, unsigned int identifer){
         Texture result = {};
+
+        for(int i = 0; i < tm->textures_count; i++){
+            if(tm->textures[i].def_name == identifer){
+                result = tm->textures[i];
+                break;
+            }
+        }
 
         return result;
     }

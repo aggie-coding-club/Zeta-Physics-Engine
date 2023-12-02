@@ -82,7 +82,7 @@ struct Color{
 Shader basic_2d_shader = {};
 unsigned int vao2d = 0;
 unsigned int vbo2d = 0;
-TexturesManager *g_tm = 0;
+_T::TexturesManager *g_tm = 0;
 
 void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float height, Color color, int texture);
 
@@ -109,7 +109,7 @@ void NormalizeColor(Color *color){
     color->a = color->a / 255.0f;
 }
 
-void Setup2dRendering(TextRendererManager *trm, TexturesManager *tm){
+void Setup2dRendering(TextRendererManager *trm, _T::TexturesManager *tm){
 
     g_tm = tm;
 
@@ -232,9 +232,9 @@ void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float
 
     if(texture == -1.0){
         // g_tm->BindTexture()
-        // glBindTexture(GL_TEXTURE_2D, g_tm->GetTextureIdentifier(TEXTURE_WHITE));
+        glBindTexture(GL_TEXTURE_2D, _T::GetTextureIdentifier(g_tm, TEXTURE_WHITE));
     }else{
-        // glBindTexture(GL_TEXTURE_2D, (unsigned int)texture);
+        glBindTexture(GL_TEXTURE_2D, (unsigned int)texture);
     }
 
     float stride = 18 * 4;
@@ -289,7 +289,7 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     float scale = 0.4f; // Note (Lenny) : should be passed in? 
     
     Assert(label.val);
-    String label_part_to_render = Create_String("L");
+    String label_part_to_render = Create_String("");
     Character tallest = {};
     char c = '0';
     float text_width = 0.0f;
@@ -387,48 +387,6 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     HMM_Vec2 center = {xpos + width / 2.0f, ypos + height / 2.0f};
 
     DrawRect(trm, pos, width, height, color);
-    
-#if 0
-    float vertices[6][16] = {
-        {xpos, ypos,                    tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-        {xpos + width, ypos,            tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-        {xpos + width, ypos + height,   tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-       
-        {xpos + width, ypos + height,   tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-        {xpos, ypos + height,           tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-        {xpos, ypos,                    tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-    };
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo2d);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glEnableVertexAttribArray(3);
-    glEnableVertexAttribArray(4);
-    glEnableVertexAttribArray(5);
-    glEnableVertexAttribArray(6);
-    glEnableVertexAttribArray(7);
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);    
-    
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-    glDisableVertexAttribArray(4);
-    glDisableVertexAttribArray(5);
-    glDisableVertexAttribArray(6);
-    glDisableVertexAttribArray(7);
-
-    glBindVertexArray(0);
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glUseProgram(0);
-
-#endif
     
     RenderText(trm, label_part_to_render, scale, HMM_Vec3{255.0f / 255.0f, 231.0f / 255.0f, 147.0f / 255.0f}, HMM_Vec2{textPos.X, textPos.Y});
     DeleteString(&label_part_to_render);

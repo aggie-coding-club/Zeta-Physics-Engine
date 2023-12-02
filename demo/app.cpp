@@ -314,7 +314,7 @@ float last_mouse_x = 0.0f;
 float last_mouse_y = 0.0f;
 float g_editor_mode = 0;
 
-TexturesManager textures_manager;
+_T::TexturesManager textures_manager;
 TextRendererManager trm = {};
 InputManager global_im = {};
 
@@ -510,7 +510,6 @@ void app_start(void *window){
     SetEditMode(0);
 
     printf("Program Started\n");
-    textures_manager = TexturesManager();
     global_rd.projection_fov = DEFAULT_FOV;
 
     // >>>>>> Shader Stuff
@@ -531,9 +530,9 @@ void app_start(void *window){
     
     // >>>>>> Texture Stuff
     // =====================================
-    textures_manager.add_texture((char *)"white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
-    textures_manager.add_texture((char *)"thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG); 
-    textures_manager.add_texture((char *)"Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG); 
+    _T::add_texture(&textures_manager, Create_String("white.png"), TEXTURE_WHITE, TEX_FORMAT_PNG);
+    _T::add_texture(&textures_manager, Create_String("thin/stallTexture.png"), TEXTURE_STALL, TEX_FORMAT_PNG); 
+    _T::add_texture(&textures_manager, Create_String("Pine_Leaves.png"), TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG); 
     // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -601,8 +600,8 @@ void app_start(void *window){
     pine_5_entity->isTransparent = true;
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
-    E_::add_texture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));
-    E_::add_texture(pine_5_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+    E_::add_texture(pine_5_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_PINE_LEAVES));
+    E_::add_texture(pine_5_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_TREE_BARK));
 
     
     birch_10_entity = E_::create_entity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
@@ -610,8 +609,8 @@ void app_start(void *window){
     birch_10_entity->color = {1.0f, 1.0f, 1.0f};
     birch_10_entity->isTransparent = true;
     birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
-    E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_BIRCH_LEAVES));
-    E_::add_texture(birch_10_entity, textures_manager.GetTextureIdentifier(TEXTURE_TREE_BARK));
+    E_::add_texture(birch_10_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_BIRCH_LEAVES));
+    E_::add_texture(birch_10_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_TREE_BARK));
 
     init(test_entity,  create_cube_raw_model(&global_rd, (((Zeta::Cube *)test_entity->rb->collider)->getVertices())));
     
@@ -742,7 +741,7 @@ void app_update(float &time_step, float dt){
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->theta += dt * 100.0f;
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->phi += dt * 100.0f;
 
-    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));  
+    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  _T::GetTextureIdentifier(&textures_manager, TEXTURE_PINE_LEAVES));  
     
     // **************
     // getting the average fps

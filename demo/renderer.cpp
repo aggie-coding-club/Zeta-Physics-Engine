@@ -263,7 +263,7 @@ void picker_pass_render(RendererData *rd, E_::Entity *entity){
     glUseProgram(0);
 }
 
-void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
+void lighting_pass_render(RendererData *rd, E_::Entity *entity, _T::TexturesManager *textures_manager, Shader *shader){
     glBindVertexArray(entity->raw_model.vao_ID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, entity->raw_model.ebo_ID);
     
@@ -328,12 +328,12 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager 
 
         for(int i = 0; i < entity->textureIndex; i++){
             glActiveTexture(GL_TEXTURE0 + i + 1);
-            glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->textures[i]));
+            glBindTexture(GL_TEXTURE_2D, _T::GetTextureIdentifier(textures_manager, entity->textures[i]));
         } 
 
     } else {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures_manager->GetTextureIdentifier(entity->def_texture));
+        glBindTexture(GL_TEXTURE_2D, _T::GetTextureIdentifier(textures_manager, entity->def_texture));
     }
 
     glActiveTexture(GL_TEXTURE5);
@@ -420,7 +420,7 @@ void prepare_shadow_renderer(RendererData *rd){
     glUseProgram(0);
 }
 
-void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
+void shadow_pass_render(RendererData *rd, E_::Entity *entity, _T::TexturesManager *textures_manager, Shader *shader){
     bind_fbo(&rd->smf.fbo);
     glUseProgram(rd->shadow_map_shader.program);
     HMM_Mat4 transformation;
@@ -464,12 +464,12 @@ void shadow_pass_render(RendererData *rd, E_::Entity *entity, TexturesManager *t
     unbind_fbo();
 }
 
-void render(RendererData *rd, Camera *camera, E_::Entity *entity, TexturesManager *textures_manager, Shader *shader){
+void render(RendererData *rd, Camera *camera, E_::Entity *entity, _T::TexturesManager *textures_manager, Shader *shader){
     lighting_pass_render(rd, entity, textures_manager, shader);
     shadow_pass_render(rd, entity, textures_manager, shader);
 }
 
-void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities[], unsigned int entity_count, TexturesManager *tm, InputManager *im){
+void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities[], unsigned int entity_count, _T::TexturesManager *tm, InputManager *im){
     
     #if 0
     prepare_shadow_renderer(rd);

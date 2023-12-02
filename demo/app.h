@@ -30,11 +30,11 @@
 
 // ================
 
-struct Texture{
-    std::string file_path;
-    unsigned int def_name;
-    unsigned int id;
-};
+// struct Texture{
+//     std::string file_path;
+//     unsigned int def_name;
+//     unsigned int id;
+// };
 
 struct RawModel{
     unsigned int vao_ID;

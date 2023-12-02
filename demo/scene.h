@@ -3,6 +3,8 @@
 #include "entity.h"
 #include "renderer.h"
 #include <zeta/physicshandler.h>
+#include "scene.h"
+
 #define MAX_SCENES 10
 namespace Scene{
     enum ScenePhase {
@@ -42,5 +44,5 @@ namespace Scene{
     void play(Scene *scene, float &time_step);
     void pause(Scene *scene, float time_step);
     void reset(Scene *scene);
-    void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, TexturesManager *tm, InputManager *im);
+    void update(Scene *scene, float &time_step, RendererData *rd, Camera *camera, _T::TexturesManager *tm, InputManager *im);
 };
