@@ -59,6 +59,10 @@ namespace _T{
 
         result.def_name = def_name;
         tm->textures[tm->textures_count] = result;
+
+        if(file_path.delete_after_use){
+            DeleteString(&file_path);
+        }
 #endif
     }
     

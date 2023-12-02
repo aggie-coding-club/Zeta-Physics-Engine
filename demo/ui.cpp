@@ -289,7 +289,7 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     float scale = 0.4f; // Note (Lenny) : should be passed in? 
     
     Assert(label.val);
-    String label_part_to_render = Create_String("");
+    String label_part_to_render = Create_String("", false);
     Character tallest = {};
     char c = '0';
     float text_width = 0.0f;
@@ -390,7 +390,10 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     
     RenderText(trm, label_part_to_render, scale, HMM_Vec3{255.0f / 255.0f, 231.0f / 255.0f, 147.0f / 255.0f}, HMM_Vec2{textPos.X, textPos.Y});
     DeleteString(&label_part_to_render);
-    DeleteString(&label);
+
+    if(label.delete_after_use){
+        DeleteString(&label);
+    }
     
     return result;
 }

@@ -6,6 +6,7 @@ unsigned int chars_length(const char *val);
 struct String{
     char *val = 0;
     unsigned int length = 0;
+    bool delete_after_use; // set to true when the function that will use can delete after using
 
     // empty constructor
     String(){
@@ -22,29 +23,15 @@ struct String{
         }
     }
     
-    String operator=(String& str);
-    String operator+(String& str);
-    String operator+(const char *str);
-    String operator+=(String& str);
-    String operator+=(const char *str);
-    String operator+=(char str);
-    String operator+=(float val);
-
-    ~String(){
-        int x = 0;
-        // free(val);
-    }
+    String& operator=(String str);
+    String& operator+(String str);
+    String& operator+(const char *str);
+    String& operator+=(String& str);
+    String& operator+=(const char *str);
+    String& operator+=(char str);
+    String& operator+=(float val);
 };
 
-struct String Create_String(const char *val);
-
-// void AddCharsToString(String *string, const char *val);
-// void AddCharsToString(const char *val , String *string);
-// void AddCharsToString(String string, const char *val);
-// void AddCharsToString(const char *val , String string);
-
-// void AddToString(String *string_one, String *string_two);
-// void AddToString(String *string, char val);
-// void AddToString(String *string, float val);
+struct String Create_String(const char *val, bool delete_after_use);
 
 void DeleteString(String *string);

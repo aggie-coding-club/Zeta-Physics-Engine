@@ -17,104 +17,91 @@ void Copy_To_String(String *string_one, String *string_two){
     }
 }
 
-String String::operator=(String& str){
-    String result = {};
-    Copy_To_String(&result, &str);
-	this->val = result.val;
-	this->length = result.length;
-    return result;
-}
-
-String String::operator+(String& str){
-    String result = {};
-    result.val = str.val;
-    result.length = str.length;
-
-    char *temp = result.val;
-    result.val = (char *)calloc(result.length + str.length, sizeof(char));
-
-    for(int i = 0; i < result.length; i++){
-        result.val[i] = temp[i];
+String& String::operator=(String str){
+    if(val){
+        free(val);
     }
-    free(temp);
-    
-    int index = 0;
-    for(int i = result.length; i < (result.length + str.length); i++){
-        result.val[i] = str.val[index++];
-    }
-
-    result.length += str.length;
-
-    return result;
+    Copy_To_String(this, &str);
+    return *this;
 }
 
-String String::operator+(const char *str){
-    String result = Create_String(str);
-
-    return result;
-}
-
-String String::operator+=(char str){
-    String result = {};
+String& String::operator+(String str){
     char *temp = this->val;
-
-    this->val = (char *)calloc(this->length + 1, sizeof(char));
-    result.val = this->val;
-    result.length = this->length + 1; 
+    this->val = (char *)calloc(this->length + str.length, sizeof(char));
 
     for(int i = 0; i < this->length; i++){
         this->val[i] = temp[i];
     }
-    this->val[this->length] = str;
-    this->length += 1;
     free(temp);
-    return result;
+    
+    int index = 0;
+    for(int i = this->length; i < (this->length + str.length); i++){
+        this->val[i] = str.val[index++];
+    }
+
+    this->length += str.length;
+
+    return *this;
 }
 
-String String::operator+=(String& str){
+String& String::operator+(const char *str){
+    String s = Create_String(str, false);
+    *this += s;
+    free(s.val);
+
+    return *this;
+}
+
+String& String::operator+=(char str){
+    char *temp = this->val;
+    this->val = (char *)calloc(this->length + 1, sizeof(char));
+
+    for(int i = 0; i < this->length; i++){
+        this->val[i] = temp[i];
+    }
+    free(temp);
+
+    this->val[this->length] = str;
+    this->length += 1;
+    return *this;
+}
+
+String& String::operator+=(String& str){
     *this += str.val;
     
     return *this;
 }
 
-String String::operator+=(const char *str){
-    String result = {};
-    result.val = this->val;
-    result.length = this->length;
+String& String::operator+=(const char *str){
     if(!str){
         Assert(!"invalid value");
     }
     unsigned int chars_to_add_len = chars_length(str);
     
-    char *temp = result.val;
+    char *temp = this->val;
 
-    result.val = (char *)calloc((result.length + chars_to_add_len), sizeof(char));
-    this->val = result.val;
-
-    for(int i = 0; i < result.length; i++){
-        result.val[i] = temp[i];
+    this->val = (char *)calloc((this->length + chars_to_add_len), sizeof(char));
+    
+    for(int i = 0; i < this->length; i++){
+        this->val[i] = temp[i];
     }
-
-    // free(temp);
+    free(temp);
 
     int index = 0;
-    for(int i = result.length; i < result.length + chars_to_add_len; i++){
-        result.val[i] = str[index++];
+    for(int i = this->length; i < this->length + chars_to_add_len; i++){
+        this->val[i] = str[index++];
     }
 
-    result.length += chars_to_add_len;
-    return result;
+    this->length += chars_to_add_len;
+    return *this;
 }
 
-String String::operator+=(float val){
-    String result = {};
-    result.val = this->val;
-    result.length = this->length;
-    char tempChar[8] = {};
-    snprintf(tempChar, 8, "%f", val);
-    result+= tempChar;
+String& String::operator+=(float val){
+    char temp_char[8] = {};
+    snprintf(temp_char, 8, "%f", val);
+    *this += temp_char;
 
-    return result;
+    return *this;
 }
 
 unsigned int chars_length(const char *val){
@@ -133,31 +120,12 @@ unsigned int chars_length(const char *val){
 }
 
 // null terminated string
-String Create_String(const char *val){
+String Create_String(const char *val, bool delete_after_use){
     String result = val;
-
-    // result.length = chars_length(val);
-    // result.val = (char *)calloc(result.length, sizeof(char));
-
-    // for(int i = 0; i < result.length; i++){
-    //     result.val[i] = val[i];
-    // }
+    result.delete_after_use;
 
     return result;
 }
-
-// void AddCharsToString(const char *val , String *string){
-//     AddCharsToString(string, val);
-// }
-
-// void AddCharsToString(String string, const char *val){
-//     AddCharsToString(&string, val);
-// }
-
-// void AddCharsToString(const char *val , String string){
-//     AddCharsToString(string, val);
-// }
-
 
 void AddCharsToString(String *string, const char *val){
     if(!val){
@@ -184,47 +152,6 @@ void AddCharsToString(String *string, const char *val){
     string->length += chars_to_add_len;
 }
 
-// Adds string_two to string_two
-void AddToString(String *string_one,String *string_two){
-    char *temp = string_one->val;
-    string_one->val = (char *)calloc(string_one->length + string_two->length, sizeof(char));
-
-    for(int i = 0; i < string_one->length; i++){
-        string_one->val[i] = temp[i];
-    }
-    
-    int index = 0;
-    for(int i = string_one->length; i < (string_one->length + string_two->length); i++){
-        string_one->val[i] = string_two->val[index++];
-    }
-
-    string_one->length += string_two->length;
-    free(temp);
-}
-
-
-// Add char to string
-void AddToString(String *string, char val){
-    char *temp = string->val;
-    string->val = (char *)calloc(string->length + 1, sizeof(char));
-
-    for(int i = 0; i < string->length; i++){
-        string->val[i] = temp[i];
-    }
-    string->val[string->length] = val;
-
-    string->length += 1;
-    free(temp);
-}
-
-
-// Add float to string
-void AddToString(String *string, float val){
-    char tempChar[8] = {};
-    snprintf(tempChar, 8, "%f", val);
-    AddCharsToString(string, tempChar);
-}
-
 void DeleteString(String *string){
-    // free(string->val);
+    free(string->val);
 }

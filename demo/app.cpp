@@ -530,9 +530,9 @@ void app_start(void *window){
     
     // >>>>>> Texture Stuff
     // =====================================
-    _T::add_texture(&textures_manager, Create_String("white.png"), TEXTURE_WHITE, TEX_FORMAT_PNG);
-    _T::add_texture(&textures_manager, Create_String("thin/stallTexture.png"), TEXTURE_STALL, TEX_FORMAT_PNG); 
-    _T::add_texture(&textures_manager, Create_String("Pine_Leaves.png"), TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG); 
+    _T::add_texture(&textures_manager, Create_String("white.png", true), TEXTURE_WHITE, TEX_FORMAT_PNG);
+    _T::add_texture(&textures_manager, Create_String("thin/stallTexture.png", true), TEXTURE_STALL, TEX_FORMAT_PNG); 
+    _T::add_texture(&textures_manager, Create_String("Pine_Leaves.png", true), TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG); 
     // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -755,9 +755,6 @@ void app_update(float &time_step, float dt){
         dt_ticks = 0;
     }
 
-    String dt_string = Create_String("dt : ");
-    // AddToString(&dt_string, dt_avg);
-    dt_string += dt_avg;
 #endif
 
     float x_pos = 150.0f;
@@ -770,10 +767,10 @@ void app_update(float &time_step, float dt){
     
     if(g_editor_mode){
         
-        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Exit Editor", true),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
 
         if(!show_scene_changer_screen){
-            if(Button(&show_scene_changer_screen, &global_im, &trm,  Create_String("Change Scene"), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+            if(Button(&show_scene_changer_screen, &global_im, &trm,  Create_String("Change Scene", true), roundness, border_width, x_pos, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                 show_scene_changer_screen = true;
                 printf("Collision Detection Scene!\n");
             }
@@ -784,14 +781,14 @@ void app_update(float &time_step, float dt){
 
             DrawRect(&trm, panel_pos, panel_size.X, panel_size.Y, {100.0f, 0.0f, 0.0f, 255.0f});
 
-            if(Button((&show_scene_changer_screen) + 1, &global_im, &trm,  Create_String("Hide"), roundness, border_width, panel_pos.X, panel_pos.Y, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+            if(Button((&show_scene_changer_screen) + 1, &global_im, &trm,  Create_String("Hide", true), roundness, border_width, panel_pos.X, panel_pos.Y, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                 show_scene_changer_screen = false;
             }
 
             HMM_Vec2 current_pos = panel_top_left;
             for(int i = 0; i < global_sm.index; i++){
                 Scene::Scene *scene = &global_sm.scenes[i];
-                String title = Create_String(scene->title.val);
+                String title = Create_String(scene->title.val, false);
 
 
                 if(Button(scene, &global_im, &trm,  title, roundness, border_width, current_pos.X, current_pos.Y, button_width, button_height, {76.5f, 176.5f, 76.5f, 255.0f})){
@@ -805,20 +802,20 @@ void app_update(float &time_step, float dt){
         
         if(current_scene){
             if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
-                if(Button((void *)(void*) Scene::pause, &global_im, &trm,  Create_String("PAUSE"), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void *)(void*) Scene::pause, &global_im, &trm,  Create_String("PAUSE", true), roundness, border_width, x_pos + button_width + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::pause(current_scene, time_step);
                 
                     printf("Scene Pause!\n");
                 }
             } else {
-                if(Button((void *)Scene::play, &global_im, &trm,  Create_String("PLAY"), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void *)Scene::play, &global_im, &trm,  Create_String("PLAY", true), roundness, border_width, x_pos + button_width  + 30.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::play(current_scene, time_step); 
                     printf("Scene Play!\n");
                 }
             }
 
             if(current_scene->phase != Scene::SCENE_PHASE_SETUP){
-                if(Button((void *)Scene::reset, &global_im, &trm,  Create_String("RESET"), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
+                if(Button((void *)Scene::reset, &global_im, &trm,  Create_String("RESET", true), roundness, border_width, x_pos + button_width * 2 + 70.0f, y_pos, button_width, button_height, {76.5f, 76.5f, 76.5f, 255.0f})){
                     Scene::reset(current_scene); 
                     printf("Scene Reset!\n");
                 }
@@ -826,25 +823,24 @@ void app_update(float &time_step, float dt){
         }
 
     }else{
-        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Enter Editor"),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
+        Text(&trm, &global_im, 0.4f, Create_String("Click Escape to Enter Editor", true),  {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 65.0f},  {255.0f, 160.0f, 160.0f});
     }
 
     if(current_scene){
         String scene_status_str = {};
         if(current_scene->phase == Scene::SCENE_PHASE_PLAYING){
-            scene_status_str = Create_String("Scene Playing");
+            scene_status_str = Create_String("Scene Playing", true);
         }else if(current_scene->phase == Scene::SCENE_PHASE_PAUSED){
-            scene_status_str = Create_String("Scene Paused");
+            scene_status_str = Create_String("Scene Paused", true);
         } else if(current_scene->phase == Scene::SCENE_PHASE_SETUP){
-            scene_status_str = Create_String("Scene Setup Mode");
+            scene_status_str = Create_String("Scene Setup Mode", true);
         }
 
         Text(&trm, &global_im, 0.4f, scene_status_str, {WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - 50.0f},  {175.0f, 175.0f, 175.0f});
     }
 
-    String picker_selection_string = Create_String("Picker ID : ");
+    String picker_selection_string = Create_String("Picker ID : ", true);
     picker_selection_string += (float)global_rd.picker_selection;
-    // AddToString(&picker_selection_string, (float)global_rd.picker_selection);
     Text(&trm, &global_im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
     
     // --------- Draw Selected Entity Data
@@ -858,17 +854,16 @@ void app_update(float &time_step, float dt){
 
         DrawRect(&trm, {entity_panel_pos.X, entity_panel_pos.Y - entity_panel_size.Y}, entity_panel_size.X, entity_panel_size.Y, {255.0f, 100.0f, 0.0f, 255.0f});
 
-        Text(&trm, &global_im, 0.4f, Create_String("ENTITY DATA"), {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
+        Text(&trm, &global_im, 0.4f, Create_String("ENTITY DATA", true), {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
         entity_panel_pos.Y -= padding;
         
-        String entity_identifier_str = Create_String("Identifier : ");
+        String entity_identifier_str = Create_String("Identifier : ", true);
         entity_identifier_str += (float)selected_entity->internal_identifier;
-        // AddToString(&entity_identifier_str,  (float)selected_entity->internal_identifier);
 
         Text(&trm, &global_im, 0.4f, entity_identifier_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
         entity_panel_pos.Y -= padding;
 
-        String entity_pos_str = Create_String("Pos : { ");
+        String entity_pos_str = Create_String("Pos : { ", true);
         HMM_Vec3 pos = {};
         if(selected_entity->rb){
             pos = {selected_entity->rb->pos.x, selected_entity->rb->pos.y, selected_entity->rb->pos.z}; 
@@ -877,12 +872,6 @@ void app_update(float &time_step, float dt){
         }else{
             Assert(!"Entity has no collider!");
         }
-        // AddToString(&entity_pos_str, pos.X);
-        // AddToString(&entity_pos_str, ',');
-        // AddToString(&entity_pos_str,  pos.Y);
-        // AddToString(&entity_pos_str, ',');
-        // AddToString(&entity_pos_str,  pos.Z);
-        // AddToString(&entity_pos_str, '}');
         entity_pos_str += pos.X;
         entity_pos_str += ",";
         entity_pos_str += pos.Y;
@@ -910,36 +899,23 @@ void app_update(float &time_step, float dt){
     HMM_Vec4 world_coords = HMM_MulM4V4(HMM_InvGeneralM4(global_rd.view_matrix), eye_coords);
     HMM_Vec4 world_ray = {world_coords.X, world_coords.Y, world_coords.Z};
 
-    String cursor_pos_str = Create_String("Current Cursor {");
-    // AddToString(&cursor_pos_str, (float)cursor_position.X);
+    String cursor_pos_str = Create_String("Current Cursor {", true);
     cursor_pos_str += (float)cursor_position.X;
-    // AddToString(&cursor_pos_str, ',');
     cursor_pos_str += ",";
-    // AddToString(&cursor_pos_str, (float)cursor_position.Y);
     cursor_pos_str += (float)cursor_position.Y;
-    // AddToString(&cursor_pos_str, ',');
     cursor_pos_str += ",";
-    // AddToString(&cursor_pos_str, (float)cursor_position.Z);
     cursor_pos_str += (float)cursor_position.Z;
-    // AddToString(&cursor_pos_str, '}');
     cursor_pos_str += "}";
-    // Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
+    DeleteString(&cursor_pos_str);
     
-    String cursor_last_pos_str = Create_String("Last Cursor {");
-    // AddToString(&cursor_last_pos_str, (float)last_mouse_x);
-    cursor_pos_str += (float)last_mouse_x;
-    // AddToString(&cursor_last_pos_str, ',');
-    cursor_pos_str += ",";
-    // AddToString(&cursor_last_pos_str, (float)last_mouse_x);
-    cursor_pos_str += (float)last_mouse_x;
-    // AddToString(&cursor_last_pos_str, ',');
-    cursor_pos_str += ",";
-    // AddToString(&cursor_last_pos_str, (float)0);
-    cursor_pos_str += (float)0;
-    // AddToString(&cursor_last_pos_str, '}');
-    cursor_pos_str += "}";
-    // Text(&trm, &global_im, 0.4f, cursor_last_pos_str, {470.0f, WINDOW_HEIGHT - 370.0f},  {255.0f, 180.0f, 0.0f});
-
+    String cursor_last_pos_str = Create_String("Last Cursor {", true);
+    cursor_last_pos_str += (float)last_mouse_x;
+    cursor_last_pos_str += ",";
+    cursor_last_pos_str += (float)last_mouse_x;
+    cursor_last_pos_str += ",";
+    cursor_last_pos_str += (float)1;
+    cursor_last_pos_str += "}";
+    DeleteString(&cursor_last_pos_str);
 
     if(global_im.active_entity == debug_xmover_entity){
         printf("IT IS!\n");
@@ -964,21 +940,18 @@ void app_update(float &time_step, float dt){
         
     }
 
-#if 0
-    String cursor_pos_string = Create_String("Cursor {");
-    AddToString(&cursor_pos_string, (float)global_im.cursor_world_pos_x);
-    AddToString(&cursor_pos_string, ',');
-    AddToString(&cursor_pos_string, (float)global_im.cursor_world_pos_y);
-    AddToString(&cursor_pos_string, '}');
+#if 1
+    String cursor_pos_string = Create_String("Cursor {", true);
+    cursor_pos_string += (float)global_im.cursor_world_pos_x;
+    cursor_pos_string += ',';
+    cursor_pos_string += (float)global_im.cursor_world_pos_y;
+    cursor_pos_string += '}';
     Text(&trm, &global_im, 0.4f, cursor_pos_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 375.0f},  {255.0f, 180.0f, 0.0f});
 #endif
 
-    String fps_string = Create_String("F P S : ");
-    // AddToString(&fps_string, 1 / dt_avg);
+    String fps_string = Create_String("F P S : ", true);
     fps_string += 1 / dt_avg;
     Text(&trm, &global_im, 0.4f, fps_string, {10.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 150.0f});
-    DeleteString(&dt_string);
-    DeleteString(&fps_string);
 }
 
 void clean_up() {
