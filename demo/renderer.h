@@ -108,7 +108,7 @@ class TexturesManager{
             glBindTexture(GL_TEXTURE_2D, texture->id);
         }
         
-        void UnBindTexture(){
+        void UnBindTexture(unsigned int slot){
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, 0);
         }

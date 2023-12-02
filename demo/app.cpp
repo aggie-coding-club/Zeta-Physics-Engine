@@ -533,6 +533,7 @@ void app_start(void *window){
     // =====================================
     textures_manager.add_texture((char *)"white.png", TEXTURE_WHITE, TEX_FORMAT_PNG);
     textures_manager.add_texture((char *)"thin/stallTexture.png", TEXTURE_STALL, TEX_FORMAT_PNG); 
+    textures_manager.add_texture((char *)"Pine_Leaves.png", TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG); 
     // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -29.0; 
@@ -741,10 +742,7 @@ void app_update(float &time_step, float dt){
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->theta += dt * 100.0f;
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->phi += dt * 100.0f;
 
-    // render_entities(&global_rd, &camera, em.entity_pointers, em.index, &textures_manager, &global_im);  
-    //glBindTexture(GL_TEXTURE_2D, textures_manager.GetTextureIdentifier(TEXTURE_STALL));
-    // DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_STALL));  
-    //glBindTexture(GL_TEXTURE_2D, 0);
+    DrawRectTextured(&trm, {500.0f, 600.0f}, 300.0f, 300.0f, {255.0f, 255.0f, 255.0f, 255.0f},  textures_manager.GetTextureIdentifier(TEXTURE_PINE_LEAVES));  
     
     // **************
     // getting the average fps
@@ -759,7 +757,8 @@ void app_update(float &time_step, float dt){
     }
 
     String dt_string = Create_String("dt : ");
-    AddToString(&dt_string, dt_avg);
+    // AddToString(&dt_string, dt_avg);
+    dt_string += dt_avg;
 #endif
 
     float x_pos = 150.0f;
@@ -845,7 +844,8 @@ void app_update(float &time_step, float dt){
     }
 
     String picker_selection_string = Create_String("Picker ID : ");
-    AddToString(&picker_selection_string, (float)global_rd.picker_selection);
+    picker_selection_string += (float)global_rd.picker_selection;
+    // AddToString(&picker_selection_string, (float)global_rd.picker_selection);
     Text(&trm, &global_im, 0.4f, picker_selection_string, {WINDOW_WIDTH - 250.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
     
     // --------- Draw Selected Entity Data
@@ -863,7 +863,8 @@ void app_update(float &time_step, float dt){
         entity_panel_pos.Y -= padding;
         
         String entity_identifier_str = Create_String("Identifier : ");
-        AddToString(&entity_identifier_str,  (float)selected_entity->internal_identifier);
+        entity_identifier_str += (float)selected_entity->internal_identifier;
+        // AddToString(&entity_identifier_str,  (float)selected_entity->internal_identifier);
 
         Text(&trm, &global_im, 0.4f, entity_identifier_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
         entity_panel_pos.Y -= padding;
@@ -877,12 +878,18 @@ void app_update(float &time_step, float dt){
         }else{
             Assert(!"Entity has no collider!");
         }
-        AddToString(&entity_pos_str, pos.X);
-        AddToString(&entity_pos_str, ',');
-        AddToString(&entity_pos_str,  pos.Y);
-        AddToString(&entity_pos_str, ',');
-        AddToString(&entity_pos_str,  pos.Z);
-        AddToString(&entity_pos_str, '}');
+        // AddToString(&entity_pos_str, pos.X);
+        // AddToString(&entity_pos_str, ',');
+        // AddToString(&entity_pos_str,  pos.Y);
+        // AddToString(&entity_pos_str, ',');
+        // AddToString(&entity_pos_str,  pos.Z);
+        // AddToString(&entity_pos_str, '}');
+        entity_pos_str += pos.X;
+        entity_pos_str += ",";
+        entity_pos_str += pos.Y;
+        entity_pos_str += ",";
+        entity_pos_str += pos.Z;
+        entity_pos_str += "}";
         
         Text(&trm, &global_im, 0.4f, entity_pos_str, {entity_panel_pos.X, entity_panel_pos.Y - DEFAULT_TEXT_PIXEL_HEIGHT},  {255.0f, 180.0f, 0.0f});
     }
@@ -905,21 +912,33 @@ void app_update(float &time_step, float dt){
     HMM_Vec4 world_ray = {world_coords.X, world_coords.Y, world_coords.Z};
 
     String cursor_pos_str = Create_String("Current Cursor {");
-    AddToString(&cursor_pos_str, (float)cursor_position.X);
-    AddToString(&cursor_pos_str, ',');
-    AddToString(&cursor_pos_str, (float)cursor_position.Y);
-    AddToString(&cursor_pos_str, ',');
-    AddToString(&cursor_pos_str, (float)cursor_position.Z);
-    AddToString(&cursor_pos_str, '}');
+    // AddToString(&cursor_pos_str, (float)cursor_position.X);
+    cursor_pos_str += (float)cursor_position.X;
+    // AddToString(&cursor_pos_str, ',');
+    cursor_pos_str += ",";
+    // AddToString(&cursor_pos_str, (float)cursor_position.Y);
+    cursor_pos_str += (float)cursor_position.Y;
+    // AddToString(&cursor_pos_str, ',');
+    cursor_pos_str += ",";
+    // AddToString(&cursor_pos_str, (float)cursor_position.Z);
+    cursor_pos_str += (float)cursor_position.Z;
+    // AddToString(&cursor_pos_str, '}');
+    cursor_pos_str += "}";
     // Text(&trm, &global_im, 0.4f, cursor_pos_str, {470.0f, WINDOW_HEIGHT - 350.0f},  {255.0f, 180.0f, 0.0f});
     
     String cursor_last_pos_str = Create_String("Last Cursor {");
-    AddToString(&cursor_last_pos_str, (float)last_mouse_x);
-    AddToString(&cursor_last_pos_str, ',');
-    AddToString(&cursor_last_pos_str, (float)last_mouse_x);
-    AddToString(&cursor_last_pos_str, ',');
-    AddToString(&cursor_last_pos_str, (float)0);
-    AddToString(&cursor_last_pos_str, '}');
+    // AddToString(&cursor_last_pos_str, (float)last_mouse_x);
+    cursor_pos_str += (float)last_mouse_x;
+    // AddToString(&cursor_last_pos_str, ',');
+    cursor_pos_str += ",";
+    // AddToString(&cursor_last_pos_str, (float)last_mouse_x);
+    cursor_pos_str += (float)last_mouse_x;
+    // AddToString(&cursor_last_pos_str, ',');
+    cursor_pos_str += ",";
+    // AddToString(&cursor_last_pos_str, (float)0);
+    cursor_pos_str += (float)0;
+    // AddToString(&cursor_last_pos_str, '}');
+    cursor_pos_str += "}";
     // Text(&trm, &global_im, 0.4f, cursor_last_pos_str, {470.0f, WINDOW_HEIGHT - 370.0f},  {255.0f, 180.0f, 0.0f});
 
 
@@ -956,7 +975,8 @@ void app_update(float &time_step, float dt){
 #endif
 
     String fps_string = Create_String("F P S : ");
-    AddToString(&fps_string, 1 / dt_avg);
+    // AddToString(&fps_string, 1 / dt_avg);
+    fps_string += 1 / dt_avg;
     Text(&trm, &global_im, 0.4f, fps_string, {10.0f, WINDOW_HEIGHT - 50.0f},  {255.0f, 180.0f, 150.0f});
     DeleteString(&dt_string);
     DeleteString(&fps_string);

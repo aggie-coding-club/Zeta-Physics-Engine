@@ -202,12 +202,12 @@ pushd "./build"
 if %ENV% == GNU (
     @REM Compiling with g++
     echo dir
-    g++ -g -std=c++14 ..\str.cpp ..\main.cpp ..\scene.cpp ..\shader.cpp ..\entity.cpp ..\renderer.cpp ..\app.cpp -o app -I..\..\include -L..\..\libs -l:libglfw3.a -l:libfreetype.a -lOpengl32
+    g++ -g -std=c++14 ..\str.cpp ..\textures.cpp ..\main.cpp ..\scene.cpp ..\shader.cpp ..\entity.cpp ..\renderer.cpp ..\app.cpp -o app -I..\..\include -L..\..\libs -l:libglfw3.a -l:libfreetype.a -lOpengl32
 )
 
 if %ENV% == MSVC (
     @REM Compiling with MSVC
-    cl /std:c++17 /Fe:./main.exe ..\str.cpp ..\main.cpp ..\scene.cpp ..\shader.cpp ..\entity.cpp ..\renderer.cpp ..\app.cpp^
+    cl /std:c++17 /Fe:./main.exe ..\str.cpp ..\textures.cpp ..\main.cpp ..\scene.cpp ..\shader.cpp ..\entity.cpp ..\renderer.cpp ..\app.cpp^
      /EHsc /Zi /I../../include /link /LIBPATH:../../libs freetype.lib libglfw3.a Opengl32.lib 
 )
 

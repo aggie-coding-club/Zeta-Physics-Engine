@@ -178,7 +178,7 @@ void PrintGLError(){
 void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float height, Color color, int texture){
     float border_width = 5.0f;
     float roundness = 5.0f;
-    // draw rect
+
     glUseProgram(basic_2d_shader.program);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -211,16 +211,6 @@ void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float
     tex_coords[2] = {1.0f, 1.0f}; // top_right
     tex_coords[3] = {0.0f, 1.0f}; // top_left
 
-    // float vertices[6][18] = {
-    //     {pos.X, pos.Y,                    tex_coords[0].X, tex_coords[0].Y, tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-    //     {pos.X + width, pos.Y,            tex_coords[1].X, tex_coords[1].Y, tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-    //     {pos.X + width, pos.Y + height,   tex_coords[2].X, tex_coords[2].Y, tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-       
-    //     {pos.X + width, pos.Y + height,   tex_coords[2].X, tex_coords[2].Y, tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-    //     {pos.X, pos.Y + height,           tex_coords[3].X, tex_coords[3].Y, tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-    //     {pos.X, pos.Y,                    tex_coords[0].X, tex_coords[0].Y, tl_color.r, tl_color.g, tl_color.b, tl_color.a,     center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness},
-    // };
-
     float vertices[6 * 18] = {
         pos.X,         pos.Y,              tex_coords[0].X, tex_coords[0].Y,   bl_color.r, bl_color.g, bl_color.b, bl_color.a,      center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness,
         pos.X + width, pos.Y,              tex_coords[1].X, tex_coords[1].Y,   br_color.r, br_color.g, br_color.b, br_color.a,      center.X, center.Y,     half_size.X, half_size.Y,   border_color.r, border_color.g, border_color.b, border_color.a,     border_width, roundness,
@@ -238,9 +228,10 @@ void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float
     glBufferSubData(GL_ARRAY_BUFFER, 0, 6 * 18 * 4, &vertices[0]);
     
     
-    // glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
 
     if(texture == -1.0){
+        // g_tm->BindTexture()
         // glBindTexture(GL_TEXTURE_2D, g_tm->GetTextureIdentifier(TEXTURE_WHITE));
     }else{
         // glBindTexture(GL_TEXTURE_2D, (unsigned int)texture);
@@ -274,6 +265,7 @@ void DrawRectTextured(TextRendererManager *trm, HMM_Vec2 pos, float width, float
     glEnable(GL_DEPTH_TEST);
     glUseProgram(0);
     
+    
     PrintGLError();
 }
 
@@ -296,7 +288,8 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
     int result = 0;
     float scale = 0.4f; // Note (Lenny) : should be passed in? 
     
-    String label_part_to_render = Create_String("");
+    Assert(label.val);
+    String label_part_to_render = Create_String("L");
     Character tallest = {};
     char c = '0';
     float text_width = 0.0f;
@@ -309,10 +302,12 @@ unsigned int Button(void *id, InputManager *im, TextRendererManager *trm, String
         }
 
         if((text_width + (ch.advance >> 6) * scale + BUTTON_PADDING) < width){
-            AddToString(&label_part_to_render, c);
+            // AddToString(&label_part_to_render, c);
+            label_part_to_render += c;
             text_width += (ch.advance >> 6) * scale;
         }else{
-            AddCharsToString(&label_part_to_render, "..");
+            // AddCharsToString(&label_part_to_render, "..");
+            label_part_to_render = label_part_to_render + "..";
             ch = trm->cts[0].characters['.'];
             text_width += (ch.advance >> 6) * scale * 2;
             break;
