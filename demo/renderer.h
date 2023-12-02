@@ -41,7 +41,6 @@ HMM_Mat4 create_projection_matrix(RendererData *rd, int width, int height);
 HMM_Mat4 create_view_matrix(HMM_Vec3 position, HMM_Vec3 front, HMM_Vec3 up);
 
 void bind_fbo(FBO *fbo);
-
 void unbind_fbo();
 void unbind_VAO();
 void store_data_in_attribute_list(RendererData *rd, int attribute_num, float data[], int num_of_components, int data_size);

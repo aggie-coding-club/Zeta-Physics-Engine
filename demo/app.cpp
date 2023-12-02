@@ -507,6 +507,9 @@ float get_dist(HMM_Vec3 a, HMM_Vec3 b){
 }
 
 void app_start(void *window){
+    SetCursorPosition(37.0f, 11.0f);
+    last_mouse_x = 37.0f;
+    last_mouse_y = 11.0f;
     SetEditMode(0);
 
     printf("Program Started\n");
@@ -535,9 +538,13 @@ void app_start(void *window){
     _T::add_texture(&textures_manager, Create_String("Pine_Leaves.png", true), TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG); 
     // =====================================
     camera.speed = 10000.0f;
-    camera.position.X = -29.0; 
-    camera.position.Y = 21.0; 
-    camera.position.Z = -53.0;
+    camera.position.X = -124.161987; 
+    camera.position.Y = 135.426010; 
+    camera.position.Z = -112.925499;
+
+    camera.pitch = -43.6000900f;
+    camera.yaw = 36.00000000f;
+    camera.roll = 0.0f;
 
     camera.world_up = {0.0f, 1.0f, 0.0f};
     camera.front = {0.0f, 0.0f, -1.0f};
@@ -680,7 +687,7 @@ void app_start(void *window){
     Scene::add_entity(sphere_scene,  ground_entity); 
 
     float time_step = 0;
-    current_scene = sphere_scene;
+    current_scene = gravity_scene;
     Scene::play(current_scene, time_step);
 }
 

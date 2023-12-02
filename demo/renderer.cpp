@@ -547,7 +547,6 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities[], u
                 }
             }
         }
-
         
     } else {
         if(im->left_release){
