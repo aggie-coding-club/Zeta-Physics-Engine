@@ -291,13 +291,13 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, _T::TexturesMana
     set_uniform_value(u_entity_color, entity->color);
 
     if(entity->isTransparent){
-        // disable_culling();
+        disable_culling();
         
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    
 
     }else{
-        // enable_culling();
+        enable_culling();
     }
 
     unsigned int u_texture_1 = get_uniform_location(shader, (char *)"texture_1");
@@ -308,6 +308,8 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, _T::TexturesMana
     set_uniform_value(u_texture_3, (int)2);
     unsigned int u_texture_4 = get_uniform_location(shader, (char *)"texture_4");
     set_uniform_value(u_texture_4, (int)3);
+    unsigned int u_texture_5 = get_uniform_location(shader, (char *)"texture_5");
+    set_uniform_value(u_texture_5, (int)4);
     unsigned int u_highlighted = get_uniform_location(shader, (char *)"highlighted");
     if(entity->highlighted){
         set_uniform_value(u_highlighted, true);
@@ -327,7 +329,7 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, _T::TexturesMana
     if(entity->textureIndex > 0){
 
         for(int i = 0; i < entity->textureIndex; i++){
-            glActiveTexture(GL_TEXTURE0 + i + 1);
+            glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, _T::GetTextureIdentifier(textures_manager, entity->textures[i]));
         } 
 
@@ -492,6 +494,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities[], u
     // glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     // glBindTexture(GL_TEXTURE_2D, 0);
     
+#if 1
     prepare_picker_renderer(rd, camera);
     for(int i = 0; i < entity_count; i++){
         E_::Entity *entity = entities[i];
@@ -566,6 +569,7 @@ void render_entities(RendererData *rd, Camera *camera, E_::Entity *entities[], u
     glUseProgram(0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
 
     // lighting pass
     prepare_renderer(rd, camera);

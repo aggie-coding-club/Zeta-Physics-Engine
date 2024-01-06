@@ -209,6 +209,7 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color, int texturesCount)
 
         } else if (s[0] == "vt"){ // texture coord
             HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), (float)textureIndex};
+        
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
@@ -536,6 +537,9 @@ void app_start(void *window){
     _T::add_texture(&textures_manager, Create_String("white.png", true), TEXTURE_WHITE, TEX_FORMAT_PNG);
     _T::add_texture(&textures_manager, Create_String("thin/stallTexture.png", true), TEXTURE_STALL, TEX_FORMAT_PNG); 
     _T::add_texture(&textures_manager, Create_String("Pine_Leaves.png", true), TEXTURE_PINE_LEAVES, TEX_FORMAT_PNG); 
+    _T::add_texture(&textures_manager, Create_String("Birch_Leaves_Green.png", true), TEXTURE_BIRCH_LEAVES, TEX_FORMAT_PNG); 
+    _T::add_texture(&textures_manager, Create_String("Tree_Bark.jpg", true), TEXTURE_TREE_BARK, TEX_FORMAT_JPG); 
+
     // =====================================
     camera.speed = 10000.0f;
     camera.position.X = -124.161987; 
@@ -583,16 +587,16 @@ void app_start(void *window){
     light_entity->def_texture = TEXTURE_WHITE;
     
     ground_entity = E_::create_entity(&em, HMM_Vec3{0, -8, -20.0f}, 2.0f, 0.0f, 0.0f, 0.0f,  
-        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-40.0f, -3.0f, -40.0f}, {40.0f, 3.0f, 40.0f}, 0, 0));
+        Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-80.0f, -3.0f, -80.0f}, {140.0f, 3.0f, 80.0f}, 0, 0));
     ground_entity->color = {0.2f, 0.8f, 1.0f};
     ground_entity->def_texture = TEXTURE_WHITE;
     
-    dragon_entity = E_::create_entity(&em, HMM_Vec3{10, 4, -10.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+    dragon_entity = E_::create_entity(&em, HMM_Vec3{10, 4, -10.0f}, 10.0f, 0.0f, 90.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     dragon_entity->color = {1.0f, 0.0f, 1.0f};
     dragon_entity->def_texture = TEXTURE_WHITE;
     
-    stall_entity = E_::create_entity(&em, HMM_Vec3{-11, 4, -5.0f}, 1.0f, 0.0f, 90.0f, 0.0f, 
+    stall_entity = E_::create_entity(&em, HMM_Vec3{-11, 4, -20.0f}, 7.0f, 0.0f, 90.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     stall_entity->color = {1.0f, 1.0f, 1.0f};
     stall_entity->def_texture = TEXTURE_STALL;
@@ -602,22 +606,22 @@ void app_start(void *window){
     test_cube_entity->color = {0.8f, 0.3f, 0.3f};
     test_cube_entity->def_texture = TEXTURE_WHITE;
 
-    pine_5_entity = E_::create_entity(&em, HMM_Vec3{21, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+    pine_5_entity = E_::create_entity(&em, HMM_Vec3{160.0f, 0, -20.0f}, 10.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     pine_5_entity->isTransparent = true;
     pine_5_entity->color = {1.0f, 1.0f, 1.0f};
     pine_5_entity->def_texture = TEXTURE_PINE_LEAVES;
-    E_::add_texture(pine_5_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_PINE_LEAVES));
     E_::add_texture(pine_5_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_TREE_BARK));
+    E_::add_texture(pine_5_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_PINE_LEAVES));
 
     
-    birch_10_entity = E_::create_entity(&em, HMM_Vec3{41, 0, -20.0f}, 4.0f, 0.0f, 0.0f, 0.0f, 
+    birch_10_entity = E_::create_entity(&em, HMM_Vec3{100, 50, -20.0f}, 10.0f, 0.0f, 0.0f, 0.0f, 
         Zeta::StaticBodyCollider::STATIC_CUBE_COLLIDER, new Zeta::Cube({-6, -2, -2}, {6, 2, 6}, 0, 0));
     birch_10_entity->color = {1.0f, 1.0f, 1.0f};
     birch_10_entity->isTransparent = true;
-    birch_10_entity->def_texture = TEXTURE_BIRCH_LEAVES;
-    E_::add_texture(birch_10_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_BIRCH_LEAVES));
+    birch_10_entity->def_texture = 99;
     E_::add_texture(birch_10_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_TREE_BARK));
+    E_::add_texture(birch_10_entity, _T::GetTextureIdentifier(&textures_manager, TEXTURE_BIRCH_LEAVES));
 
     init(test_entity,  create_cube_raw_model(&global_rd, (((Zeta::Cube *)test_entity->rb->collider)->getVertices())));
     
@@ -657,6 +661,10 @@ void app_start(void *window){
     gravity_scene = Scene::new_scene(&global_sm);
     Scene::setup(gravity_scene, "Gravity Scene");
     Scene::add_entity(gravity_scene,  ground_entity); 
+    Scene::add_entity(gravity_scene,  pine_5_entity); 
+    Scene::add_entity(gravity_scene,  stall_entity); 
+    Scene::add_entity(gravity_scene,  birch_10_entity); 
+    Scene::add_entity(gravity_scene,  light_entity); 
 
     // generating the random entities for gravity test scene
     HMM_Vec3 current_pos = {-20.0f, 48.0f, -20.0f};
@@ -688,7 +696,7 @@ void app_start(void *window){
 
     float time_step = 0;
     current_scene = gravity_scene;
-    Scene::play(current_scene, time_step);
+    // Scene::play(current_scene, time_step);
 }
 
 float angle = 0.0f;
@@ -742,8 +750,8 @@ void app_update(float &time_step, float dt){
 #if 1
     global_rd.main_light_pos = {light_entity->sb->pos.x, light_entity->sb->pos.y, light_entity->sb->pos.z};
     // ************
-    birch_10_entity->initialized = false;
-    pine_5_entity->initialized = false;
+    // birch_10_entity->initialized = false;
+    // pine_5_entity->initialized = false;
 
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->theta += dt * 100.0f;
     ((Zeta::Cube *)(debug_xmover_entity->sb->collider))->phi += dt * 100.0f;
