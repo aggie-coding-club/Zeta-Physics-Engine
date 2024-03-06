@@ -291,13 +291,14 @@ void lighting_pass_render(RendererData *rd, E_::Entity *entity, _T::TexturesMana
     set_uniform_value(u_entity_color, entity->color);
 
     if(entity->isTransparent){
-        disable_culling();
+        // disable_culling();
         
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    
-
+        // glEnable(GL_BLEND);
+        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // glDepthMask(GL_FALSE);
     }else{
-        enable_culling();
+        // glDisable(GL_DEPTH_TEST);
+        // enable_culling();
     }
 
     unsigned int u_texture_1 = get_uniform_location(shader, (char *)"texture_1");

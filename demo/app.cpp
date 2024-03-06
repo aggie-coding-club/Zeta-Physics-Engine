@@ -103,22 +103,14 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
-            // HMM_Vec3 normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
             HMM_Vec3 normal = {};
 
             normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
-            // normal = {1.0f, 0.0f, 0.0f};
-
+            
             normals.push_back(normal);
             index++;
-            // printf("x : %f, y : %f, z : %f", normal.x, normal.y, normal.z);
-        
-        } else if(s[0] == "f"){ // indicies
-            // for(int i = 0; i < s.size(); i++){
-            //     PrintString(s[i]);
-            // }
             
-            // printf("\n"); 
+        } else if(s[0] == "f"){ // indicies
             std::vector<std::string> vertex1 = SplitString(s[1], '/');
             std::vector<std::string> vertex2 = SplitString(s[2], '/');
             std::vector<std::string> vertex3 = SplitString(s[3], '/');
@@ -126,12 +118,13 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color){
             ProcessVertex(vertex1, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, 0);
             ProcessVertex(vertex2, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, 0);
             ProcessVertex(vertex3, &indicesArray, &textures, &normals, &texturesArray, &normalsArray, 0);
-            // break;
         } 
     };
 
     // Close the file
     objFile.close();
+
+    // for(int i = 0; i < vertices.length;)
 
     index = 0;
     for(HMM_Vec3 vertex:vertices){
@@ -210,25 +203,21 @@ RawModel load_obj_model(std::string fileName, HMM_Vec4 color, int texturesCount)
         } else if (s[0] == "vt"){ // texture coord
             HMM_Vec3 textureCoord = {std::stof(s[1]), std::stof(s[2]), (float)textureIndex};
         
+            if(textureIndex > 4){
+                textureIndex = textureIndex;
+            }
+
             textures.push_back(textureCoord);
             
         } else if(s[0] == "vn"){ // vertex normal
-            // HMM_Vec3 normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
             HMM_Vec3 normal = {};
 
             normal = {std::stof(s[1]), std::stof(s[2]), std::stof(s[3])};
-            // normal = {1.0f, 0.0f, 0.0f};
-
+            
             normals.push_back(normal);
             index++;
-            // printf("x : %f, y : %f, z : %f", normal.x, normal.y, normal.z);
-        
-        } else if(s[0] == "f"){ // indicies
-            // for(int i = 0; i < s.size(); i++){
-            //     PrintString(s[i]);
-            // }
             
-            // printf("\n"); 
+        } else if(s[0] == "f"){ // indicies
             std::vector<std::string> vertex1 = SplitString(s[1], '/');
             std::vector<std::string> vertex2 = SplitString(s[2], '/');
             std::vector<std::string> vertex3 = SplitString(s[3], '/');
@@ -508,6 +497,8 @@ float get_dist(HMM_Vec3 a, HMM_Vec3 b){
 }
 
 void app_start(void *window){
+    float y = 0.5f;
+    int x = y;
     SetCursorPosition(37.0f, 11.0f);
     last_mouse_x = 37.0f;
     last_mouse_y = 11.0f;
@@ -661,10 +652,10 @@ void app_start(void *window){
     gravity_scene = Scene::new_scene(&global_sm);
     Scene::setup(gravity_scene, "Gravity Scene");
     Scene::add_entity(gravity_scene,  ground_entity); 
-    Scene::add_entity(gravity_scene,  pine_5_entity); 
     Scene::add_entity(gravity_scene,  stall_entity); 
-    Scene::add_entity(gravity_scene,  birch_10_entity); 
     Scene::add_entity(gravity_scene,  light_entity); 
+    Scene::add_entity(gravity_scene,  pine_5_entity); 
+    Scene::add_entity(gravity_scene,  birch_10_entity); 
 
     // generating the random entities for gravity test scene
     HMM_Vec3 current_pos = {-20.0f, 48.0f, -20.0f};

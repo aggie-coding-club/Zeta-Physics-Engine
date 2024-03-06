@@ -56,6 +56,7 @@ void main(void){
     float spec = pow(max(dot(camera_dir, reflect_dir), 0.0), reflectivity);
     vec3 specular = specular_strength * spec * light_color.xyz; 
 
+    int textureIndex = int(f_tex_coords.z);
     // if (f_tex_coords.z == 0.0){
     //     out_color = (vec4(diffuse + specular, 1.0)) * vec4(f_color, 1.0) * texture(texture_1, f_tex_coords.xy);
     //     // out_color = vec4(0.0, 0.0, 1.0, 1.0);
@@ -79,20 +80,22 @@ void main(void){
     //     out_color = vec4(1.0, 1.0, 0.0, 1.0);
     // }
     
-    if (f_tex_coords.z == 0.0){
+    if (textureIndex == 0){
         out_color = texture(texture_1, f_tex_coords.xy) * vec4(f_color, 1.0);
-    } else if(f_tex_coords.z == 1.0){
+    } else if(textureIndex == 1){
         out_color = vec4(0.0, 1.0, 0.0, 1.0);
         out_color = texture(texture_2, f_tex_coords.xy) * vec4(f_color, 1.0);
-    } else if(f_tex_coords.z == 2.0){
+    } else if(textureIndex == 2){
         out_color = vec4(0.0, 0.0, 1.0, 1.0);
         out_color = texture(texture_3, f_tex_coords.xy) * vec4(f_color, 1.0);
-    } else if(f_tex_coords.z == 3.0){
+    } else if(textureIndex == 3){
         out_color = vec4(1.0, 1.0, 0.0, 1.0);
         out_color = texture(texture_4, f_tex_coords.xy) * vec4(f_color, 1.0);
-    } else if(f_tex_coords.z == 4.0){
+    } else if(textureIndex == 4){
         out_color = texture(texture_5, f_tex_coords.xy) * vec4(f_color, 1.0);
-    } else{
+    } else if(textureIndex > 4){
+        float m = 1;
+        // out_color = vec4(f_tex_coords.z / m, f_tex_coords.z / m,  f_tex_coords.z / m, 1.0);
         out_color = vec4(1.0, 0.0, 0.0, 1.0);
     }
     
